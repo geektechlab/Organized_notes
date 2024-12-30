@@ -1,0 +1,30 @@
+on a 32 bit system, let us suppose that we have a page size of four kilobytes, and let us suppose that the main memory size is four gigabytes, So maximum number of physical pages for each process would be equal to size of the process Virtual address space divided by page size. So the total maximum number of physical pages that the process may create will be two raised to the power 20.
+
+Now we know that main memory is divided into frames of size equal to the page size. So total number of frames in the main memory will be equal to the size of the main memory divided by page size, and therefore total number of frames in the main memory will be two raised to the power 20.
+
+So now with this data, you can see that in the worst case, only one process would eat up the entire main memory. If you just load all the physical page of one process into two, raise to the power 20 frames, you can see that the entire physical memory can be used up by just one process. So if this happens, it is clear that there will be no multitasking. In fact, operating system itself needs some portion of the main memory to run.
+
+So for the process to execute, it is not feasible to load all the physical pages of a process into main memory. So not loading all the physical pages of a process into the main memory is achieved by the concept called demand paging.
+
+
+So demand paging objective is that keep only required physical pages of a process in main memory and swap out rest of the pages of a process to a secondary storage such as disk.
+
+There will be increase in the multitasking because you can keep relevant physical pages that belong to multiple processes running on the system in different frames of the main memory at the same time. There will be less main memory consumed per process because you are really not loading unnecessary physical pages of a process in the main memory and the machine can support more number of processes or users.
+
+in order to implement the concept of demand paging, we need to introduce an additional information in a page table. This additional information is called valid invalid bit. This bit in a page table is a bit which represents whether a physical page is present in a frame or has been swept out of physical memory to a disk.
+
+So if valid bit is set, it means that physical page is present in a frame and if valid bit is not set, it means that physical page is not present in a frame.
+
+-------------149----------------------
+
+no transcript, important video, watch it.
+
+-------------150----------------------
+
+let us discuss the performance of the system under the influence of demand paging. page fault is not a good thing to happen. because it increases the memory access time by the CPU.It is because of obvious reason that the CPU has to access the disk in order to load or bring back the required physical page of a process to the main memory. So CPU has to perform swap out and swap in of a physical page between the disk and the main memory.
+
+So if P is the probability of the page fault occurrence where if P is equal to zero means that there is no page fault at all, and if P is equal to one means that every memory access attempt by the CPU result in a page fault.
+
+So there is something called effective access Time for memory access. So effective access time for memory access by the CPU can be computed by the following formula.
+
+So if P is the probability of page fault, then one minus P is the probability of not occurrence of a page fault. Therefore, multiply one minus P into memory access time of a system plus the probability of the page fault into the time taken to service a page fault. Now the time taken to service. A page fault in turn is an addition of page fault overhead plus swap page out plus swap page in plus restart overhead. Now here restart overhead means that one page fault is fully served and completed. Then CPU has to restart the instruction which it was executing and resulted in page fault. So the time taken to restart that particular instruction is called restart overhead.

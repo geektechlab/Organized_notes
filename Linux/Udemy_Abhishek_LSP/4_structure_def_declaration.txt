@@ -1,0 +1,39 @@
+Structure definition and declaration
+
+Suppose, A.h
+	typedef struct emp_
+	{
+		char name[32];
+		occ_t occ;
+	}emp_t;
+
+	typedef struct occ_
+	{
+		char desig[32];
+		unsigned int salary;
+		struct emp_t boss;
+	}occ_t;
+
+	main()
+	{
+		/* it will fail because emp_t needs occ_t definition before its declaration. Moving occ_t before emp_t will solve the problem. Same applies to function declarations/definitions */
+		emp_t emp;
+	}
+
+We can also keep the order same but change emp_ in following way to fix this issue,
+	/* Informs compiler that, struct occ_t will be defined later and tolerate if it is used as pointer before definition. It is called forward declaration */
+	struct occ_t;
+	typedef struct emp_
+	{
+		char name[32];
+		/* Instead of using occ_t completely, we are using occ_t pointer. Depending on machine size, pointer size will be. On Cortex-M4, this pointer will be of 32-bit wide. */
+		occ_t* occ;
+	}emp_t;
+	typedef struct occ_
+	{
+		char desig[32];
+		unsigned int salary;
+		struct emp_t boss;
+	}occ_t;
+
+/* Generally recursive structure dependencies should be avoided in structures. But if unavoidable, use pointers using forward declaration. */

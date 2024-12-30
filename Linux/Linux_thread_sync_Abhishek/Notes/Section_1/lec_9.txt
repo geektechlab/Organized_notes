@@ -1,0 +1,9 @@
+if main thread dies, then all other thread dies by default, but vice versa is not true. So this is one corner case where main thread enjoys an extra privileges over other threads of your process. We have already seen that we inserted a pause function to prevent our main thread from dying out.
+
+If you remove this pause function, then your entire process gets terminated quickly. The child thread do not even get any chance to execute. But now there is a way that you can actually allow your main thread to die out. Keeping all the child threads that is created by your program to stay alive. You can do so by simply terminating the main thread using p thread exit API.
+
+Now if you run this program, your main thread will get terminated immediately, but your child thread will successfully take a birth and execute and it will continue to execute. So if you allow the normal termination of your main thread by simply returning return zero from the main function, then of course your entire process will get terminated. But if you terminate your main thread using p thread underscore exit API, then all the child threads would continue to stay alive and continue to execute.
+
+So you can actually make all these minor code changes in your Hello world example and see that what is being said is actually correct and true. But If any child thread terminates, then really there is no impact on any other thread that your process has. When there is a termination of the child thread, only that child thread is terminated. So whether you terminate the child thread by cancellation or by p thread exit or by returning from the thread function, it really don't matter when the child thread terminates, it terminates the child thread only.
+
+( see hello_world_terminate_parent_keep_child_alive.c )

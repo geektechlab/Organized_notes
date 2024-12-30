@@ -1,0 +1,25 @@
+void sum ( int a[] /* it is same as int *a */, int size)
+{
+	/* int a[] doesn't create a copy of array a, it just keeps a int *p in stack */
+	/* a is generic pointer but not pointer to array so it will hold start of address but not the size of address. So we need to pass extra size arg */
+	/* this is called array decay */
+	/* we can verify it by sizeof(a) here and from main, or by (&a+1)-&a */
+
+	/* still we can use all elements using *(a+1) or a[1], here we have just lost size of array nothing else */
+}
+
+int main()
+{
+	int a[5];
+	/* since a is a pointer to array here, it will hold array size */
+	/* we can verify it by sizeof(a) here and from sum, or by (&a+1)-&a */
+	sum(a,sizeof(a)/sizeof(a[0]);
+
+	int *c=a /* it will loose size */
+	int (*p)[5]=a; /* it will hold size and work as an pointer to array */
+
+	c=a; /* it is possible */
+	a=c; /* it is not possible, a is fixed to array pointer only */
+
+	return 0;
+}

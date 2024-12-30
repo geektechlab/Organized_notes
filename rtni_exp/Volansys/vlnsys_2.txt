@@ -1,0 +1,56 @@
+Somaiya
+
+what comes in BSP
+
+parts of BSP
+
+kernel vs OS
+
+process vs thread
+
+what if two static variables with same name are declared in two functions in same file
+
+copy(*a, *b, len);
+Definition - copy the content of buffer ""b"" to buffer ""a"" where the size of buffer a=len"
+
+copy(*a, *b, len)
+{
+	if((b !=NULL) && (a !=NULL))
+	{
+		for(int i=0;i<len;i++)
+		{
+			if((*(b+i))!='\0')
+			{
+				(*(a+i))=(*(b+i));
+			}
+		}
+		printf("copied upto length=%d",i);
+	}
+	else
+	{
+		printf("buffers are not valid");
+	}
+}
+
+#include <stdio.h>
+int reverse(int);
+
+int main()
+{
+	int a=5;
+	reverse(a);
+	return 0;
+}
+
+int reverse(int a)
+{
+	if(a==0)
+	{
+		return 0;
+	}
+	else
+	{
+		printf("%d",a++);
+	}
+	reverse(a);
+}

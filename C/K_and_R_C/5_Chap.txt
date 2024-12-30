@@ -1,0 +1,56 @@
+void * (pointer to void) is the proper type for a generic pointer.
+
+pointer to void'' is used to hold any type of pointer but cannot be dereferenced itself
+
+There is one difference between an array name and a pointer that must be kept in mind. A 
+pointer is a variable, so pa=a and pa++ are legal. But an array name is not a variable; 
+constructions like a=pa and a++ are illegal.
+
+If one is sure that the elements exist, it is also possible to index backwards in an array; p[-1], 
+p[-2], and so on are syntactically legal, and refer to the elements that immediately precede 
+p[0]. Of course, it is illegal to refer to objects that are not within the array bounds.
+
+If p and q point to members of the same array, then relations like ==, 
+!=, <, >=, etc., work properly. For example, 
+ p < q 
+is true if p points to an earlier element of the array than q does. Any pointer can be 
+meaningfully compared for equality or inequality with zero. But the behavior is undefined for 
+arithmetic or comparisons with pointers that do not point to members of the same array. 
+
+The header <stddef.h> defines a type ptrdiff_t that 
+is large enough to hold the signed difference of two pointer values. If we were being cautious, 
+however, we would use size_t for the return value of strlen, to match the standard library 
+version. size_t is the unsigned integer type returned by the sizeof operator.
+
+The valid pointer operations are assignment of pointers of the same type, adding or 
+subtracting a pointer and an integer, subtracting or comparing two pointers to members of the 
+same array, and assigning or comparing to zero. All other pointer arithmetic is illegal. It is not 
+legal to add two pointers, or to multiply or divide or shift or mask them, or to add float or 
+double to them, or even, except for void *, to assign a pointer of one type to a pointer of 
+another type without a cast.
+
+A string constant, written as 
+ "I am a string" 
+is an array of characters.
+
+printf("hello, world\n"); 
+When a character string like this appears in a program, access to it is through a character 
+pointer; printf receives a pointer to the beginning of the character array. That is, a string 
+constant is accessed by a pointer to its first element. 
+String constants need not be function arguments. If pmessage is declared as 
+ char *pmessage; 
+then the statement 
+ pmessage = "now is the time"; 
+assigns to pmessage a pointer to the character array. This is not a string copy; only pointers 
+are involved. C does not provide any operators for processing an entire string of characters as 
+a unit.
+
+There is an important difference between these definitions: 
+ char amessage[] = "now is the time"; /* an array */ 
+ char *pmessage = "now is the time"; /* a pointer */ 
+amessage is an array, just big enough to hold the sequence of characters and '\0' that 
+initializes it. Individual characters within the array may be changed but amessage will always 
+refer to the same storage. On the other hand, pmessage is a pointer, initialized to point to a 
+string constant; the pointer may subsequently be modified to point elsewhere, but the result is 
+undefined if you try to modify the string contents.
+

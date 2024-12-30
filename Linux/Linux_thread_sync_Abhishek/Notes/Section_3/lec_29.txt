@@ -1,0 +1,7 @@
+what are the factors you should keep in mind which helps you to take a decision whether the threat that you are creating should be a joinable thread or it should be a detached thread.
+
+So the answer is simple that you should create a thread as joinable thread if T is supposed to return some result to some other threads. We have already seen such example while implementing MapReduce. Other reason for creating a joinable thread is that when some threads are interested in being notified of other threads termination. So the threads whose termination needs to be notified to other threads should be created as joinable threads.
+
+Whereas on the other hand, a threat should be created as detached threat. If the threat is not supposed to return any result. And nobody bothers about the death of such threats. Example of such threats are those threats which runs in infinite loop. For example, thread which is waiting for the user input. The user provides the input and the thread again waits for another input and the thread continues to do the same for the lifetime of the process. Then those threads which are actually waiting for the network packet to arrive.
+
+the threads, which works as TCP servers work a threat interacting with TCP client can also be modeled as detached threads or in fact they can also be created as joinable threads depending on the problem statement which you are trying to solve. But surely those threads which have the functionality to run in an infinite loop must be created as detached threads.

@@ -1,0 +1,18 @@
+Interrupts
+An interrupt occurs independently from the code being executed when it occurs.
+
+Faults
+result of an instruction failing to succeed in its execution. Examples include dividing by zero, dereferencing a null pointer, or attempting to execute a protected instruction while in user mode.
+
+Traps
+A trap is an exception caused by a special instruction whose sole job is to generate exceptions. Traps are the main mechanism for intentionally switching from user mode to kernel mode and are the core of all system calls.
+
+Abort
+stops running instructions
+The abort result may be triggered by any cause: if a memory access detects memory inconsistency we have an aborting fault; an exit system call is an aborting trap
+
+many different exception handlers as there are exception causes. To select which one to run, the hardware consults an exception table and uses switch C statement to select.
+
+Handlers may either abort the user code or resume its operation. Aborting is primarily used when there is no obvious way to recover from the cause of the exception.
+
+When resuming, the handler can either re-run the instruction that was running when it was generated or continue with the next instruction instead. A trap, for example, is similar to a callq in its behavior and thus resumes with the subsequent instruction. A fault handler, on the other hand, is supposed to remove the barrier to success that caused the fault and thus generally re-runs the faulting instruction.

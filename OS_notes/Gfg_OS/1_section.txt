@@ -1,0 +1,12 @@
+https://qr.ae/pKJObq
+
+Multiprogramming vs maultitasking: When process does I/O, core has to wait. To avoid it, have multiple program present in memory and run other when core does I/O, so to avoid I/O delay. In multiprogramming, process gets switched when I/O happens, but in multitasking switching between rpocess happens based on time slot manner making more responsive.
+
+Multithread is extension of multitasking. Within a process, multiple threads are executed in interleaved manner. Making a process more responsive, like MS word can hanlde writing, display simultaneously. Also, multithreading is less costly because creation/termination/switching between thread requires only register ( context switch ) and stack change, cache and TLB update is not required and page table remains same. Also, inter thread communication doesn't require much support from kernel because they have shared address space ( same physical page mapping ) for interthread communication whereas for interprocess communication IPC is required. But in multithreading due to shared variables, race conditions and deadlock can happen. Think if both thread increment and read variable but gets preemted. Also, it is hard to debug and test due to baove issues.
+
+Multiprocessing OS has support for multiple processors. It has ability to devide processes and threads amongst multiple processors.
+
+Multiuser OS has support for allowing multiple users.
+
+4th video, diagram at -2.59
+

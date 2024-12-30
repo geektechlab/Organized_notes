@@ -1,0 +1,11 @@
+Questions for this assignment
+	1)Write a program which takes an Input a positive integer from the user, say, N.
+	Your program should output :
+	5
+	4
+	3
+	2
+	1
+	I wish life was so simple. You need to print the values from N to 1 ( in reverse order) via multi-threading.
+	Your program should create N threads with thread id from 1 to N.  The Nth thread must print N, the (N-1)th thread must print N-1 and so on .
+2) What do you think about this course? Are you learning valuable stuff ?

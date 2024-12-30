@@ -1,0 +1,8 @@
+memcpy implementation such that all corner cases, src and dest overlap. I was incrementing pointers by adding some numbers but I could just do arr[i] or *(arr+i)
+
+RGB(R,G,B), create macro to all 8 bit wide numbers and compress those into one 32 bit single number each having member field having 8 bytes.
+
+use of function pointers
+bit fields
+structure padding
+dynamic and static linking

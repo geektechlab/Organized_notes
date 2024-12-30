@@ -1,0 +1,11 @@
+paging helps removing fragmentation in physical memory ( main memory, think fragmentation as in heap ) by deviding process into some fixed size chunks called pages and allows non-contiguous placement in physical memory even though virtual addresses seem contiguous.
+
+Find more details about internal and external fragmentation in heap Abhishek notes.
+
+Internal fragmentation is wastage of memory where alloacted process size is less than size of page, leaving some space.
+
+External fragmentation can be caused by internal fragmentation also where total available size is grater than required but is available in non-contiguous chunks.
+
+If we keep page sizes very small then page table numbers will increase and if we keep page size very large then fragmentation may happen because process size might be small than page size.
+
+entire section notes are important. ( if time is there, watch videos ).

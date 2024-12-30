@@ -1,0 +1,18 @@
+11. 
+	Bounded Priority inversion
+		When lower priority task is running, it enters into critical section using semaphore and then gets preemted by higher priority task. Then higher priority task runs for some time and then tries to acquire semaphore, but since lower priority task is holding it, scheduler blocks higher priority task and lower priority task runs till it comes out of critical section by releasing semaphore. Then higher priority task will run immediately. It will run into critical section then complete and run normal operations, if there are any. Once it gets finished, control will come to lower priority task.
+
+		This is bounded priority inversion because time to wait is decided by lower priority task in critical section.
+
+		Only way to avoid is to not use semaphore/mutex ( so don't have critical section ), or use mlti-core processor ( why ? ). If you have to use it, then keep critical sections as short as possible to lessen priority inversion effects.
+
+		One way to avoid critical section can be assign a unique task to handle one or more critical resource and post a request to that using a queue or soem other mechanism so that request will be serialized. So some delay will be there because queue will prioritize first tasks, but after posting a request into queue, higher priority task can continue executing without waiting for lower priority to complete.
+
+	Unbounded priority inversion
+		Things can get worse when lower priority task gets preemted by medium priority task, so lower priority task can't progress thus high priority task get blocked. Even though, medium priority task doesn't have critical section and it is lower than high priority task, it blocks high priority task. Since when medium task will complete is uncertain because there can be many, it is called unbounded priority inversion.
+
+		Priority ceiling can be used to lessen the effect. A lock's priority ceiling value should be the highest priority value of task which may use that lock. So, when lower priority task's priority will execute it will execute inside critical section as high priority task. This should be done by RTOS. So, medium taks will not be able to preemt.
+
+		Above solution doesn't fix bounded priority inversion. It only converts unbouded priority inversion to bounded priority inversion. Also it will require lot of changes in RTOS source code to support.
+
+		Another solution can be to temporarily boost lower priority task priority when high priority task tries to get that lock. This is called priority inheritance. Mutex has this support.

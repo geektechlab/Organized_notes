@@ -1,0 +1,205 @@
+paging is a concept which creates an illusion to every process which is in execution in the system. Every process believes that it has to raise to the power 32 bytes. That is four GB of physical memory available for its execution. Whereas the reality is that four GB is actually the total system physical memory which is available for all the processes combined.
+
+Paging also allows the process to store its data in non-contiguous addresses in physical memory. So far we are aware of a stack, memory and heap memory and we discussed that Stack and heap memory are contiguous regions in virtual address space. But here paging is a concept which allows the process to store its data in non-contiguous memory addresses in physical memory.
+
+Paging also allows multiple processes to reuse the same physical memory address to store its data and one process at a time. So it is like that that at one particular location in a physical memory, multiple processes can actually store their respective data at one single memory location in physical memory, but one process at a time.
+
+Paging is implemented by a special hardware called MMU. MMU stands for Memory Management Unit.
+
+A byte addressable memory is a memory in which every byte has an address. So byte is the lowest unit of memory that can be accessed. There is no data type called bit in any programming language. So the shortest data type that is available is byte in C. whenever there is a scenario that you need to access or manipulate a particular bit present somewhere in your physical or virtual memory, then you need to apply boolean operations such as and or, or not. There are no data types called bits in the programming language, and hence you cannot access memory at byte level.
+
+So when we say that suppose this physical memory is four GB in size, then you will get two raise to the power 32 bytes. Now every byte has an address. It means that your ram chip has two raise to the power 32 memory locations or memory addresses. The address of the last byte of your physical memory will be two raised to the power, 32 minus one. And remember, addresses are nothing, but these are just numerical indexes which represents a particular location of a byte in a memory.
+
+suppose we have a system which is 32 bit system. It simply means that all processes in execution have theoretically to raise to the power 32 virtual addresses in its process virtual address space. There will be two raised to the power 32 virtual addresses or logical addresses. So if we assume that the lowest logical address of a process is zero, then the highest logical address would going to be two raised to the power, 32 minus one. So addresses are nothing, but they are just 32 bit integers which identifies memory locations.
+
+In C program  addresses which you see on the output are actually virtual addresses of variables. Those are not physical addresses, but those are virtual addresses which you are printing on the screen.
+
+Now, when I say that my system is a 32 bit system, it also means that the size of the data bus is 32 bits, and the size of the address bus is 32 bits. It also determines that how many bytes your CPU actually read or write into physical memory or virtual memory at a time.
+
+MMU is a hardware unit which converts each logical address into physical address. Once a particular memory location in a physical memory is identified, CPU then issues read or write operations to be performed on those physical memory locations. Now to facilitate data transfer between CPU and physical memory there is another bus called Data Bus.
+
+So you can see that in this data bus, there are four buses. That is bus zero, bus one bus two and bus three. each bus read or write one byte of data from physical memory write. Therefore, data bus can carry four bytes of data from CPU to main memory as well as from main memory to CPU. So on a 32 bit system, the size of address bus is 32 bit lines and the size of data bus is again 32 bit data lines. So you can see that CPU can perform, read and write operations on a physical memory of four bytes in total in one CPU clock cycle on a physical memory.
+
+So why CPU can perform, read or write four bytes of data in one CPU cycle because the size of the data bus is four bytes. for example, CPU wants to read two bytes of data. So whatever data is present in these memory locations, that is on memory location number 56 and 57 in physical memory.
+
+Now let us assume that long data type is of size eight bytes. So it means that we are trying to copy eight bytes of data into a memory location identified by variable one. Now on a 32 bit system, CPU can perform, read and write operation of four bytes in one CPU clock cycle. Therefore, in order to copy eight bytes of data into this memory location, CPU will have to perform write operation in two CPU clock cycles. So CPU will take two CPU clock cycles to store the data in a physical memory on a 32 bit system. And if your system was 64 bit operating system, then CPU would have taken one CPU clock cycle in order to perform the same operation.
+
+So data bus actually defines how many bytes of data CPU can read or write into the physical memory. So for a 32 bit system, it is four bytes and for a 64 bit system it is eight bytes. So this is how address bus and data bus collaborate together to facilitate communication or data exchange between CPU and physical memory.
+
+Since address bus has 32 bit lines, address bus can carry is two raised to the power 32 minus one. It means that CPU can access the byte number in the physical memory, whose address is maximum of two raised to the power 32 minus one. Now we already know that two raise to the power 32 is equal to four gigabytes. So it simply means that if you try to install physical memory greater than four GB on your 32 bit system, it is absolutely useless thing to do. Your CPU can never access a memory location on your physical memory whose address is greater than two raised to the power 32 minus one.
+
+It means maximum of four GB of Ram you can install on your 32 bit system. If you try to install Ram, which is greater than four GB in size on a 32 bit system, the memory locations beyond the address to raise to the power 32 minus one will never going to be used by CPU and it will remain unused.
+
+So it is for this reason that today we have 64 bit systems on 64 bit system. You can install physical memory of maximum size to raise to the power 64 minus one bytes.
+
+We never ever say that we write in the virtual memory. that is wrong. Any data always resides in the physical memory. Virtual memory is a concept. Virtual memory is not a real memory or it is not an actual piece of hardware that can store your data. At the end of the day, the data needs to be stored in the physical memory. Virtual address is just a mechanism which takes you to the actual location in the physical memory with the help of paging.
+
+if we fragment this main memory in blocks of equal size, each block is then called a frame. So, we can logically divided this physical memory into blocks of equal size. On most system architecture, the size of the frame is taken as four kilobytes
+
+So how many frames are there in this four GB of physical memory. number of frames will be equal to size of physical memory divided by a size of one frame. So it means that this four GB of physical memory is divided into 2^20 frames of equal size. ( 2^32 / 2^12 = 2^20 )
+
+Now coming to the physical page, the snapshot of the data is stored in a frame of a physical memory is called a physical page. So frame of a physical memory is nothing, but it is a block of physical memory of size four kilobytes. And of course it's a physical memory. you will have some data over here.
+
+you can always think the physical memory frames as container of physical pages. a physical page is nothing, but it is a snapshot of one of the frame of the physical memory
+
+number of physical pages existing in the system is not limited by main memory size. You can have extremely, very large number of physical pages. only 2^20 physical pages can be kept in the main memory at maximum.
+
+swap is the operation in which main memory saves the physical page in one of its frame to the secondary storage and reload other page from the secondary storage into the frame.
+
+When main memory do not left with a free frame, it may choose to temporarily store the physical page on a secondary storage. Suppose, physical page P5 is present on a secondary storage and we wish to bring physical page P5 into the frame f1 of this physical memory. So we will download or store the current page from main memory to the secondary storage. Then we will copy the page p5 into the frame f one of physical memory.
+
+So, now in frame F1 physical memory has physical page p5 instead of page p3 and the page p3 has been downloaded or stored on secondary storage. So this operation of page swapping is called simply a swap.
+
+So main memory uses various page replacement algorithm to choose which page to be chosen to be replaced with new page from disk. It's not random. Such type of algorithms are Fifo or least recently used algorithm etc.
+
+just like main memory is divided into frames, which store physical pages. Virtual memory of the process is also fragmented into pages of same size, which is four kilobytes. These pages are called virtual pages. if we divide the entire virtual memory of the process into blocks of equal size, then the virtual memory is said to be fragmented into virtual pages.
+
+So each fragment of this virtual memory is called virtual page, and each virtual page has a number. So if the size of the virtual memory of a process is 2^32 bytes and the size of page is 4096 bytes, then total number of virtual pages into which virtual address space of the process is divided is 2^20 pages.
+
+to uniquely identify a page in virtual address space of a process, we would need 20 bits because it is two raised to power, 20 pages. Going further since size of each virtual page is 4096 bytes, 12 bits are required to uniquely assign an address to a byte within a page. Remember, every byte is supposed to have an address. Therefore, you need 12 bits in order to uniquely assign an address to a byte within this page. So remember, 20 bits are used to uniquely identify a particular virtual page in a process virtual address space, and once that particular virtual page is identified, then a unique address within that page is identified using 12 bits.
+
+For every virtual page, there exists a physical page. physical pages are nothing, but they are a snapshot of the frames of main memory. these physical pages may be present in some frames of physical memory or may be present on disk. But one thing is clear that for every virtual page of a process, there exists a physical page and it makes sense because you need actual physical memory to store data. Virtual pages are only a collection of virtual addresses and they do not store any data corresponding to those virtual addresses. There exist a physical page and on those physical page actually you store data.
+
+Virtual Page is just a collection of virtual addresses and actual data is stored on the corresponding physical page.
+
+physical pages are created or destroyed as process uses or frees corresponding virtual pages during the course of its execution. So you can see that suppose this process is in execution. Then corresponding to virtual pages which are in use operating system will create physical pages. So for virtual page zero, physical page P zero will be created by the operating system. So it is this physical page which will actually store the machine code instructions of the process which is in execution. Similarly, the process virtual address space has a region called initialized and initialized data segment, so corresponding to these virtual pages. Physical pages P1 and P2 will be created by the operating system. The actual initialized and initialized data segment will reside on these physical pages.
+
+Now suppose your process request some dynamic memory using malloc. So the operating system will create a virtual page and assign it to your process. Similarly, if the process requests more memory from the operating system, the operating system will assign the virtual page four to the process and corresponding to the virtual page Four. The operating system also create a physical page four and it goes on. So operating system allocates or release the virtual memory and hence the corresponding physical pages in units of page size, which is 4096 bytes. So thus if you request malloc 10, it may not result in creation of new physical or virtual page.
+
+suppose during the course of execution of a process, CPU generates virtual address of 32 bits. if your system is a 32 bit system, then the virtual address is a 32 bit unsigned integer. If your system is a 64 bit system, then the virtual address that is generated by CPU will be 64 bit unsigned integer.
+
+32 bit of virtual address can always be splitted up into two parts. The first part is the first 20 bits and the second part is the last 12 bits of virtual address. So the most significant 20 bits represents the virtual page number in the process virtual address space and the least significant bits represents a byte number within a page. 20 bits means that you need 20 bits in order to uniquely identify a virtual page inside a process, virtual address space, and you need 12 bits in order to uniquely identify a particular byte inside a virtual page.
+
+the virtual address can always be split up into two parts. The first part identifies the virtual page number in process virtual address space, and the second part helps us to find the exact byte location within a virtual page. Thus the virtual address composition, always composed of two parts the virtual page number plus offset within a page write.
+
+page table is a data structure which is maintained by operating system for every process that is running in the system. Remember, page table is for every process that is, every process has its own private page table. Page table is used to map the virtual address of process virtual address space to a physical address in Ram.
+
+--------134--------
+
+suppose virtual memory of a process is fragmented into five virtual pages, and the diagram on the right hand side represents random access memory that is physical memory, which is split it up into seven frames. So this is a physical memory. we already know that physical memory is a non-contiguous memory. Non-contiguous here means that physical pages of a process which are contiguous need not be present in adjacent frames in this main memory.
+
+So you can see that the physical page P0 is present in frame, F3 and physical page P1 is present in frame, F5 and frame. F3 and F5 are not adjacent frames. It is for this reason that physical memory is called non-contiguous memory, whereas virtual memory is called contiguous memory. Because virtual pages in this virtual memory has to be strictly laid down in the ascending order.
+
+page table is like a marriage maker between virtual memory of a process and the physical memory. page table contains three columns. The first column is the virtual page number of a process. The second column is the corresponding physical page number to which this virtual page number maps. the third column is the frame number. Frame number means the frame number of a main memory in which this physical page is loaded. So in this example, the virtual page number zero maps to the physical page, number zero of a process. Similarly, virtual page number one maps to the physical page number one, and so on.
+
+in normal scenario, the virtual page number is always equal to the physical page number.
+
+So we use the page table to know that corresponding to a given virtual page number, a physical page number is loaded in which frame of a physical memory, For example, in order to do a lookup into this page table, we will supply virtual page number as a key. So suppose the key supplied is four. So corresponding to the virtual page number for the physical page number is four and the physical page number four has not been assigned any frame number in the physical memory. It simply means that physical page number four is present on a disk instead of main memory.
+
+corresponding to every virtual page of a process, there exists a corresponding physical page. the number of rows in the page table must be equal to the number of pages in virtual memory of a process. Number of virtual pages in a process Virtual address space is two raised to the power 20. So it means that number of entries in a page table is equal to 2^20 on a 32 bit operating systems. the maximum virtual page number is two raised to the power 20 minus one.
+
+In shared memory or forking, then in those scenario we will see that virtual page number may not be equal to the physical page number in a page table.
+
+--------135--------
+
+Suppose the size of the virtual address is 16 bytes. It means that in virtual address space of a process, there can be 16 virtual addresses. And to represent 16 virtual addresses, you need four bits. It means that the size of virtual address that is generated by CPU during the course of execution of a program is of four bits in size.
+
+Next, let us assume that the size of virtual page is four bytes. Now, since the size of a virtual page is four bytes, the virtual address space of a process will be fragmented into four virtual pages. Because 16 divided by four where 16 is the size of process, virtual address space, and four is the size of a virtual page. It means that virtual address space of the process will be fragmented into four virtual pages.
+
+Now, let us assume that the size of the main memory is 32 bytes. Now, since the virtual page, size is equal to frame size. Therefore, the main memory will be fragmented into eight frames. The size of the main memory divided by the size of the frame, which is eight. So the main memory will be fragmented into eight frames.
+
+Now, going forward, since the virtual address space of the process is fragmented into four virtual pages, it means that number of bits required to represent a virtual page uniquely is two, because two raise to the power, two will give you four. And finally, number of bits required to represent an address within a virtual page uniquely is two bits. Because the size of the virtual page is four bytes.
+
+It means that in one virtual page there will going to be four bytes and every byte has an address. Therefore, you need two bytes to to uniquely identify a byte within a virtual page.
+
+Now let us suppose that your program is executing now during the course of execution of a program. We already know that CPU generates virtual addresses to perform, read and write operation in physical memory.
+
+let us suppose that, for example, CPU generates the virtual address nine. Now the binary representation of virtual address nine is 1001. Now you can see that the binary representation of the virtual address has been split up into two parts, and each part comprises of two bits. Because number of bits required to represent a virtual page uniquely is two bits and number of bits required to represent an address within a virtual page uniquely is again two bits. Therefore, virtual address that is generated by the CPU is decomposed into two parts and each part is two bits long.
+
+Now let us suppose that for the process in execution, the following is the page table. So you can see that a process has four virtual pages, page number zero, page number one and two and three corresponding to this virtual page.
+
+each of these physical page is loaded into corresponding frame number in the main memory. So you can see, for example, that the physical page one is loaded in frame number five. Similarly, physical page number two is loaded in frame number one.
+
+Now, we already know that the virtual address has been splitted up or decomposed into two parts. The first part is actually used to uniquely identify the virtual page number in the process virtual address space.
+
+the decimal equivalent of the first part is 2. So it maps to the second virtual page in the process virtual table. Now, virtual page number two has a mapping with physical page number two as per the page table. And we know that as per the page table, physical page number two is loaded in frame number one. So the output of looking up into this page table using two as a key is frame number one.
+
+So this is the output of looking up into the page table using the first two bits of the virtual address as a key into the page table. So till now, we have located the frame number one in the main memory.
+
+Now the question is that which byte number within this frame we are trying to access? So now here starts the role of the second decomposed part of a virtual address. Now, the decimal equivalent of the second decomposed part is one. And we know that the second part of the virtual address is nothing, but it is an offset within a virtual page. So it means that in a frame F one is starting with the first byte at an offset, you will end up with the physical address five of main memory.
+
+So please note that these numbers are the physical memory addresses which identify a location of a byte in a physical memory. So you can see that after adding the offset value to the starting address of frame F one, we end up getting the physical address Five. So it simply means that logical address nine that is this address maps to a physical address Five in physical memory.
+
+So once the virtual address is successfully mapped to a corresponding physical address in the main memory CPU then performs the read or write operation as per the instruction at physical address five.
+
+In the first step, CPU generates the virtual address and decompose the virtual address into two parts. using first part of the virtual address it locates the frame number of physical memory into which the physical page is loaded and using second part of the virtual address it determine the offset value. And then add this offset value to the starting address of the frame, which was determined in step number two.
+
+So you can see that the paging process involves these following four steps. And the end result of the paging is that that the virtual address that is generated by the CPU has been successfully mapped to some physical address of random access memory. And we already know that it is Ram or physical memory, which actually stores the data. So it means that from the process perspective, the process performs, read and write operation on the virtual address Nine.
+
+Process always believes that it has 16 bytes of memory available to it and to be used. Because from process perspective, the size of the virtual address space of the process is 16 bytes. Process is not even aware that there exists something called physical memory and physical addresses. It is the paging that is playing its role and successfully map the virtual address that is generated by the process to some physical address on physical memory from the process perspective. Process always believes that it is performing, read and write operation on some address line, but in reality the read and write operation is being performed on physical address five on physical memory.
+
+-----------136-------------
+
+physical memory frames are actually shared between processes running on the system. Remember, physical memory frames are not dedicated or available to one single process running on the system. Physical memory frames are there for all the processes which are running on the system.
+
+So let us suppose that in our example we have two processes which are running simultaneously on a system. So following is the page table of the two process. So as per the page table, the physical pages need not be contiguous in physical memory.
+
+Why? You can see that page number zero and page number one of process one are in frames F three and F five of physical memory respectively. So you can see that in this physical memory you have page number zero of process P one in frame number three of physical memory. And and you have page number P one of process P one in frame number five of physical memory.
+
+So you can see that in physical memory, the frames which are in green color are actually the frames which have loaded the physical pages of process one. Similarly, orange frames in this physical memory are those frames which have loaded the physical pages of process two.
+
+So you can see that different frames in a physical memory can load different pages, which belongs to different processes running on the system. Any free frame of a physical memory can be allocated to a processes physical page. And this allocation actually depends on the page replacement algorithm that is in use by the operating system.
+
+-----------137-------------
+
+how paging helps to solve the problem of external fragmentation. So we have already learnt that frame size of the physical memory is always chosen equal to the size of physical page.
+
+So on a 32 bit system, both the frame size and physical page size has been chosen as four kilobytes. Now there is a good reason that why frame size has been chosen equal to the size of a physical page of a process. Note that a physical page is always loaded at the boundary of a frame.
+
+If the size of the physical page is not equal to the size of a frame of a physical memory or the frame size is more than the size of a physical page then you can see there is a small portion of the physical memory within a frame which is wasted and unusable.
+
+So this problem is called the problem of external fragmentation and using frame size exactly equal to the size of a physical page the problem of external fragmentation has been completely prevented by concept of paging. There will be no external fragmentation if the size of a frame is equal to the size of a physical page, which is loaded into a frame.
+
+A shared physical page is a physical page which is shared by two or more running processes on the system. A physical page is said to be shared if it is present in page tables of two or more than two processes. So concept of shared physical page actually allows multiple processes running on the system to read and write into the same physical memory portion.
+
+This mechanism of data exchange between processes running on the same machine is formally called as the Inter-process communication through shared memory.
+
+-------------141-------------------
+
+page tables and paging is not an 100% perfect solution for main memory management in operating systems. First problem is the page table size matters. The second problem is that in order to store a page table in main memory, you need contiguous chunk of main memory and the third problem is the page table hollowness for small processes. Each of these problems have a common solution, and that solution is called multi-level paging.
+
+-------------142-------------------
+
+the size of the page table matters. It means that there will be problem if you tend to increase the size of page table.
+
+Suppose you have a 32 bit system and main memory size is 4GB. Size of the page is 4 kilobyte as usual. And let us suppose that the size of one entry in a page table is 4 bytes. Given this data, the size of the page table per process would going to be 4 megabytes ( 2^32 address devided in 4KB page requires 2^32/2^12 = 2^20 * 4 byte entry = 2^22 = 4MB ) , and this size of the page table is absolutely okay. Here we are bothered about page table size so size of main memory doesn't matter in calculation.
+
+So suppose if you are machine on an average is running 100 processes, then the main memory consumption is because of only page tables will be four into 100. That is 400MB of your main memory will be used only to store page tables of 100 processes. So given the configuration of the machine 400MB out of this four GB is very reasonable size of main memory which is dedicated to page tables only. So it doesn't look like a problem here.
+
+Now, suppose you have a 64 bit system. Size of the main memory is eight GB and page size is four kilobytes as usual. And let us suppose that the size of the page table entry is four bytes. Now again, calculate the size of the page table per process with this data and you will find that the size of the page table is humongous ( ( 2^64 address devided in 4KB page requires 2^64/2^12 = 2^52 * 4 byte entry = 2^54 = 2^32 MB ).
+
+You will need to raise to the power 34MB of page table and this is for each process. It is absolutely not feasible to have page tables of this much size. I don't even know how much memory this is. Is it in terabytes or petabytes?
+
+Does each process running on your 64 bit system has page tables of this much size? The answer is no, it is not possible. So you can see that the problem of page table size grows more aggrieved as virtual address size supported by the system increases.
+
+there is a need to migrate from 32 bit system to 64 bit system because 32 bit system cannot access your physical memory beyond four GB.
+
+But as you migrate from 32 bit system to 64 bit systems, the page table size would tend to increase. Having a page table of this giant size 34MB is also not feasible.
+
+So on one hand you want to migrate from 32 bit system to 64 bit system and on the other hand, there is a problem that if you try to migrate your size of the page table grows to the extent that you cannot even think to load that page table in your main memory. solution to this problem is multi-level paging.
+
+---------------143-----------------
+
+The second problem is the need to provide contiguous main memory to page tables.
+
+page tables like physical pages of a process are not fragmented and need a contiguous region in main memory. So for example, four megabytes of page table would need four megabytes of contiguous region in the main memory.
+
+So with the increase in the size of virtual address support page, table size tend to increase drastically and this is what we had discussed in the problem number one. So finding the contiguous region in main memory becomes more and more challenging to load the page tables of increased size.
+
+So let us suppose that there are three processes running in the system whose page table needs three frames each to be stored in the main memory. So page tables of processes could be loaded in any three consecutive frames of main memory. Note the word you need consecutive frames. with the increase in the size of the page tables, chances to find more available consecutive frames grow more rare.
+
+Not only the increased size of the page table is a problem, but with the increase in the size of the page table, the probability of finding consecutive frames in the main memory so that it can accommodate the entire page table is also rare.
+
+So the solution to this and previous problem is multi-level paging. So the essence of multi-level paging scheme is that that break the large page tables into smaller sizes. Load it in non-contiguous frames in main memory. In fact, multi-level paging is nothing, but it is pagination of page table. That is, paging of page tables.
+
+--------------144------------------
+
+The problem number three is the hollowness in page tables, especially for small processes. small processes are those processes which are not memory intensive or whose memory requirement is low. we already know that the size of page table per process is four megabytes. So as soon as the process runs on the system, operating system create its page table of size four megabytes and loads in main memory irrespective where the process has logged any memory or not.
+
+So page table of a process is created immediately. It's a different thing that the page table will going to be empty, but page table will be created by the operating system as soon as the process is loaded in main memory for execution. So not all processes running on the system are memory intensive. In fact, most of them are not.
+
+we already know that every process has mandatory segments called code segment and uninitialized and initialized data segment. So there will be virtual pages corresponding to these segments. Similarly, your Hello World program may or may not have some command line arguments, but still it will consume some stack memory because main function at the end of the day is a procedure call. So let us suppose that two virtual pages from the stack memory are being used by the process. Now you can see that the total number of virtual pages that this process can create is 2^32 minus one. And out of these many virtual pages, only six virtual pages are being used. And corresponding to these virtual pages, which are in use, physical pages will be created by the operating system. 
+
+For some virtual pages, if no physical pages that is being used, so the entries corresponding to those virtual pages in this page table is empty. So you can see that you have created a page table entry. But these entries are all empty at the end of the day. These empty page table entries will going to consume memory. you can see that almost the entire page table is empty. And the code segment are initialized and uninitialized data segment and stack memory lies at the opposite ends of the virtual memory. Therefore, the corresponding page table also will have virtual pages which are in use at the opposite ends of the page table. So this leads to the creation of holes in the page table holds means the entries in the page table which are not in use.
+
+So thus, for a small process, more than 99% of the page table is wasted and wastage of main memory because at the end of the day you need to load the entire page table into a main memory. the solution to this problem of hollowness of page table is nothing but multi-level paging.

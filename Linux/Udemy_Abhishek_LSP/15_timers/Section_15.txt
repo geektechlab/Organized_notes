@@ -1,0 +1,25 @@
+Posix timers
+
+	One shot timers
+		triggers only once
+		e.g., delete x after 10s, send terminate request after 10s
+		use for applications for future which requires it only once
+
+	Periodic timers
+		triggers periodically at regular intervals
+		e.g., send hello packet at interval of 5s
+
+	Exponential back off timers
+		triggers at exponentially places temporal points
+		e.g., send re-try event at t-1, t-2, t-4, t-8, t-16 and so on
+		used in protocols such as TCP
+
+timer_create()
+	Creates a Timer Data structure ( but do not fire it )
+timer_settime ()
+    Used to start / stop the timers depending on the arguments
+timer_gettime ()
+	Returns the time remaining for the timer to fire
+timer_delete()
+	Delete the timer data structure
+

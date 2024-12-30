@@ -1,0 +1,15 @@
+	- What is interrupt latency ? look into Kindle book.
+	https://www.interviewbit.com/embedded-c-interview-questions/
+	
+
+	RTOS defocus topics
+		- Got doubt why RCC->AHB2ENR will not give address of AHB2ENR from RCC structure. Actually, &RCC->AHB2ENR will give the address.
+		- Check how typedef are created and used for structures, variables etc. How to create structure variables using typedef
+		- Check how function pointers are created and used in callbacks
+		- s_ticks variable how shared between files as global scope varible and used using extern keyword.
+		- Can static inline function defined in header file use static variable inside its defintion in the header file ? ( https://stackoverflow.com/questions/47819719/static-inline-functions-in-a-header-file )
+		- Difference between static inline functions and normal functions
+		- iniline vs normal functions ( https://stackoverflow.com/a/10130669 )
+		- Macro name must start from alphabet, not number
+		- In GPIO_Inv function, see how static variable preserves value of GPIO state even after function scope completes after each function call
+		

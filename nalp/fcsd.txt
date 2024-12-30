@@ -1,0 +1,58 @@
+Do everyday:
+	Github intr prep README.md, medium article PDF
+
+	Prepare last min ref/check point notes, also add topics which forgot while revising
+
+	Add internal work, go through rsm everyday and find anything which can be questioned and add refs
+
+	1: USB
+
+	Refer links.txt
+-------------------------------------------------------
+
+I	1: FreeRTOS internal ( Using MTB example & FreeRTOS manual ) ( freertos internal, 128/256 byte aligned mem allocation, TCB, QCB and other internals ) ( Software timer atomthreads )
+
+I	1: Bootloader project + Virginia security + MTB apps
+
+	1: Abhishek LSP notes ( HOF driver code walk, my Github RTOS implementation, MMU support in FreeRTOS, how malloc/calloc works internally )
+
+		1: Virginia tech entire except networking, Basic embedded ( carmine noviello liner script chap and advance debugging chap )
+
+	1: OS: Feabhas and stack overflow ( example, diff between mutex and semaphore )
+
+	1: Cache: Feabhas, Cache BRC PPT, Neso academy ( snooping etc. ) ( Amit blog )
+
+		1: Number system, C ( pointers, deep C secrets, Shivani Moondra github for C apis) ( diff between static and inline in variable and func )
+
+	1: COA GFG ( Cache, L1, L2, L3 deep understanding, MMU, Virtual memory, paging, question/numericals ) check if Neso has anything missing like memory mapped I/O, I/O mapped I/O
+
+	1: Drivers + Bash scripting ( SCB ( Techveda and Fastbit are enough, I2C master aribtration will not happen if both masters send sme, SPI slave has to send if it wants master to clock more to just send extra data ), SD, SDIO ), code and test code walk also
+
+	1: ARM ( Selected notes, trustzone, function/interrupt call and return, secure and non-secure linker design and building from MTB codes, Fastbit udemy notes ( focus on func call, exeption and RTOS ) and FreeRTOS notes )
+
+I	1: ARM+BRC+MbedTLS ( FreeRTOS setup and call accross security domains, Trustzone PDF from ARM ), BRC ( Git and check description of non-understood concepts on net, Linux Boot flow ), BBC boot flow notes
+
+I	4: USB ( 1 jra, midlleware+driver, Samsung debug video, Jan Axelson book HID chapters, Application notes by CYP, high level details of debugger/emulator hardware, USB specification high level, USB in a nutshell must )
+
+		Done: 1: Makefile, Kindle book, OS Antachala video playlist, ? Chester videos/github notes
+
+		1: GDB, LSP, Hardware schematics
+---------------------------------------------
+Do everyday:
+
+	- Bitwise and number system -> GFG course and articles from DSA readme
+	- Array
+	- Linkedlist, if complete move to queue or deque related topics
+	- Strings, if complete move to hashing, non-linear etc.
+	- Stack/Queue/Deque
+
+---------------------------------------------
+	Each linear DSA in one day ( all notes and coding in GFG, do till leetcode medium )
+
+--------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------
+		3 mor - Linux System, Kernel ( Jamal )
+
+		1 mor - Robert Love
+
+		1 mor - LDD3

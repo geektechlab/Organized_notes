@@ -1,0 +1,8 @@
+12. 
+	Assymetric multiprocessing:
+		different types of cores run their tasks and one core runs OS and sends tasks to thers.
+
+	Symmetric multiprocessing:
+		All cores will run OS and maintain a shared list of tasks and pulls from this list as and when.
+
+	Spinlocks are useful in multi-core because they behave like a semaphore in mlti-processor envioronment. In single core those are not useful because they will waste CPU cycles. But in multi environmebt, they can keep spinning and can immediately acquire. Those are useful for shorter critical sections, because taking a mutex/semaphore and putting task into blocked/sleeping state will be costly for smaller sections. Instead, they can just spin. More advance versions of mutex may behave as spinlock first and if critical section takes a lot of time then they may transform into mutex.

@@ -1,0 +1,7 @@
+now going forward now transfer of computation model leads to a famous architectural communication model, which is famously called as publisher Subscriber model. The other word of publisher subscriber model is also referred to as notification chains.
+
+So publisher subscriber model is nothing, but it is a pattern of communication which is based on transfer of communication. The thread which generates the data is called publisher. Now you can map these terms to the example that we have already discussed to illustrate transfer of computation.
+
+So the thread which generates the data is called Publisher. The thread which owns the data processing function is called subscriber. So in this case, so in our case, the subscriber was entity number two. The activity of transfer of computation is called callback registration and the activity of invoking the function through function pointer by publisher is called notification. So in the next section of this course, we will going to understand and implement notification chain communication model.
+
+The backbone of notification chain communication model is the transfer of computation or or in simple terminology called function pointers. Using notification chain model, we will learn how to set up communication between the threads of the same process.

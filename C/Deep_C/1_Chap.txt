@@ -1,0 +1,79 @@
+the biggest defect in the switch statement is that cases don't break automatically after the 
+actions for a case label. Once a case statement is executed, the flow of control continues down, 
+executing all the following cases until a break statement is reached. The code 
+switch (2) { 
+ case 1: printf("case 1 \n"); 
+ case 2: printf("case 2 \n"); 
+ case 3: printf("case 3 \n"); 
+ case 4: printf("case 4 \n"); 
+ default: printf("default \n"); 
+}
+
+This is known as "fall through" and was intended to allow common end processing to be done, after 
+some case-specific preparation had occurred. Don't forget to add break if it is required.
+
+---------------------------------------------------------------------------------------------------
+
+adjacent string literals are concatenated into one string. This replaces the old way of constructing multiline messages using escaped newlines, and starting each continuation string in column one. 
+Old style: 
+ printf( "A favorite children's book \ 
+		is 'Muffy Gets It: the hilarious tale of a cat, \ 
+		a boy, and his machine gun'" ); 
+This can now be written as a series of adjacent string literals that will automatically be joined together as one at compile-time. The nul character that normally ends a string literal is dropped from all joined string literals except the last one. 
+New style: 
+printf( "A second favorite children's book " 
+		"is 'Thomas the tank engine and the Naughty Enginedriver 
+		who " 
+		"tied down Thomas's boiler safety valve'" );
+
+A missing comma now results in a silent marriage of adjacent strings. This has dire consequences in circumstances like the following: 
+char *available_resources[] = { 
+ "color monitor", 
+ "big disk", 
+ "Cray" /* whoa! no comma! */ 
+ "on-line drawing routines", 
+ "mouse", 
+ "keyboard", 
+ "power cables", /* and what's this extra comma? */ 
+};
+So available_resources[2] is "Crayon-line drawing routines".
+
+---------------------------------------------------------------------------------------------------
+
+Whenever you define a C function, its name is globally visible by default. You can prefix the function 
+name with the redundant extern keyword or leave it off, and the effect is the same. The function is 
+visible to anything that links with that object file. If you want to restrict access to the function, you are 
+obliged to specify the static keyword.
+
+---------------------------------------------------------------------------------------------------
+
+Table 2-1. Symbol Overloading in C
+
+---------------------------------------------------------------------------------------------------
+
+Sizeof pointer depends on machine type.
+int *p;
+sizeof(p) will be 4 on 32-bit machine and 8 on 64-bit machine because pointer holds address of variable in memory and that address is same as size of machine's processor addressing capability.
+
+---------------------------------------------------------------------------------------------------
+
+https://www.geeksforgeeks.org/what-are-near-far-and-huge-pointers/ ( not imp, was used in old intel machines )
+
+---------------------------------------------------------------------------------------------------
+
+find out diff between:
+int main()
+{
+    char p;
+    char a[3]={'1','2','3'};
+    printf("%d %d %d %d\r\n",sizeof(p),sizeof(&a[0]),sizeof(a),sizeof(&a));
+
+    return 0;
+}
+
+---------------------------------------------------------------------------------------------------
+
+Automatic variables go away once the flow of control leaves the scope in which they are declared. That means that even if you return a pointer to such a variable, as here, there's no telling what it points to once the function is exited. In C, automatic variables are  allocated on the stack. When their containing function or block is exited, that portion of the stack is available for reuse, and will  certainly be overwritten by the next function to be called. Depending on where in the stack the previous auto variable was and what variables the active function declares and writes, it might be overwritten immediately, or later, leading to a hard-to-find corruption problem.
+
+possible solution can be to return a static variable, or allocate a heap memory, or globally declared variable.
+

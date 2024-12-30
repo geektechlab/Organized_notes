@@ -1,0 +1,40 @@
+x>>1
+= x/2
+
+x<<1
+= x*2
+
+R=A^B
+A=R^B
+B=R^A
+	Suppose,
+	struct node
+	{
+		int data;
+		struct node *next;
+	}
+	
+	if we want to implement doubly linkedin list using this, then we need to store XOR of previous and next addresses in next pointer. So, previous address=next^next address, next address=next^previous address. So, while traversing, just cache the node address of previous nodes. So, then you can get address of next node just using XOR. Here, we can not traverse just from any node. Because we need previous/next node address. Traversing from in between will not have that.
+
+Using bits as flags
+	We can use 32-bit number's bit as to store attributes of some variable. e.g., each bit indicate male/female, child/adult, tall/short etc. of person.
+
+To set all bits,
+0xFFFFFFFF is not good choice because it is not portable. Becuase it will fail on 64 bit machine. Instead (~0x1) is portable on all machines.
+
+Brian Kernighan’s Algorithm ( https://www.geeksforgeeks.org/count-set-bits-in-an-integer/ )
+
+Bit pattern matching:
+	Bit pattern: 1xx1,
+	So mask, will become 1001 ( replace x with 0, replace to be matched bits with 1 )
+	So, template will become 1001 ( replace x with 0 )
+	if((input&mask)==template)
+	{
+		match;
+	}
+	else
+	{
+		no match
+	}
+
+

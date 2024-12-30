@@ -1,0 +1,15 @@
+Bus fault: ( BFAR register )
+	Precise/Synchronous: Accessing privildged registers in unpriviledged mode - accessing NVIC registers to enable IRQ ? CONTROL register ?
+	Imprecise/Asynchronous: find
+	I-bus error: find
+	Stackerror: In a function create local variable and find it's address and then find empty stack size using stack start and this variable address. Then try to create an array with more than this difference. Then it will result in hard fault and then check regsiters and find if it is stack error and then print stack error.
+
+Mem manage fault: ( MMFAR register )
+	Trying to execute fron execute never region: take an address from memory and convert it to function pointer type and then try to execute that function
+
+Usage fault:
+	Invalid state: Remove T-bit and it will give error due to no thumb bit, take an address from memory and make sure LSB is zero ( thumb bit is cleared ) and convert it to function pointer type and then try to execute that function
+	Invalid instruction: invalid op code ?, take an address from memory and convert it to function pointer type and then try to execute that function
+	Devide by zero: To avoid compiler error take some register address having zero value and try to devide a number using that register derefrencing
+	Unaligned buffer access: Enable unaligned buffer access error SCB->CCR register and store 64-bit value in one pointer.
+	FPU: disable it and try to access it using VMOV instruction of FPU

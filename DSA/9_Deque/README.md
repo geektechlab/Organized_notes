@@ -1,0 +1,6 @@
+- Deque data structure: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Deque/video/MTQ3Mw%3D%3D
+- Deque using circular array ( focus how deleteRear is simply size-- ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Deque/video/MTk5Ng%3D%3D
+- Deque STL ( focus on internal implementation of deque ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Deque/video/MTE3NQ%3D%3D
+- Deque data structure design with min and max ( understand with article: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Deque/article/NzEyMA%3D%3D ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Deque/video/MTU2Ng%3D%3D
+- Maximum of all subarray of size k ( can be done using sliding window technique using just array ? ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Deque/video/MTQxNg%3D%3D
+- First circular tour ( focus on last method using just array, try to do hands on ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Deque/video/MTU3OQ%3D%3D

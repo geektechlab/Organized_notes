@@ -1,0 +1,25 @@
+file 1: 
+	int mango[100]; 
+file 2: 
+	extern int mango[]; 
+The array definition of mango allocates space for 100 integers. In contrast, the pointer definition: 
+	int *raisin; 
+requests a place that holds a pointer. The pointer is to be known by the name raisin, and can point to any int (or array of int) anywhere. The variable raisin itself will always be at the same address, but its contents can change to point to many different ints at different times. Each of those different ints can have different values.
+
+The array mango can't move around to different places. At different times it can be filled with different values, but it always refers to the same 100 consecutive memory locations.
+
+Table 4-1. Differences Between Arrays and Pointers
+
+---------------------------------------------------------------------------------------------------------------------------
+
+IMP:
+
+Both arrays and pointers can be initialized with a literal string in their definition. Although these cases look the same, different things are happening. A pointer definition does not allocate space for what's pointed at, only for the pointer, except when assigned a literal string. For example, the definition below also creates the string literal: 
+	char *p = "breadfruit";
+Note that this only works for a string literal. You can't expect to allocate space for, for example, a float literal: 
+	float *pip = 3.141; /* Bzzt! won't compile */ 
+A string literal created by a pointer initialization is defined as read-only in ANSI C; the program will exhibit undefined behavior if it tries to change the literal by writing through p. Some implementations put string literals in the text segment, where they will be protected with read-only permission. An array can also be initialized with a string literal: 
+	char a[] = "gooseberry";
+In contrast to a pointer, an array initialized by a literal string is writable. The individual characters can later be changed. The following statement:
+	strncpy(a, "black", 5);
+gives the string in the array the new value "blackberry".

@@ -1,0 +1,6 @@
+In IDAU, each are like code, SRAM, device etc. can be devided in NS and S. So all parts will have both NS nad S parts. It is not prorammable and defined by chip designer at hardware.
+
+Any peripheral registers are mapped at 2 addresses, S and NS. NS registers can be accessed by S and NS. But S registers can be accessed by S only. Accessing S registers from NS will result in secure fault.
+
+Since IDAU is hardcoded, SAU gives facility to modify S/NS/NSC states.
+

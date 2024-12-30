@@ -1,0 +1,15 @@
+How Array and Pointer Parameters Are Changed by the Compiler
+The "array name is rewritten as a pointer argument" rule isn't recursive. An array of arrays 
+is rewritten as a "pointer to arrays" not as a "pointer to pointer". 
+
+Argument is: Matches Formal Param: 
+array of array char c[8][10]; char (*c)[10]; pointer to array 
+array of pointer char *c[15]; char **c; pointer to pointer 
+pointer to array char (*c)[64]; char (*c)[64]; doesn't change
+pointer to pointer char **c; char **c; doesn't change
+
+The reason you see char ** argv is that argv is an array of pointers (i.e., char 
+*argv[]). This decays into a pointer to the element, namely a pointer to a pointer. If the 
+argv parameter were actually declared as an array of arrays (say, char 
+argv[10][15]) it would decay to char (* argv)[15] (i.e., a pointer to an array of 
+characters) not char ** argv.

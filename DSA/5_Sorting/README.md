@@ -1,0 +1,27 @@
+- selection sort alogorithm is useful in less memory writes compared to other popular algorithms. However, optimal algorithm for less memory writes is cycle sort. Useful if you are writing to EEPROM or harddisk. Doesn't require extra memory and unstable.
+- in place sorting: if algorithm doesn't use any auxiliary space in terms of input size.
+- insertion sort and bubble sort are in place and stable.
+
+- Which alogo to use where: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTk5
+- merge sort general info: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTc2
+- Watch all merge sort videos
+- Intersection of two sorted arrays: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTgw
+- Union of two sorted arrays: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTgx
+- Count inversion in array: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTgy ( focus on why res=res+(n1-i);
+- Naive partion for quick sort: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTgz
+- Lomuto partition: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTg0
+- Hoare partition: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTg1
+- Quick sort intro: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTg2
+- Quick sort using lomuto: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTg3
+- Quick sort using hoare: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTg4
+- Quick sort analysis: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTg5
+- Space analysis of quick sort: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTkw
+- Choice of pivot in quick sort: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTkx
+- Tail call elimination in quick sort: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTky
+- Kth smallest/largest element in unsorted array: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/NzAyMA%3D%3D
+- Minimum difference in unsorted array: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/MjQ0MA%3D%3D
+- Chocolate distribution problem ( extension of previous problem ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/NzI2Nw%3D%3D
+- Sort an array with two types of elements ( based on partition algos ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTk1
+- Sort an array with three types of elements ( extension of previous problem ) ( dutch national flag algo ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTk2
+- Merge overlapping intervals: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/OTk3
+- Meeting maximum guests: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Sorting/video/MTU4NQ%3D%3D

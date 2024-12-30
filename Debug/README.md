@@ -1,0 +1,3 @@
+- ARM debug interface -> https://interrupt.memfault.com/blog/a-deep-dive-into-arm-cortex-m-debug-interfaces
+- JTAG -> https://interrupt.memfault.com/blog/diving-into-jtag-part1
+- ARM - A JTAG debugging ( inpyjama ) -> https://www.youtube.com/watch?v=9vs3XHBxqeA&list=PLFt5JBAXXlQpez5qYwA6-i7afBJRCHp1L&index=4&t=511s&ab_channel=EmbeddedSystems%2CinPyjama%21

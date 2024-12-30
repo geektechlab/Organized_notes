@@ -1,0 +1,3 @@
+first instruction in NSC is always SG. So, in S/NS, ns debugger and s debugger and associated maps are used. both are different.
+
+then secure code can be started to execute. TT instruction can be used to check if passed memory is ns and not s, so that s memory breach can't happen.

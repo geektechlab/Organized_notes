@@ -1,0 +1,40 @@
+Morning
+SAT	0.5 mor - FreeRTOS internal ( how malloc/calloc works internally, 128/256 byte aligned mem allocation, TCB, QCB and other internals, freertos internal, HOF driver, my Github RTOS implementation, MMU support in FreeRTOS)
+
+		0.5 mor - General RTOS how can be used ? don't limit to FreeRTOS ( example, diff between mutex and semaphore ) -> Virginia tech ( read Crypt also ), Feabhas then stackoverflow and related links. Cache BRC PPT
+
+		0.5 mor - Computer architecture theory ( Cache, L1, L2, L3 deep understanding, MMU, Virtual memory, paging, question/numericals ) -> GFG videos/notes and Neso academy selected videos
+
+SUN	0.5 mor - OS ( Linux system course notes, OS theory ) -> Abhishek/Chester videos/github notes
+
+today	0.5 mor - Bitwise and number system -> GFG course and articles from DSA readme
+
+today	0.5 mor - Drivers ( SCB ( Techveda and Fastbit are enough, I2C master aribtration will not happen if both masters send sme, SPI slave has to send if it wants master to clock more to just send extra data ), SD, SDIO )
+
+		1.5 mor - USB ( 1 jra, protocol, midlleware+driver )
+
+		1 mor - Github intr prep README.md
+
+today	1.5 - ARM ( basic understanding, trustzone, function/interrupt call and return, secure and non-secure linker design and building, FreeRTOS setup and call accross security domains, Udemy course, Trustzone PDF from ARM )
+
+		1 eve - C ( pointers, deep C secrets, Shivani Moondra github for C apis)
+
+	4 eve - Gfg ( all notes, do till leetcode medium, complete Bitwise )
+
+		- Basic embedded ( carmine noviello liner script )
+
+SAT- Git ( BRC PPTs, in dwnlded )
+
+SAT- Summarize Chester Rebeiro videos in half day
+
+Refer medium article to check intr prp cmplt
+
+Prepare last min ref/check point notes
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+		3 mor - Linux System, Kernel ( Jamal )
+
+		1 mor - Robert Love
+
+		1 mor - LDD3

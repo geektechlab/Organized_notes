@@ -1,0 +1,11 @@
+Agrawal
+
+- I2C data GPIO pin config to init
+- RTOS thread switching which registers are pushed and AAPCS register stacking and unstacking, also SVC use, Systick and PendSV usage
+- Character replacement didn't take NULL terminator into account https://onlinegdb.com/MiLonhJNH, used bubble sort but could optimize, use *c by malloc, check NULL, only C[] works not C[5] also
+- BSP, what all memories are there and how can be used
+- What is startup file what contents are there in apart from Reset handler
+- RTOS difference between bin semaphore, counting semaphore, mutex ( forgot diff between counting and binary )
+- RTOS communication between tasks ( Queue but use of task notifications and event groups )
+
+- Intro could be optimized ( just spoke college and company projects )

@@ -1,0 +1,17 @@
+Even though MPU can partition between priviledged and non-priviledged code, the differentiation within priviledged code can be achieved by trustzone.
+
+Also, one non-secure and secure core approach is not good because it requires two core and communication between those happens via lines so not much secure.
+
+Diff between trustzone-A and trustzone-M: at 3:41 in lec5 section2. ( in M, direct switch across staes happens using SG, BXNL or BLXNS but in A, secure app/lib calls secure OS which will use secure monitor (it is a sinle entry point unlike M where multiple secure callable regions are present having veeners) to call non-secure Rich OS like Linux )
+
+In M:
+secure software will be able to access secure regs and non-secure regs using alias. But non-secure only can non-secure regs.
+It is recommeded that modify non-secure only from non-secure though secure can access it.
+
+some registers are banked so those have two register each for one domain. MPU, Systick, system control block ( SCB ).
+
+state of ecure/non-secure is decided based on memory region. non-secure callable allow transition from secure to non-secure. NSC allows security gating and branching to secure from anywhere can be prevented. If branching from NS to S is not via NSC then we will get secure fault.
+
+Simliar to this NS access to NS peripheral and NS SRAM will result in secure fault.
+
+Any coming request from CPU will go through SAU ( programmable and if no region defined then all memory is secure, otherwise based on configuration NS/NSC ) then IDAU ( implementation defined attribute unit, it is not programmbale and designed by chip designer ) then result combined from SAU+IDAU and stricter attriute is selected then S/NS MPUand then to target.

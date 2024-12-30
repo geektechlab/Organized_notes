@@ -1,0 +1,1 @@
+malloc return generic void * pointer. So typecast while assigning.

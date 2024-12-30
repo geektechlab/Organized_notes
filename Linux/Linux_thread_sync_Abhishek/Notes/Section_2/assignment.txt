@@ -1,0 +1,28 @@
+Pls follow the instructions as given in Question.
+Questions for this assignment
+    1) Explain the difference between Concurrent threads and Parallel Threads.
+    2) An embedded system is running 2 threads on 2 cores (CPUs). 
+        What should be the condition the two threads must meet to call them :
+        a. Concurrent threads
+        b. Parallel threads.
+        3) Explain any typical process/application design which has to be multi-threaded to accomplish its functionality.
+    4) A Process P is a multi-threaded process which has two threads. Process P has two arrays , each array of 1 million integers.
+        The two threads have a responsibility to find the sum of each array. The two threads is assigned their respective array for computation.
+        Explain - is this computation concurrent or parallel under each of the below constraint.
+        1. System has 2 CPUs, and no other thread is present in the system other than these two threads.
+        2. System has 1 CPU, and no other thread is present in the system other than these two threads.
+        if we change the responsibility of the worker threads, that instead of finding the sum, they have to find the largest number present in the two arrays combined. Then is the computation concurrent or parallel if :
+        1. System has 2 CPUs, and no other thread is present in the system other than these two threads.
+        2. System has 1 CPU, and no other thread is present in the system other than these two threads.
+    5) Consider a doubly linked list containing 1 million integers as node->data.
+        A process P is created to replace the data in all nodes of the  link ist with the squared of the integers.
+        For example, if list is :  2 4 5 7  8 9
+        Final list should be :    4 16 25 49 64 81
+        A process P fork two threads to solve this problem. Assign the responsibility to the two threads so that threads can be independently executed on different processors of the system without having a need for any coordination.
+        Assume the no of nodes in the linkedlist is already known, say, N
+        Assume system has at least 2 CPUs, and no other thread is running on the system.
+    6) Which of the following is/are true ?
+        1. T1 and T2 are said to be concurrent threads if they execute only 1 at a time on a uni-processer system
+        2. Very fast Context Switching creates an illusion to human as if concurrent threads are executing in parallel
+        3. Concurrency refers to things that appear to happen at the same time, But actually not!
+        4. Concurrency must ensure independent progression

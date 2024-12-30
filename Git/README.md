@@ -1,0 +1,8 @@
+- Git vs Github -> https://www.geeksforgeeks.org/ultimate-guide-git-github/amp/
+- Git fetch vs pull -> https://www.geeksforgeeks.org/git-difference-between-git-fetch-and-git-pull/amp/
+- Git revert, checkout and reset -> https://www.geeksforgeeks.org/git-difference-between-git-revert-checkout-and-reset/amp/
+- Git prune and fetch -> https://www.geeksforgeeks.org/difference-between-git-remote-prune-git-prune-and-git-fetch-prune/amp/
+- Git vs Github flow -> https://www.geeksforgeeks.org/git-flow-vs-github-flow/amp/
+- Git push vs push origin master -> https://www.geeksforgeeks.org/difference-between-git-push-origin-and-git-push-origin-master/amp/
+- Git create new branch -> https://www.geeksforgeeks.org/how-to-create-a-new-branch-in-git-and-push-the-code/amp/
+- Git push set upstream -> https://stackoverflow.com/questions/18031946/when-doing-a-git-push-what-does-set-upstream-do

@@ -1,0 +1,22 @@
+10. 
+	Starvation
+		To remove starvation, make sure that high priority task have some osdelay or yield to let scheduler run so that other tasks can run. Also, when mutex/semaphore/spinlocks are used give some delay/ do not design a code which will race with other tasks immediately after releasing those. If not ensured, then same task may acquire those again and cause starvation to other tasks.
+
+		Also, starvation can be removed by dedicating one processr in multi-core environment to high priority task. Also, high priority task can be woken up only when interrupt arrives, letting low priority tasks run meanwhile.
+
+		Also, we can use aging. One task or scheduler can be configured to check if task has not run since a defined time, then it will increase task priority. Gradually, a point may come when lower priority task will become equivalent to higher priority task. when low priority task gets executed, it s priority can set back to default.
+
+	Deadlock
+		suppose each philosopher picks left chopsticks and gets preempted by others resulting in all picking left chopsticks having no one with two chopsticks. So, none can go ahead and none can put left down also. Causing a systemwide starvation and it is called a dealock!
+
+		In RTOS, when two tasks has to hold 2 mutex and each task acquire 1 mutex and waits to acquired second, then it results in deadlock.
+
+		Simple solution to avoid this can be put finite delay for acquiring API, so that it can come out and deadlock can detected/ deadlock can get stopped. Also, task should wait sometime to acquire it again, so that deadlock can be prevented occuring again. But this also method also don't solve concurrency completely.
+
+		Though a rare condition, it is possible that all philosophers will timeout at the same time and put chopsticks at the same time. In RTOS, all mutex acquiring call may timeout at same time. Since, all timeouts are now synced, deadlock creation and breaking will continue, causing persistent deadlock. This issue is called livelock.
+
+		One solution to this can be assign priorities to chopstick/mutex. So, tasks has to acquire mutexs only with lower numbers ( or higher number, but only one type systemwide ). So, some tasks will be able to hold 2 mutexes and finish task and later others can continue. So, deadlock will get broken.
+
+		So, in implementation, both tasks will try to acquire mutex1 first then mutex2. So, this will avoid deadlock.
+
+		Another solution can be to introduce and arbitrator ( waiter in hotel ? ) which will decide who can eat. But this removes all benefits of task parallel execution. Because at a time, only that selected task will be executing because all mutex acquisitions will be guarded by one parent mutex acquisition. Parent mutex can be acquired only once.

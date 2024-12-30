@@ -1,0 +1,5 @@
+Shared memory is one of the fastest way of implementing inter process communication between the processes. Suppose we have a process, a which we call it as a sender process because it is writing a data into a shared memory. And we have a process B which is called a receiver process, which is actually receiving the data from the shared memory. So there is something called shared memory, a region where different processes running in the system can read and write at the same time. If the process a writes a data into the shared memory and let's say that the data written is hallow, then this data that is hallow will be reflected to the process, be instantly the process. We can read the same data hallow from the shared memory region.
+
+Shared memory entirely works on the concept of memory mapping.
+
+( important: watch lec 32-35. Those are difficult to take notes. )

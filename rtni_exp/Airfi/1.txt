@@ -1,0 +1,3 @@
+Two I2C master driving clock 90* phase shifted. Who will arbitrate ?
+
+When difference will come when two I2C master drives the line with same data and addresses ?
