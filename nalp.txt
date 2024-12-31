@@ -1,0 +1,67 @@
+LKP by 5 Jan
+	30 - 01
+	40 - 02
+	50 - 03
+	60 - 04
+	72 - 05
+
+LSP by 3 Jan
+	10 - 01
+	20 - 02
+	30 - 03
+
+Revision by 5 Jan / Max by 10 Jan
+
+Expertify
+	core concepts by 30 Dec - done
+	3 hours daily in meantime by Apr
+
+ASD
+	Fundamental program each day with basic concept programs till 5 Jan
+	Each day 3 hours
+
+Linux memory management
+	weekend by 31 Jan
+
+CIG, UMMS stuff etc.
+	lhcnu
+
+WiFi, OpenCV, OpenGL, GStreamer
+	weekends from Feb
+
+-----
+5 Jan
+	LKP
+	LSP
+	Revision
+	Expertify core concepts
+	basic concepts programs
+
+10 Jan
+	Revision max
+
+31 Jan
+	Linux memory management - weekend
+	Expertify first pass - morning
+	ASD first pass - meantime, weekend
+	CIG, UMMS stuff first pass - lhcnu
+
+31 Feb
+	Expertify second pass - morning
+	ASD second pass - meantime, weekend
+	CIG, UMMS stuff second pass - lhcnu
+	WiFi/Bluetooth - weekend
+
+31 Mar
+	Expertify third pass - morning
+	ASD third pass - meantime, weekend
+	CIG, UMMS stuff second pass - lhcnu
+	OpenCV - weekend
+
+31 Apr
+	Expertify fourth pass - morning
+	ASD fourth pass - meantime, weekend
+	CIG, UMMS stuff second pass - lhcnu
+	OpenGL, GStreamer - weekend
+
+Revision start
