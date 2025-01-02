@@ -31,37 +31,41 @@ WiFi, OpenCV, OpenGL, GStreamer
 
 -----
 5 Jan
-	LKP
-	LSP
-	Revision
-	Expertify core concepts
-	basic concepts programs
+	LKP - will be by 2 - moved to 10
+	LSP - will be by 2 - done by 2
+	Revision - moved to 10
+	Expertify core concepts - done
+	basic concepts programs - moved to 10
 
 10 Jan
 	Revision max
+	LKP - morning
+	basic concepts programs
 
 31 Jan
-	Linux memory management - weekend
 	Expertify first pass - morning
-	ASD first pass - meantime, weekend
 	CIG, UMMS stuff first pass - lhcnu
+	ASD first pass - meantime, weekend
+		HDMI - weekend
+		Linux memory management - weekend
+		L rtni question ymedu notes - weekend
 
 31 Feb
 	Expertify second pass - morning
-	ASD second pass - meantime, weekend
 	CIG, UMMS stuff second pass - lhcnu
-	WiFi/Bluetooth - weekend
+	ASD second pass - meantime, weekend
+		WiFi & OpenCV - weekend
 
 31 Mar
 	Expertify third pass - morning
-	ASD third pass - meantime, weekend
 	CIG, UMMS stuff second pass - lhcnu
-	OpenCV - weekend
+	ASD third pass - meantime, weekend
+		Bluetooth and OpenGL - weekend
 
 31 Apr
 	Expertify fourth pass - morning
-	ASD fourth pass - meantime, weekend
 	CIG, UMMS stuff second pass - lhcnu
-	OpenGL, GStreamer - weekend
+	ASD fourth pass - meantime, weekend
+		GStreamer - weekend
 
 Revision start
