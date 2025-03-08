@@ -1,0 +1,34 @@
+Lazy stacking is an important feature of Cortex-M4. Without this feature, the time required for every exception increases to 29 cycles if the FPU is available and used. Instead of pushing 8 registers to the stack, it has to push 25 registers to the stack. By having the lazy stacking feature, the exception latency is still just 12 clock cycles (for a zero wait state memory system), the same as the Cortex-M3 processor. By default the lazy stacking feature is enabled, and software developers do not have to change anything to take full advantage of it. Also, there is no need to set up any registers during exception handling, as all the required operations are managed by hardware automatically. There are several key elements in the lazy stacking mechanism.
+
+FPCA bit in the CONTROL register: CONTROL.FPCA indicates if the current context (e.g., task) has a floating point operation. It is:
+• Set to 1 when the processor executes a floating point instruction
+• Cleared to zero at the beginning of an exception handler
+• Set to the inverse of bit 4 in EXC_RETURN at exception return
+• Cleared to zero after a reset
+
+EXC_RETURN: Bit 4 of the EXC_RETURN is set to 0 at exception entry if the interrupted task has floating point context (FPCA was 1). It indicates that the longer stack frame (contains R0eR3, R12, LR, Return Address, xPSR, S0eS15, FPSCR) was used at stacking. Otherwise, this bit is set to 1, which indicates that the stack frame was the shorter version (contains R0eR3, R12, LR, Return Address, xPSR).
+
+LSPACT bit in FPCCR: When the processor enters an exception handler with lazy stacking enabled, and the interrupted task has a floating point context (FPCA was 1), the longer stack frame is used in stacking and LSPACT is set to 1. This indicates that the stacking of floating point registers is deferred and space is allocated in the stack frame, indicated by FPCAR. If the processor executes a floating point instruction while LSPACT is 1, the processor will stall the pipeline and start the stacking of floating point registers, and resume operation when this is done with the LSPACT also cleared to 0, to indicate that there is no more outstanding deferred floating point register stacking. This bit is also cleared to 0 in an exception eturn if bit 4 of EXC_RETURN value was 0.
+
+FPCAR register: The FPCAR register holds the address to be used for stacking of floating point registers S0eS15 and FPSCR.
+
+Scenario #1: No floating point context in interrupted task
+If there was no floating point context before an interrupt, FPCA was zero and the short version of stack frame is used (Figure 13.19). This is the same for Cortex-M4. If the exception handler or ISR used the FPU, the FPCA bit would be set to 1, but it will get cleared at the end of the ISR during the exception return.
+
+Scenario #2: Floating point context in interrupted task but not in ISR
+If there was a floating point context before an interrupt, FPCA was 1 and the long version of the stack frame is used (Figure 13.20). However, the stack frame contains the space for S0eS15 and FPSCR, and the values of these registers are not pushed to the stack. LSPACT is set to 1 to indicate the stacking of the floating point register is deferred. At exception return, the processor sees that although EXC_RETURN[4] is 0 (long stack frame), LSPACT is 1, which indicates that the floating point registers were not pushed to the stack. So the unstacking of S0eS15 and FPSCR are not carried out and remain unchanged.
+
+Scenario #3: Floating point context in interrupted task and in ISR
+	If there is a floating point operation inside the ISR, when the floating point instruction reaches the decode stage, the processor detects the presence of the floating point operation and stalls the processor, then pushes the floating point registers S0eS15 and FPSCR to the stack, as shown in Figure 13.21. After that the stacking is completed, and the ISR can then execute the floating point instruction.
+
+	In Figure 13.21, a floating point instruction is executed during the ISR execution and triggers the deferred stacking. The address stored in FPCAR is used for storing the registers during this lazy stacking. At the end of the ISR, the exception return takes place and the processor sees that EXC_RETURN[4] is 0 (long stack frame) and LSPACT is 0, which indicates that the processor has to unstack the floating point registers from the stack frame.
+
+Scenario #4: Nested interrupt with floating point context in the second handler
+Lazy stacking works across multiple levels of nested interrupts. For example, if the thread has floating point context, the low priority ISR does not have any floating point context, and the higher priority ISR has the floating point context, we can see that the deterred lazy stacking pushes the floating point registers to the first level of stack frame pointed by FPCAR, as shown in Figure 13.22.
+
+Scenario #5: Nested interrupt with floating point context in the both handlers
+The lazy stacking mechanism also works for nested ISRs with FP context in both low- and high-priority ISRs. In that case the processor will reserve stack space for floating point registers several times, as shown Figure 13.23. In each of the exception returns, bit 4 of the EXC_RETURN values are 0, and LSPACT is also zero, indicating that the long stack frames were used and the processor will have to unstack the floating point registers from each stack frame.
+
+If during lazy stacking, a new higher priority interrupt arrives, the lazy stacking is interrupted. The floating point instruction that triggered the lazy stacking was still in the decode stage and was not executed, so the return PC in the stack points to the address of this instruction. If the higher priority interrupt does not use any floating point operation, after it is returned, the floating point instruction that triggered the lazy stacking the first time enters the processor pipeline again and triggers the lazy stacking the second time.
+
+Many floating point instructions take multiple clock cycles. If the interrupt takes place during VPUSH, VPOP, VLDM, or VSTM instructions (multiple memory transfers), the processor suspends the current instruction and uses the ICI bits in EPSR to store the status of these instructions, then executes the exception handler, and finally resumes these instructions from where it was suspended based on the restored ICI bits. If the interrupt takes place during VSQRT and VDIV, the processor continues the execution of these instructions with  the stacking operation going on in parallel.

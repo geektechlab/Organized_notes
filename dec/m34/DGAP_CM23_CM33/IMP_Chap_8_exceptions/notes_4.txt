@@ -1,0 +1,60 @@
+Because peripherals can be allocated to the Secure and the Non-secure worlds, their interrupts must be directed to the interrupt handlers in the correct security domains. In addition,
+there are a number of system exceptions that need to be handled by either the Secure or the
+Non-secure handlers. If the TrustZone security extension is implemented:
+• All of the interrupts can be configured to be either Secure or Non-secure (e.g., for a
+peripheral, the interrupt’s targeted state should be configured based on the security
+domain of that peripheral).
+• Some of system exceptions are banked, which means that there can be both Secure and
+Non-secure versions of these exceptions. Both can be triggered and executed
+independently and have different priority level settings.
+• Some of the system exceptions (NMI, HardFault, BusFault) can be configured to target
+either the Secure state or the Non-secure state (using AIRCR.BFHFNMINS bit).
+• Some of the system exceptions only target the Secure state (e.g., reset, SecureFault).
+
+If the TrustZone security extension is NOT implemented, exceptions and interrupts target
+the Non-secure state. The SecureFault is not available in this situation.
+
+If an exception is Secure:
+• The starting address of the exception is obtained from the Secure vector table in the Secure
+memory, and
+• During the execution of the handler, the Secure Main Stack Pointer (MSP_S) is, by
+default, used.
+Software developers need to ensure that the program codes of Secure exception handlers
+are placed in the Secure memory. This ensures that these handlers execute in Secure state.
+
+If an exception is Non-secure:
+• The starting address of the exception is obtained from the Non-secure vector table in the
+Non-secure memory, and
+• During the execution of the handler, the Non-secure Main Stack Pointer (MSP_NS) is, by
+default, used.
+The program codes for the Non-secure exception handlers are placed in the Non-secure
+memory and execute in the Non-secure state.
+
+If the exception is setup incorrectly, for example, an interrupt is setup to target the Nonsecure state but the vector is pointing to a Secure address, then a SecureFault or HardFault
+exception would be triggered. However, the architecture allows the use of a Secure API as
+a Non-secure handler. In such a situation, the vector in the Non-secure vector table points
+to a valid Secure entry point (the first executing instruction is a Secure Gateway (SG) and this
+is placed in a Secure NSC memory), which is a Secure address. This situation does not trigger
+either a SecureFault or HardFault exception.
+The types of exceptions and interrupts and their default target states are shown in
+Table 8.11.
+As shown in Table 8.11, a number of exceptions can be configured to target either the Secure or the Non-secure state. The targeted state is defined by programmable registers, or by
+other mechanisms (Table 8.12), that are only accessible in Secure privileged state (or from a
+debug connection with Secure debug access).
+
+The bit BFHFNMINS (“Bus Fault, HardFault and NMI Non-secure enable”) is a programmable bit in the AIRCR (Application Interrupt and Reset Control Register). This bit is only
+accessible in Secure privileged state.
+When BFHFNMINS is set to 1, BusFault, HardFault and the NMI event will, with the exception of faults that target the Secure state and that are escalated to HardFault, be handled using
+the Non-secure system exception handlers. If a security error occurs when BFHFNMINS is 1,
+the exception triggered will still be a Secure HardFault and will target the Secure state.
+Worth noting is that the BFHFNMINS feature should only be enabled if the Secure software is to be unused and you want to seal off access to all Secure software features. It is
+recommended that:
+• Once BFHFNMINS has been set to 1, that the calling of secure functions should be blocked.
+In addition, the triggering of a secure exception that may return should also be blocked.
+• If a Secure fault event is triggered in this setup (i.e., BFHFNMINS is set to 1), that Nonsecure codes should not, unless through a reset sequence, be allowed to execute again.
+
+In a Cortex-M23 processor with the TrustZone implemented, it is possible to have just one
+SysTick timer implemented. In such a case, the Secure privileged software can program the
+STTNS (bit 24) in the “Interrupt Control and State Register (ICSR)” to decide whether the
+SysTick should be allocated to the Secure (when STTNS=0) or the Non-secure worlds
+(STTNS=1).

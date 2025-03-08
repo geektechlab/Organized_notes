@@ -1,0 +1,34 @@
+The FPB has a Flash Patch control register that contains an enable bit to enable
+the FPB. In addition, each comparator comes with a separate enable bit in its
+comparator control register. Both of the enable bits must be set to 1 for a comparator
+to operate.
+The comparators can be programmed to remap addresses from Code space to the
+SRAM memory region. When this function is used, the REMAP register needs to be
+programmed to provide the base address of the remapped contents. The upper three
+bits of the REMAP register (bit[31:29]) are hardwired to b001, limiting the remap
+base address location to within 0x20000000 to 0x3FFFFF80, which is always within
+the SRAM memory region.
+
+The data holding the remapped values is arranged as a continuous eight words of
+data in the SRAM region, which must be aligned to an eight-word boundary, with the
+starting address pointed by the REMAP register. When the instruction address or the literal address hits the address defined by the comparator, and if the comparator is
+programmed for remap function, the read access is remapped to the table pointed
+to by the REMAP register (Figure 14.13).
+The remapped address can be expressed as: {3’b001, REMAP, COMP[2:0],
+ADDR[1:0]}, where COMP[2:0] is the number of the matching comparator, and
+ADDR[1:0] is the lowest two bits of the original address value of the access.
+Using the remap function, it is possible to change a function call instruction so
+that a modified function in a different memory (e.g., a small programmable patch
+memory with flash or EEPROM) is used, and even the program code is in ROM
+and cannot be changed.
+You can also create some “what-if” test cases in which the original instruction or
+a literal value is replaced by a different one.
+
+Another example use is to place test functions or subroutines in the SRAM
+region, and patch the program ROM in the CODE region so that a branch to the
+test functions or subroutine can take place. These usage possibilities make it possible
+to debug a ROM-based device. (More information on this topic can be found in
+section 23.10.)
+
+Alternatively, the six instruction address comparators can be used to generate
+breakpoints as well as to invoke halt mode debug or debug monitor exceptions.

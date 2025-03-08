@@ -1,0 +1,1 @@
+The prefix of commands reflects the type of the pre-built toolchain. In this case, the command names shown in the third column of Table 17.1 are pre-built for ARM EABI3 without a specific target OS platform, hence the prefix “none.” Some GNU toolchains could be created for  developing applications for Linux platforms, and in those cases the prefix would be “arm-linux-.”

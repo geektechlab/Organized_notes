@@ -1,0 +1,67 @@
+SDIO card is an interface that extends the functionality of devices by using a standard SD card slot to give devices new capabilities. The SD standard offers great flexibility, include the ability to use the SD slot for more than memory cards. A partial list of new capabilities incudes:
+	GPS
+	Camera
+	Wi-Fi
+	Ethernet
+	Barcode readers
+	Bluetooth
+
+A SDIO (Secure Digital Input Output) card is an extension of the SD specification to cover I/O functions. However now more common for I/O devices to connect using the USB interface.
+
+The SDIO (Secure Digital I/O) card is based on and compatible with SD memory card.
+
+The intent of the SDIO card is to provide high-speed data I/O with low power consumption for mobile electronic devices.
+
+A primary goal is that an SDIO card inserted into a non-SDIO aware host will cause no physical damage or disruption of that device or it’s software. In this case, the SDIO card should simply be ignored.
+
+Once inserted into an SDIO aware host, the detection of the card will be via the normal means described in the SD specification with some extensions.
+
+If the card is acceptable, it will be allowed to power up fully and start the I/O function(s) built into it. 
+
+Communication over the SD bus is based on command and data bit streams that are initiated by a start bit and terminated by a stop bit.
+
+Command : a command is a token that starts an operation. A command is sent from the host either to a single card (addressed command) or to all connected cards (broadcast command). A command is transferred serially on the CMD line.
+
+Response : a response is a token that is sent from an addressed card, or (synchronously) from all connected cards, to the hosts as an answer to a previously received command. A response is transferred serially on the CMD line.
+
+Data : data can be transferred from the card to the host or vice versa. Data is transferred via the data lines.
+
+In order to allow the SDIO card to interrupt the host, an interrupt function is added to a pin on the SD interface. Pin number 8, which is used as DAT[1] when operating in the 4-bit SD mode, is used to signal the card’s interrupt to the host. The use of interrupt is optional for each card or function within a card. The SDIO interrupt is “level sensitive”, that is, the interrupt line must be held active (low) until it is either recognized and acted upon by the host or de-asserted due to the end of the Interrupt Period. Once the host has serviced the interrupt, it is cleared via some function unique I/O operation. All hosts must provide pull-up resistors on all data lines DAT[3:0] as described in section 6 of the SD Physical Specification.
+
+SD 4-bit mode Since Pin 8 is shared between the IRQ and DAT[1] use in the 4-bit SD mode, an interrupt shall only be sent by the card and recognized by the host during a specific time. The time that a low on Pin 8 will be recognized as an interrupt is defined as the Interrupt Period. 
+
+This Interrupt Period is intended to prevent the interaction between the DAT[1] data and the interrupt signals on a common pin. Note that the Interrupt period includes the times when there is no command or data activity between the host and the card. In the case where the interrupt mechanism is used to wake the host while the card is in a low power state (i.e. no clocks), Both the card and the host shall be placed into the 1-bit SD mode prior to stopping the clock. 
+
+There are four kinds of commands defined to control the SD Memory Card: 
+	Broadcast commands (bc), no response - The broadcast feature is only if all the CMD lines are connected together in the host. If they are separated, then each card will accept it separately in its turn. 
+
+	Broadcast commands with response (bcr) response from all cards simultaneously - Since there is no Open Drain mode in SD Memory Card, this type of command shall be used only if all the CMD lines are separated - the command will be accepted and responded by every card separately. 
+
+	Addressed (point-to-point) commands (ac) no data transfer on DAT 
+
+	Addressed (point-to-point) data transfer commands (adtc) data transfer on DAT 
+
+A requirement for the SDIO specification is that an SDIO card must not cause non-I/O aware hosts to fail when inserted. In order to prevent operation of I/O Functions in non-I/O aware hosts, a change to the SD card identification mode flowchart is needed. A new command (IO_SEND_OP_COND, CMD5) is added to replace the ACMD41 for SDIO initialization by I/O aware hosts. 
+
+After reset or power-up, all I/O functions on the card are disabled and the I/O portion of the card will not respond to any operation except CMD5 or CMD0 with CS=low. If there is SD memory installed on the card (also called a combo card), that memory will respond normally to all normal mandatory memory commands. 
+
+An I/O only card will not respond to the ACMD41 and thus appear initially as an MMC card. The I/O only card will also not respond to the CMD1 used to initialize the MMC cards and appear as a non-responsive card. The host will then give up and disable this device Thus, the non-aware host will receive no response from an I/O only card and force it to the inactive state. 
+
+An SDIO aware host will send CMD5 prior to the CMD55/ACMD41 pair, and thus would receive a valid OCR in the R4 response to CMD5 and continue to initialize the card. 
+
+The function of CMD5 for SDIO cards is similar to the operation of ACMD41 for SD memory cards. It is used to inquire about the voltage range needed by the I/O card. 
+
+An SDIO card receiving CMD5 shall respond with a SDIO unique response, R4.
+
+The SDIO card has a fixed internal register space and a function unique area. 
+
+The fixed area contains information about the card and certain mandatory and optional registers in fixed locations. 
+
+The fixed locations allow any host to obtain information about the card and perform simple operations such as enable in a common manner. 
+
+The function unique area is a per-function area, which is defined either by the Application Specifications for Standard SDIO functions or by the vendor for non-standard functions.
+
+The Common I/O Area (CIA) shall be implemented on all SDIO cards. The CIA is accessed by the host via I/O reads and writes to function 0. The registers within the CIA are provided to enable/disable the operation of the I/O function(s), control the generation of interrupts and optionally load software to support the I/O functions. The registers in the CIA also provide information about the function(s) abilities and requirements. There are three distinct register structures supported within the CIA. They are:
+	Card Common Control Register (CCCR)
+	Function Basic Registers (FBR)
+	Card Information Structure (CIS)

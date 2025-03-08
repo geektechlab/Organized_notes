@@ -1,0 +1,437 @@
+Sources of exceptions include:
+• Peripheral interrupt requests (also referred to as IRQs) or other hardware event signals (e.g., architecturally a reset is a kind of exception)
+• Error conditions (e.g., bus error in the memory system)
+• Software generated events (e.g., execution of an SVC instruction)
+
+In addition to peripheral events handling, exceptions are needed for OS support, fault handling, and security (e.g., a violation of TrustZone or a memory protection violation can be handled by fault exception handlers). In the case of OS support, exceptions are needed for:
+• Context switching between different tasks/threads, and
+• Providing OS services to application codes
+
+When a peripheral or a piece of hardware needs servicing, the following sequence typically occurs:
+1. The peripheral asserts an IRQ signal to the processor,
+2. The processor suspends the current executing task,
+3. The processor executes an ISR to service the peripheral and the ISR optionally clears, if it is needed, the IRQ signal,
+4. The processor resumes the previously suspended task.
+
+The NVIC in the Cortex-M33 processor has the following enhancements when compared to the Cortex-M3/Cortex-M4 processors:
+• It has optional TrustZone security support
+• It supports sporadic interrupt logic removal
+• It has a new SecureFault exception (but only if the TrustZone security extension has been implemented)
+
+CM33 always has two SysTick timers (Secure and Non-secure SysTick).
+
+Exceptions are numbered: numbers 1–15 are reserved for system exceptions and those 16 and above are for IRQs. Most of the exceptions, including all interrupts, have programmable priority, and a few system exceptions have fixed priority.
+
+( Very very important: Exception types 1–15 are system exceptions (there is no exception type 0), as outlined in Table 8.3. Exceptions type 16 and above are external interrupt inputs (see Table 8.4). )
+
+The NVIC and SCB data structures are located inside the System Control Space (SCS) address range. If the TrustZone security extension is implemented and if the processor is in the Secure state, the Non-secure view of the SCS is accessible via a Non-secure SCS alias. The SCS also contains registers for the SysTick timer, Memory Protection Unit (MPU), debug registers, etc.
+
+if you need to relocate the vector table to a different memory location, the program code needs to update the Vector Table Offset Register (VTOR) directly in the SCB.
+
+After reset, all interrupts are disabled and are given a priority level value of 0. If the TrustZone security extension is implemented, all interrupts are defined as Secure by default. Before using any interrupts, if the TrustZone security extension is implemented, the Secure firmware needs to define for each interrupt whether the interrupt should be targeting the Secure (for Secure peripherals) or the Non-secure state (for Non-secure peripherals). After the target security states of the interrupts are set up, the application’s software would need to carry out the following steps to enable the interrupt feature:
+• Setup the priority level of the required interrupt (this step is optional: the default interrupt priority level is 0. If the application needs the interrupt to be set up at a different priority level, then it would be necessary to reprogram the priority level),
+• enable the interrupt generation control in the peripheral that triggers the interrupt,
+• enable the interrupt in the NVIC.
+
+The application code must also:
+• provide a suitable interrupt service routine (ISR) to service the interrupt, and
+• ensure the name of the ISR matches the name of the interrupt handler as defined in the vector table (you can usually find this in the startup code provided by the microcontroller vendor). This is required to enable the linker to place the starting address of the ISR in the vector table. In most typical applications that is all you need to do. When the interrupt triggers, the corresponding interruptservice routine (ISR) will execute (you might, though, need to clear the interrupt request from the peripheral within the handler).
+
+The processor accepts an exception request if the following conditions are met:
+• An interrupt or exception event takes place, causing its pending state register to be set to 1
+• The processor is running (not halted or in reset state)
+• The exception is enabled (Note: NMI and HardFault exceptions are always enabled)
+• The exception has a higher priority than the current priority level
+• The exception is not blocked by an exception masking register (e.g., PRIMASK)
+Note: For an SVC exception, if the SVC instruction is accidentally used in an exception handler that has the same or a higher priority than the SVC exception itself, the result will be a HardFault exception.
+
+An exception entry sequence contains a number of operations:
+• It pushes the contents of a number of registers into the current selected stack––the register values include the return address. This is known as “stacking” and enables an exception handler to be written as a normal C function. If the processor was in Thread mode and was using the Process Stack Pointer (PSP), the stack area pointed to by the PSP will be used for this stacking. Otherwise, the stack area pointed to by the Main Stack Pointer (MSP) will be used.
+• It fetches the exception vector (starting address of the exception handler/ISR). For processors with Harvard bus architecture, like the Cortex-M33 processor, this can, to reduce latency, happen in parallel to the stacking operation.
+• It fetches instructions for the exception handler to execute. After the starting address of the  exception handler is determined by reading the vector table, the instructions are then fetched.
+• It updates various NVIC and core registers. This includes the pending status and active status of the exception and registers in the processor core, including the Program Status Register (PSR), Link Register (LR), Program Counter (PC), and Stack Pointer (SP).
+• It erases Secure information in the register bank before the ISR starts if the processor was running Secure software and is taking a Non-secure exception. This is to prevent Secure information from leaking to the Non-secure world.
+
+Depending on which stack was used for stacking, either the MSP or PSP value would be adjusted just before the exception handler started. The PC would also be updated to the stating address of the exception handler and the LR would be updated with a special value, called EXC_RETURN (see Section 8.10). This “special” value is 32 bits, with its upper 25 bits set to 1. Some of its lower 7 bits are used to hold status information about the exception sequence (e.g., which stack was used for stacking). This value will be used in the exception return.
+
+Within the exception handler, the peripheral that triggered the interrupt request is serviced by software operations. The processor is in Handler mode when executing an exception handler. In Handler mode:
+• the Main Stack Pointer (MSP) is used for stack operations,
+• the processor executes at privileged access level.
+If a higher priority exception arrives at this stage, the new interrupt will be accepted and the current executing handler will be suspended and preempted by the higher priority handler. This situation is called nested exception. If another exception with the same or with a lower priority arrives during this stage, the newly arrived exception will stay in pending state and will only be serviced when the current exception handler has finished. When the exception handler is finished, the program code executes a return which causes the EXC_RETURN value to be loaded from LR into the Program Counter (PC). This triggers the exception return mechanism.
+
+In some processor architecture, a special instruction is used for an exception return. However, when this is the case it means the exception handlers cannot be written and compiled as normal C code. In Arm Cortex-M processors, the exception return mechanism is triggered using a value called EXC_RETURN. This value is generated at the exception entry sequence and is stored in the Link Register (LR). When this value is written to the PC with one of the allowed exception return instructions, it triggers the exception return sequence.
+
+The exception return can be generated by the instructions shown in Table 8.8. During an exception return, the register values of the previously interrupted program that were saved to the stack during the exception entrance are automatically restored by the processor. This operation is called unstacking. In addition, when this occurs, a number of NVIC registers (e.g., the active status of interrupts) and registers in the processor core (e.g., PSR, SP, CONTROL) will be updated.
+
+In parallel to the unstacking operation, for processors with the Harvard bus architecture, such as the Cortex-M33, the processor will start fetching the instructions of the previously interrupted program to allow the program to quickly resume its operations. The use of the EXC_RETURN value for triggering exception returns allows exception handlers (including Interrupt Service Routines) to be written as a normal C function/subroutine.
+
+In code generation, the C compiler handles the EXC_RETURN value in LR as a normal return address. Because of the values used by the EXC_RETURN mechanism, it is not possible to have a normal function return to address 0xF0000000 to 0xFFFFFFFF. However, since the architecture specifies that this address range cannot be used for program code (because it has a Execute Never (XN) memory attribute) it does not cause any software problems.
+
+Each of the interrupts and exceptions in Arm Cortex-M processors has an exception priority level. When a higher priority level interrupt/exception occurs during a lower priority interrupt/exception service, it preempts the lower priority service. This is known as nested interrupt/exception handling. In Cortex-M processors:
+• A higher value in the priority level register means a lower priority level (see Fig. 8.3).
+• A priority level with a value of zero is the highest level for a programmable interrupt/ exception.
+• Some system exceptions (NMI, HardFault, and reset) have fixed/non-programmable priority levels of negative values––hence a higher priority than interrupts/exceptions with programmable priority levels.
+
+In Armv8-M processors with a Main extension (e.g., the Cortex-M33 processor) and in Armv7-M processors:
+• The implemented width of the priority level registers is configurable by chip designers. The minimum width is 3 bits (8 levels) and the maximum is 8 bits (256 levels, with a maximum of 128 levels of preemption).
+When less than 8 bits are implemented in the priority level registers, the reduction in the number of priority level registers is achieved by cutting out the Least Significant Bit (LSB) portion of the priority configuration registers. In this way, when a software binary image moves to a device which has fewer priority levels, this will not cause, an inversion of the priority levels––which can occur if the MSB (Most Significant Bits) is lost.
+
+( FIG. 8.4 Priority level registers of Cortex-M23 and Cortex-M33 processors. )
+
+The interupt/exception priority level decides whether an incoming interrupt/exception is accepted by the processor:
+• If the incoming interrupt/exception event has a higher priority level than the processor’s current priority level, then the interrupt/exception request will be accepted and the exception entry sequence will start.
+• If the incoming interrupt/exception event has the same or a lower priority level than the processor’s current priority level, then the incoming interrupt/exception request is blocked and held in a pending status register (to be served later). This is caused when any of the following conditions occurs:
+	• The processor is already serving another interrupt/exception of the same/higher priority level, or
+	• An interrupt/exception mask register is set which changes the processor’s current effective priority level to the same/higher priority level as the incoming interrupt/ exception
+
+There are a few exceptions: For example, if an SVC or a synchronous fault exception is triggered and the priority level is insufficient to execute the corresponding fault handler, then the exception event will be escalated to a HardFault exception. Several system exceptions have fixed priority levels of negative values (Table 8.9).
+
+( TABLE 8.9 Priority levels of system exceptions. )
+
+8-bit priority level registers are further divided into two halves:
+- The upper half (left bits) is the group priority for the preemption control
+- The Lower half (right bits) is the subpriority
+This register is banked between security states. Using the PRIGROUP bit field, the maximum level of interrupt/exception nesting can be controlled. The group priority level defines whether an interrupt can take place when the processor is already running another interrupt handler. The subpriority level value is only used when two exceptions with the same group priority level have occurred at the same time. In such a case, the exception with the higher subpriority (lower value) will be handled first.
+
+In some applications, it is essential to arrange for some of the Secure interrupts or Secure system exceptions to have a higher priority than the Non-secure interrupts/exceptions. This is to ensure the background Secure software services operates correctly. For example, a device could have a certified Bluetooth software service running in the background and its operation must not be affected by a failure of applications running on the Non-secure side.
+
+To meet this requirement, TrustZone for Armv8-M allows Secure software to prioritize, if needed, Secure exceptions and interrupts. The Secure exceptions/interrupt prioritization is controlled by a programmable bit in the AIRCR called PRIS (Prioritize Secure exception). By default, this bit is set to 0 out of reset, which means Secure and Non-secure exceptions/interrupts share the same configurable programmable priority level space for level 0 to 0xFF (Fig. 8.5). When the AIRCR.PRIS is set to 1, although Non-secure software will still see it has exception/interrupt priority levels 0 to 0xFF, the effective level value will be shifted by 1 bit and placed in the  lower half of the Secure exception/interrupt priority level space (Fig. 8.6).
+
+While AIRCR.PRIS can, to some extent, protect background Secure exception/interrupt services, the services can still be stopped if the halting debug is enabled (subject to debug authentication configuration). The system can also be stopped by a reset or the powerdown of the device. The Secure interrupt/exception prioritization feature is available in all Armv8-M processors when the TrustZone security extension is implemented.
+
+In Armv8-M processors with TrustZone, the interrupt masking registers (PRIMASK, FAULTMASK, and BASEPRI) are banked between security states. Since the priority level space is shared between the Secure and the Non-secure world, setting an interrupt mask register on one side can block some, or all, of the exceptions on the other side. AIRCR.PRIS also affects the operations of the interrupt masking registers. For example, if the AIRCR.PRIS is set to 1, and the Non-secure software sets the Non-secure PRIMASK (PRIMASK_NS) to 1, then, on the Secure side, although Secure exceptions with priority level 0x80 to 0xFF are blocked, on the Non-secure side all Non-secure exceptions with configurable priority levels (0x0 to 0xFF) are blocked.
+
+(Fig. 8.7). When an exception is accepted by the processor, the starting address of the handler is read from a vector table and the address being read is calculated as:
+	Vector address = exception_number 4 + Vector_Table_Offset
+the LSB of the vectors should be set to 1 to indicate Thumb state.
+
+The first word in the vector table stores the initial value for the Main Stack Pointer (MSP). This value is copied into the MSP register during the reset sequence. This is needed because some exceptions, such as NMI, could occur just as the processor comes out of reset and before any other initialization steps have been carried out. The vector table offset is defined by a Vector Table Offset Register (VTOR). In Armv8-M processors which have TrustZone support, there are two vector tables:
+• The Secure vector table is for Secure exceptions and is placed in the Secure memory. The address of the Secure vector table is defined by VTOR_S (Secure VTOR).
+• The Non-secure vector table is for Non-secure exceptions and is placed in the Non-secure memory. The address of the Non-secure vector table is defined by VTOR_NS (Non-secure VTOR).
+
+When TrustZone is not implemented, then only the Non-secure VTOR is present. In the Cortex-M33 processor, the lowest 7 bits of the VTOR registers are tied to 0, which means the vector table starting address must be multiples of 128 bytes. In the Cortex-M33 processor, VTOR(s) are implemented as 25 bits wide (bit 31 down to 7 are implemented).
+
+Secure privileged software can access the Non-secure VTOR (VTOR_NS) using the Non-secure SCB alias (this alias address is not available to a debugger or to Non-secure software).
+
+In some applications, there is a need to relocate the vector table(s) to other addresses. For example, an application might relocate the vector table(s) from Non-volatile memory to SRAM to allow exception vectors to be configurable during the run time.
+This is achieved by:
+(1) Copying the original vector table to the new allocated location in SRAM,
+(2) Modifying, if needed, some of the exception vectors, then
+(3) Programing the VTOR to select the new vector table, and
+(4) Executing a DSB (Data Synchronization Barrier) instruction to ensure the change immediately takes place.
+
+After the interrupt service has completed, the processor
+carries out an Exception Return (covered in Section 8.4.5). The registers which were automatically stacked are restored and the interrupted program is resumed. The active status of the
+interrupt is also cleared automatically.
+When an interrupt is active you cannot accept the same interrupt request again, unless and
+until it is completed and terminated with an exception return (also called an exception exit).
+
+Since the pending status of an interrupt is accessible by software via a number of memory
+mapped registers, it is possible to manually set or clear the pending status of an interrupt. If an
+interrupt request arrives when the processor is serving another higher priority interrupt, and
+the pending status is cleared before the processor starts responding to the pending request,
+the request is cancelled and will not be served (Fig. 8.11).
+
+If the peripheral continues to assert the interrupt request, and the software attempts to
+clear the pending status, the pending status will be set again (Fig. 8.12).
+
+If the interrupt request is not blocked (i.e., it is accepted and serviced by the processor), and
+if the interrupt source continues to assert its interrupt request at the end of the interrupt service routine, the interrupt will again enter pending state and will again be serviced the by the
+processor. This situation occurs unless the interrupt is blocked (e.g., by another interrupt service). This is shown in Fig 8.13.
+
+For pulsed interrupt requests, if an interrupt request signal is pulsed several times before
+the processor starts processing, the request will be treated as one single interrupt request. This
+is illustrated in Fig. 8.14.
+The pending status of an interrupt can be set again when it is being served. For example, in
+Fig. 8.15, a new interrupt request arrives when the previous request is still being served. This
+results in a new pending status and causes the processor to serve the interrupt again after the
+first ISR has been completed.
+
+Please note, the pending status of an interrupt can be set even when the interrupt is disabled. In this case, when the interrupt is enabled later, it can be triggered and then served. In
+some circumstances, this might not be a desirable outcome and, when it is not, you would
+need to manually clear the pending status before enabling the interrupt in the NVIC.
+
+In general, the NMI request behavior is the same as that for interrupts. Unless an NMI or a
+Secure HardFault handler is already running, or the processor has been halted or is in a locked-up state, a NMI request will, because it has the second highest priority (the Secure
+HardFault has the highest) and cannot be disabled, be executed almost immediately.
+
+Because peripherals can be allocated to the Secure and the Non-secure worlds, their interrupts must be directed to the interrupt handlers in the correct security domains. In addition,
+there are a number of system exceptions that need to be handled by either the Secure or the
+Non-secure handlers. If the TrustZone security extension is implemented:
+• All of the interrupts can be configured to be either Secure or Non-secure (e.g., for a
+peripheral, the interrupt’s targeted state should be configured based on the security
+domain of that peripheral).
+• Some of system exceptions are banked, which means that there can be both Secure and
+Non-secure versions of these exceptions. Both can be triggered and executed
+independently and have different priority level settings.
+• Some of the system exceptions (NMI, HardFault, BusFault) can be configured to target
+either the Secure state or the Non-secure state (using AIRCR.BFHFNMINS bit).
+• Some of the system exceptions only target the Secure state (e.g., reset, SecureFault).
+
+If an exception is Secure:
+• The starting address of the exception is obtained from the Secure vector table in the Secure
+memory, and
+• During the execution of the handler, the Secure Main Stack Pointer (MSP_S) is, by
+default, used.
+Software developers need to ensure that the program codes of Secure exception handlers
+are placed in the Secure memory. This ensures that these handlers execute in Secure state.
+
+If an exception is Non-secure:
+• The starting address of the exception is obtained from the Non-secure vector table in the
+Non-secure memory, and
+• During the execution of the handler, the Non-secure Main Stack Pointer (MSP_NS) is, by
+default, used.
+The program codes for the Non-secure exception handlers are placed in the Non-secure
+memory and execute in the Non-secure state.
+
+If the exception is setup incorrectly, for example, an interrupt is setup to target the Nonsecure state but the vector is pointing to a Secure address, then a SecureFault or HardFault
+exception would be triggered. However, the architecture allows the use of a Secure API as
+a Non-secure handler. In such a situation, the vector in the Non-secure vector table points
+to a valid Secure entry point (the first executing instruction is a Secure Gateway (SG) and this
+is placed in a Secure NSC memory), which is a Secure address. This situation does not trigger
+either a SecureFault or HardFault exception.
+The types of exceptions and interrupts and their default target states are shown in
+Table 8.11.
+As shown in Table 8.11, a number of exceptions can be configured to target either the Secure or the Non-secure state. The targeted state is defined by programmable registers, or by
+other mechanisms (Table 8.12), that are only accessible in Secure privileged state (or from a
+debug connection with Secure debug access).
+
+The bit BFHFNMINS (“Bus Fault, HardFault and NMI Non-secure enable”) is a programmable bit in the AIRCR (Application Interrupt and Reset Control Register). This bit is only
+accessible in Secure privileged state.
+When BFHFNMINS is set to 1, BusFault, HardFault and the NMI event will, with the exception of faults that target the Secure state and that are escalated to HardFault, be handled using
+the Non-secure system exception handlers. If a security error occurs when BFHFNMINS is 1,
+the exception triggered will still be a Secure HardFault and will target the Secure state.
+Worth noting is that the BFHFNMINS feature should only be enabled if the Secure software is to be unused and you want to seal off access to all Secure software features. It is
+recommended that:
+• Once BFHFNMINS has been set to 1, that the calling of secure functions should be blocked.
+In addition, the triggering of a secure exception that may return should also be blocked.
+• If a Secure fault event is triggered in this setup (i.e., BFHFNMINS is set to 1), that Nonsecure codes should not, unless through a reset sequence, be allowed to execute again.
+
+The automatic stacking and unstacking operations use the current selected stack pointer of the interrupted task. For example, if the processor is in the Nonsecure state and is running an application task with the Non-secure Process Stack Pointer
+(PSP_NS) selected as the current SP, then PSP_NS will be used for the stacking and unstacking
+operations. This is independent from the stack operations within the exception handlers,
+which use the Main Stack Pointer (either as Secure or Non-secure, which is dependent upon
+the target state of the exception).
+
+-----------------------------------------
+
+very IMP
+
+Based on the AAPCS specification [3], a C function can modify registers R0–R3, R12,
+LR(R14), and the PSR within C function boundaries. If the floating-point unit is present
+and enabled, the registers in S0–S15 and the FPSCR (Floating Point Status and Control Register) can also be modified by the C function. The contents on the other registers can also be modified within the C functions, but the contents of these other registers will need to be saved to the stack before being modified. And, before leaving the C function these registers must be
+restored to their original values.
+Because of the aforementioned C function requirements, registers in the register bank and
+in the floating-point unit register bank are divided into:
+- Caller saved registers––R0–R3, R12, LR (also S0–S15 and FPSCR if the FPU is present). If the
+data in these registers needs to be used after a C function call, the caller needs to save it
+before calling a C function.
+- Callee saved registers––R4-R11 (also S16-S31 if the FPU is present). If the C function needs
+to modify any of these registers, the C function must first push the affected registers to the
+stack and then restore them before returning to caller code.
+
+In addition to caller and callee saved register arrangement, the AAPCS specification also
+specifies how parameters and results can be passed between caller and callee. In a simple scenario, registers R0–R3 can be used as input parameters for C functions. Additionally, register
+R0 and, optionally, register R1 can be used for returning the results of a function (register R1 is
+needed when the return value is 64-bit). Fig. 8.16 shows the grouping of callee-saved registers
+and the usage of several caller saved registers for parameters and result passing.
+
+Another requirement of the AAPCS is that the value of the stack pointer must be aligned to
+double word boundaries at a function interface. The processor’s exception handling hardware handles this automatically.
+
+------------------------------------------------------------
+
+To allow a C function to be used as an exception handler, the exception mechanism needs
+to automatically save the “caller-saved registers” at exception entrances and restore them at
+exception exits. These operations are under the control of the processor’s hardware. In this
+way, when returned to the interrupted program the registers retain the same value they
+had before the interrupt took place (this excludes special cases like SVC services, where some
+of the registers could be used for its return values).
+
+( find how SVC services uses registers for return values )
+
+( imp: FIG. 8.16 Usage of registers for function inputs and outputs based on the AAPCS’s specification. )
+
+When TrustZone is implemented and when a Non-secure interrupt takes place during the
+execution of Secure code, then the “callee-saved registers” must also be saved by the stacking
+process. This is required because we need to erase the register bank before the Non-secure
+handler executes. By so doing, this prevents secure information leaking out. However, this
+behavior (i.e., the saving of the callee-saved registers and the erasing of data in the register
+bank) does not require the exception handlers, which use a standard C function interface,
+to be modified.
+
+For interrupt handling, the automatic stack and unstacking is handled by the processor and is transparent to software. There are, however, some instances
+where an understanding of the stack frame is needed and can be useful. These instances are:
+• When OS software developers need to create context switching codes or OS services via
+SVC exceptions (parameters and results for the OS services can be passed via the stack
+frame).
+• For the analysis of software failures when the processor enters a fault exception (in order to
+locate the faulting address via the stacked return address in the stack frame). Please note,
+several commercial development tools have debug features that can extract this
+information.
+
+There are several formats of stack frame, with each dependent upon several factors:
+• Whether it was running Secure code and will be servicing a Non-secure interrupt. If it was,
+both the caller-saved and callee-saved registers need to be pushed into the stack. If it was
+not, only the caller-saved registers need to be pushed to the stack during the stacking
+process.
+• Whether the FPU was enabled and used in current context (indicated by CONTROL.FPCA
+being equal to 1). If it was, the caller-saved registers in the FPU register bank will need to be
+pushed into the stack.
+• Whether the FPU is used by Secure software for Secure processing (determined by the TS
+bit in the FPCCR). If this bit is set to 1, then the Callee-saved registers in the floating-point
+register bank must also be saved on the stack when the Secure code execution is
+interrupted by a Non-secure exception.
+
+At a minimum, an exception stack frame must contain at least 8 data words—Fig. 8.17. The
+eight words of data contain the “caller-saved registers” in the regular register bank and information to enable the interrupted software to be resumed later. Since exception handlers
+can be implemented as a normal C function, the contents of R0–R3, R12, LR, and xPSR must
+be saved. Unlike function calls, the return address for exception handling is not stored in the
+LR. At the entrance of the exception handler, the value of LR is replaced by a special value
+called EXC_RETURN (Exception Return), which is used to trigger unstacking at the end of the
+exception handler.
+
+( very very imp: FIG. 8.17 Exception stack frame without an FPU and which is not interrupted from the Secure background code by
+a Non-secure handler. )
+
+The 8-word stack frame format is used when:
+• The FPU is not available, is disabled or is inactive in the current context, and
+• The transition is not from a Secure background task to a Non-secure handler
+Since AAPCS requires that the value of the stack pointer must be double word aligned at
+the function boundary, the stacking process automatically inserts a padding word to make
+sure that, if needed, the stack frame is double word aligned. If such a padding operation
+is carried out, bit 9 of the stack xPSR is set to 1 to indicate the presence of the padding word.
+Based on this information, the SP pointer can then re-adjust to the original value during an
+exception return.
+
+If the exception happens when executing Secure code and the interrupt/exception target is
+in a Non-secure state, then additional registers (callee-saved registers) need to be pushed to
+the stack, see Fig. 8.18.
+
+The extended stack frame also includes an integrity signature
+(0xFEFA125A or 0xFEFA125B, where a value of 0 in the LSB indicates that the stack frame
+contains FPU register contents), which is used to prevent the faking of an exception return
+from the Non-secure to the Secure world. This stack frame layout is new in Armv8-M and
+is only available if TrustZone is implemented.
+
+( very very imp FIG. 8.18 Exception stack frame without an FPU and which is interrupted from Secure background code to the
+Non-secure handler. )
+
+Please note, since the additional state context is underneath the previous eight-word stack
+frame, the stacking of the additional states can, after the previous eight-word state frame has
+been pushed, be pushed with just an extra stacking step. In fact, stacking of the additional
+state context can, in certain combinations of an exception event sequence, take place as a
+completely separate operation. For example, if the processor is running Secure code and receives two interrupts, the first one being Secure and the second Non-secure, the exception
+stacking operations, as shown in Fig. 8.19, could occur.
+
+The stack frame can get more complex when the FPU is available and is enabled. Assuming
+that the Secure software did not setup the FPU as Secure (FPCCR.TS==0), and the exception
+event is not switching the processor from a Secure background task to a Non-secure handler,
+then the stack frame, as shown in Fig. 8.20, is generated. This situation is identical to the stack
+frame in Armv7-M processors with a floating-point context (FPU is enabled and is used).
+
+If the processor was executing Secure code (without setting up the FPU as Secure, that is,
+FPCCR.TS==0) and a Non-secure exception takes place, then the additional state context is added to the stack frame, as shown in Fig. 8.21. This stack frame layout is new in Armv8-M
+and is only available if TrustZone is implemented.
+And, finally, if the Secure software does need to use the FPU for secure data processing it
+would need to set FPCCR.TS to 1. On the basis that:
+• The processor was executing Secure software and the exception is targeting the Non-secure
+state,
+• The FPU is enabled and is used in the current context (i.e., CONTROL_S.FPCA is 1),
+then the maximum size stack frame is used. The stack frame in this scenario would include
+the additional floating-point context, as shown in Fig. 8.22.
+
+( very very imp: FIG. 8.22 Stack frame with floating-point context (extended stack frame) and with additional state and FP state
+context. )
+
+When the FPCCR.TS is set to 1 and if the processor was executing Secure code and the incoming exception target is in Secure state, the processor will still allocate the stack space for
+the additional FP (floating-point) context (S16–S31). This is because it is possible for a Nonsecure interrupt to take place while the Secure handler is running.
+As you can see, the processor might, depending on configuration, need to push a fairly high
+number of registers to the stack when servicing exceptions/interrupts. The more registers that need to be pushed to the stack, the longer the stacking sequence will take. To avoid causing unnecessary delaysin interrupt handling, Cortex-M processors with a floating-point unit support a
+feature called lazy stacking. By default, this feature is enabled. With this feature, although the
+processor will still allocate stack spaces for the floating-point registers it will not actually take
+time to push the data into the stack. If the exception/interrupt handler executes a floating-point instruction, this will trigger the lazy stacking which then stalls the pipeline and pushes the
+floating-point registers into the allocated stack space. If the handler did not use the FPU, the processorwill,during theunstacking stage, skip the unstacking of FPU registers. By utilizing the lazy
+stacking feature, most interrupt/exceptions (i.e., those that do not use the FPU) are, by omitting
+the saving and restoring of the FPU registers, serviced more quickly.
+
+The stack pointer used by the interrupted background thread/process is used for stacking
+and unstacking. This is dependent on the processor’s security state, the processor’s mode (i.e.,
+whether it is already executing an exception/interrupt handler) and the setting in the CONTROL.SPSEL (this is covered in “CONTROL register” section). The way that the stack pointer
+is selected is shown in Table 8.13.
+
+( very very imp: TABLE 8.13 Stack pointer selection in various situations. )
+
+( very very imp: FIG. 8.23 The selection of the stack pointer for stacking and unstacking. )
+
+In C functions, the function return is normally carried out by loading a return
+address (which is loaded into the LR when the function call is made) into the PC
+(Program Counter), for example, by executing a “BX LR” instruction.
+
+when an interrupt
+handler executes a return how does the processor know that it is an exception return (which
+triggers unstacking, rather than a normal function return)? The answer is that Cortex-M processors use a special value called EXC_RETURN (Fig. 8.24) to indicate an exception return
+when it is loaded into the PC. This is achieved by the use of instructions that updates the
+PC as shown in Table 8.8.
+
+When the interrupt handler starts, the EXC_RETURN value is generated by hardware and
+is loaded automatically into the LR. The last step of the interrupt handler loads the
+EXC_RETURN into the PC, just like a normal return address, which triggers the exception
+return sequence.
+
+( very very imp: FIG. 8.25 Bit fields in EXC_RETURN. )
+( very very imp: TABLE 8.14 Bit fields in EXC_RETURN. )
+( very very imp: FIG. 8.26 EXC_RETURN value in various exception handling scenarios. )
+
+if we assume that the processor is in Non-secure thread mode and running a “bare metal” application (i.e.,
+a software system with no RTOS), the value of the EXC_RETURN in various exception/interrupt events is shown in Fig. 8.27.
+If the application deploys an RTOS running in the Non-secure world, then it is very likely
+that the Non-secure world will be using PSP_NS for its thread. Fig. 8.28 shows a Non-secure
+thread using PSP_NS being interrupted.
+The left hand-side of Fig. 8.26 details several exception transitions where EXC_RETURN.
+DCRS=0, which can be caused by one of the following scenarios:
+• Scenario 1: The back ground program is Secure, it is interrupted by a Non-secure interrupt
+and the additional state context information (i.e., callee-save registers) has been pushed to
+the stack. And then, just before the Non-secure ISR has started, a higher priority Secure interrupt takes place and the processor switches to execute the Secure handler first, that is,
+before the Non-secure interrupt is serviced (see Fig. 8.29).
+• Scenario 2: The back ground program is Secure, it is interrupted by a Non-secure interrupt
+and the additional state context information (i.e., callee-save registers) has been pushed to
+the stack. And then, during the execution of the Non-secure ISR, a Secure interrupt occurs,
+which has the same or a lower priority than the priority level of the executing Non-secure
+interrupt. After the execution of the Non-secure interrupt handler is completed, the
+processor switches over to execute the pending Secure interrupt handler (see Fig. 8.30).
+
+In the aforementioned scenarios, although both Background and ISR are Secure the stack
+frame still contains the additional context, which is usually needed when dealing with Nonsecure exceptions. Secure handlers can use EXC_RETURN.DCRS to determine whether the
+additional context is in the stack frame.
+
+In the case of the RTOS, the direct manipulation of the stack frame is often, as shown in
+Fig. 8.31, used to start a new thread.
+
+( very very imp: FIG. 8.31 Use of EXC_RETURN to start a new thread. )
+
+Another way to classify exceptions is basing it on the nature of the timing relationship between the exception response and the code execution that is being interrupted.
+• Synchronous exceptions––these are exceptions that must immediately respond to the
+executed code stream without further code execution in the current thread. Examples of
+this type of exceptions are:
+	• SVCall––The SVC handler must be executed before executing the instructions after the
+	SVC instruction.
+	• SecureFault, UsageFault, MemManage fault and synchronous BusFault––An error has
+	occurred in the current thread and should not continue until the fault handling
+	exception has taken place.
+• Asynchronous exceptions––This is where the processor is allowed, for a short period of
+time, to continue current code stream execution before the exception handler starts
+executing. (The shorter the delay the better for providing a faster interrupt response time.)
+Examples of this type of exceptions are:
+	• Interrupts including the Non-Maskable Interrupt (NMI)
+	• SysTick interrupt
+	• PendSV exception
+
+For synchronous exceptions, the exception handler execution usually immediately follows
+the exception event. However, if another higher priority exception arrives at the same time,
+one that could preempt the current exception entrance sequence, the processor will service
+the other higher priority exception first. The deferred synchronous exception is then executed
+after the higher priority exception handler has completed its task.
+
+In older Arm Cortex-M documentation, an asynchronous BusFault was known as an imprecise BusFault, and a synchronous BusFault was known as a precise BusFault. These classification names were then changed to become synchronous and asynchronous in order to
+align with the architecture of other Arm Cortex processors.

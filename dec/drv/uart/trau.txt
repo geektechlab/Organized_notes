@@ -1,0 +1,16 @@
+Active low polarity
+    CTS (clear to send): This is an input signal to the transmitter. When active ( in this case low ), the receiver signals to the transmitter that it is ready to receive. If it is inactive ( in this case high ), receiver signals to transmitter that it can't receive now.
+
+    Ready to Send (RTS) ( actually it should be ready to receive ): This is an output signal from the receiver. When active ( in this case low ), it indicates that the receiver is ready to receive data. If it is inactive ( in this case high ), receiver is  not yet ready to receive data.
+
+UART1           UART2
+RX      <-      TX
+TX      ->      RX
+CTS     <-      RTS
+RTS     ->      CTS
+
+on CTS is you provide VDD ( 5.3 ) then CTS will become high and UART on board won't be able to send packet untill that goes low.
+
+same way, on RTS is you provide VDD ( 5.2 ) then RTS will become high and PC won't be able to send packet untill that goes low.
+
+For active high, voltage level gets inverted.

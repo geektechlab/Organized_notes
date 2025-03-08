@@ -1,0 +1,7 @@
+PMG1-CY7113
+
+USB_FS_vendor_interface
+USB_HID_Mouse
+USBFS_CDC_echo
+USBFS_MSC_File_System_in_SRAM
+USBFS_to_UART_Using_DMA

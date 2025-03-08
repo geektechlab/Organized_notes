@@ -1,0 +1,36 @@
+The Flash Patch and Breakpoint (FPB) unit has two functions:
+• To provide a hardware breakpoint feature e generate a breakpoint event to the processor core to invoke debug modes such as halting debug or debug monitor exception
+• To patch instruction or literal data by remapping a memory access in the CODE
+region (first 0.5GB of memory space) to the SRAM region (the next 0.5GB of
+memory space)
+
+The breakpoint function is fairly easy to understand: During debugging, you can
+set one or several breakpoints to program addresses or literal constant addresses.
+If the program code at the breakpoint addresses gets executed, this triggers the
+breakpoint debug event and causes the program execution to halt (for halt mode
+debug) or triggers the debug monitor exception (if debug monitor is used). Then,
+you can examine the register’s content, memories, and peripherals, and carry out
+debug using single stepping, etc.
+
+The Flash Patch function allows the use of a small programmable memory in the
+system to apply patches to a program memory that cannot be modified. For products to
+be produced in high-volume, using mask ROM or one-time-programmable ROM can
+reduce the cost of the product. But, if a software bug is found after the device is programmed, it could be costly to replace the devices. By integrating a small reprogrammable memory, for example, a very small Flash or Electrically-Erasable
+Programmable Read-Only Memory (EEPROM), patches can be made to the original
+software programmed in the device. For microcontrollers that only use flash memory
+to store software, the Flash Patch is not required as the whole flash memory can be
+erased and reprogrammed easily.
+
+The FPB can either be used for breakpoint generation, or used for Flash Patch,
+but not at the same time. When a device is configured to use FPB for Flash
+Patch, connecting a debugger to it during run-time will end up having the flash
+patch configuration overridden by the debugger.
+
+The FPB in Cortex-M3 and Cortex-M4 processors contains up to eight comparators:
+• Comparators #0 to #5 are instruction address comparators. Each of them can be
+programmed to generate breakpoint events, or remap instruction access to
+SRAM (but not at the same time).
+• Comparators #6 to #7 are literal comparators. They are used to remap literal data
+accesses in CODE region to SRAM.
+
+( read WHAT ARE LITERAL LOADS? )

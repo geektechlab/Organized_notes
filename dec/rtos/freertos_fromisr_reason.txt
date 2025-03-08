@@ -1,0 +1,4 @@
+https://forums.freertos.org/t/why-do-we-really-need-to-use-safe-versions-of-apis-inside-interrupts/12506
+https://www.freertos.org/FreeRTOS_Support_Forum_Archive/March_2017/freertos_How_thread-safe_are_fromISR_functions_204737b7j.html
+https://forums.freertos.org/t/understanding-priority-levels-of-isr-and-freertos-apis/10453/5
+https://www.freertos.org/RTOS-Cortex-M3-M4.html?_ga=2.159453371.741289969.1699963902-2066404190.1699963902

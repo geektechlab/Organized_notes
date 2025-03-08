@@ -1,0 +1,5 @@
+Generally data transfers from peripheral buffer to memory is accomplished by bus masters. ARM core is bus master and it can copy/transfer data using LOAD/STORE instructions.
+
+But at a time it can do only for one peripheral. So to parallelize things, DMA also can act as a bus master and do it parallely. Also, DMA doesn't need instructions for data transfer so it consumes less power and ARM core can be switched off nd DMA can take complete load in power saving modes.
+
+( watch section 1 and section 8, all other can be skipped )

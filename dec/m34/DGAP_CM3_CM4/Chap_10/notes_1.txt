@@ -1,0 +1,69 @@
+The Cortex-M processors are designed with OS support in mind. Currently there are over 30 different embedded OSs (including many RealTime OS, or RTOS) available for Cortex-M microcontrollers, and the number is still growing. A number of features are implemented in the architecture to make OS implementation easier and more efficient. For example:
+• Shadowed stack pointer: Two stack pointers are available. The MSP is used for the OS Kernel and interrupt handlers. The PSP is used by application tasks.
+• SysTick timer: A simple timer included inside the processor. This enables an embedded OS to be used on the wide range of Cortex-M microcontrollers available.
+• SVC and PendSV exceptions: These two exception types are essential for the operations of embedded OSs such as the implementation of context switching.
+• Unprivileged execution level: This allows a basic security model that restricts the access rights of some application tasks. The privileged and unprivileged separation can also be used in conjunction with the Memory Protection Unit (MPU), thus further enhancing the robustness of embedded systems.
+• Exclusive accesses: The exclusive load and store instructions are useful for semaphore and mutual exclusive (MUTEX) operations in the OS.In addition, the low interrupt latency nature and various features in the instruction set also help embedded OSs to work efficiently.
+
+Also, one of the debug features, called Instrumentation Trace Macrocell (ITM), is used in many debug tools for OS-aware debugging.
+
+there are two stack pointers in the Cortex-M processors:
+• Main Stack Pointer (MSP) is the default stack pointer. It is used in the Thread mode when the CONTROL bit[1] (SPSEL) is 0, and it is always used in Handler mode.
+• Processor Stack Pointer (PSP) is used in Thread mode when the CONTROL bit [1] (SPSEL) is set to 1.
+
+Stack operations like PUSH and POP instructions, and most instructions that use SP (R13) use the currently selected stack pointer. You can also access the MSP and PSP directly using MRS and MSR instructions. In simple applications without an embedded OS or RTOS, you can just use the MSP for all operations and ignore the PSP. In systems with an embedded OS or RTOS, the exception handlers (including part of the OS kernel) use the MSP, while the application tasks use the PSP. Each application task has its own stack space (Figure 10.1), and the  context-switching code in the OS updates the PSP each time the context is switched.
+
+This arrangement has several benefits:
+• If an application task encounters a problem that leads to a stack corruption, the stack used by the OS kernel and other tasks is still likely to be intact, thus helping to improve system reliability.
+• The stack space for each task only needs to cover the maximum stack usage plus one level of stack frame (maximum 9 words including padding in Cortex-M3 or Cortex-M4 without floating point unit, or maximum 27 words for Cortex-M4 with floating point unit). Stack space needed for the ISR and nested interrupt handling is allocated in the main stack only.
+• It makes it easy to create an efficient OS for the Cortex-M processors.
+• An OS can also utilize the Memory Protection Unit (MPU) to define the stack region which an application task can use. If an application task has a stack overflow problem, the MPU can trigger a MemManage fault exception and prevent the task from overwriting memory regions outside the allocated stack space for this task.
+
+After power up, the MSP is initialized from the vector table as a part of the processor’s reset sequence. The C startup code added by the toolchain can also carry out another stage of stack initialization for the main stack. It is then possible to start using PSP by initializing it using the MSR instruction and then write to the CONTROL register to set SPSEL, but it is uncommon to do so. The simplest way to initialize and start using PSP (not suitable for most OS):
+	LDR R0,=PSP_TOP ; PSP_TOP is a constant defines the top address of stack
+	MSR PSP, R0 ; Set PSP to the top of a process stack
+	MRS R0, CONTROL ; Read current CONTROL
+	ORRS R0, R0, #0x2 ; Set SPSEL
+	MSR CONTROL, R0 ; write to CONTROL
+	ISB ; Execute and ISB after updating CONTROL, this is an architectural recommendation
+Typically, to use the process stack, put OS in Handler mode, and program the PSP directly, then use an exception return sequence to “jump” into the application task.
+
+For example, when an OS first starts in Thread mode, it can use the SVC exception to enter the Handler mode (Figure 10.2). Then it can create a stack frame in the process stack, and trigger an exception return that uses the PSP. When the stack frame is loaded, the application task is started. In OS designs, we need to switch between different tasks. This is typically called context switching. Context switching is usually carried out in the PendSV exception handler, which can be triggered by the periodic SysTick exception.
+
+Inside the context-switching operation, we need to:
+• Save the current status of the registers in the current task
+• Save the current PSP value
+• Set the PSP to the last SP value for the next task
+• Restore the last values for the next tasks
+• Use exception return to switch to the task
+For example, in Figure 10.3, a simplified context-switching operation is shown. Note that the context switching is carried out in PendSV, which is typically programmed to the lowest priority level. This prevents context switching from  happening in the middle of an interrupt  handler.
+
+The SVC (Supervisor Call) and PendSV (Pendable Service Call) exceptions are important to OS designs. SVC is exception type 11, and has a programmable priority level.
+
+The SVC exception is triggered by the SVC instruction. Although it is possible to trigger an interrupt using software by writing to NVIC (e.g., Software Trigger Interrupt Register, NVIC->STIR), the behavior is a bit different: Interrupts are imprecise. It means that a number of instructions could be executed after setting the pending status but before the interrupt actually takes place. On the other hand, SVC is precise. The SVC handler must execute after the SVC instruction, except when another higher-priority exception arrives at the same time.
+In many systems, the SVC mechanism can be used as an API to allow application tasks to access system resources, as shown in Figure 10.4.
+
+In systems with high-reliability requirements, the application tasks can be running in unprivileged access level, and some of the hardware resources can be set up to be privileged accessed only (using MPU). The only way an application task can access these protected hardware resources is via services from the OS. In this way, an embedded system can be more robust and secure, because the application tasks cannot gain unauthorized access to critical hardware. In some cases this also makes the programming of the application tasks easier because the application tasks do not need to know the programming details of the underlying hardware if the OS services provide what the task needs. SVC also allows application tasks to be developed independently of the OS because the application tasks do not need to know the exact address of the OS service functions. The application tasks only need to know the SVC service number and the parameters that the OS services requires. The actual hardware-level programming is handled by device drivers (Figure 10.4).
+
+The SVC exception is generated using the SVC instruction. An immediate value is required for this instruction, which works as a parameter-passing method. The SVC exception handler can then extract the parameter and determine what action it needs to perform. For example:
+	SVC #0x3 ; Call SVC function 3
+
+When the SVC handler is executed, you can determine the immediate data value in the SVC instruction by reading the stacked Program Counter (PC) value, then reading the instruction from that address and masking out the unneeded bits. However, the program that executed the SVC could have either been using the main stack or the process stack. So we need to find out which stack was used for the stacking process before extracting the stacked PC value. This can be determined from the link register value when the handler is entered (Figure 10.5). For assembly programming, we can find out which stack was used, and extract the SVC service number with the following code (SVC_Handler):
+	TST LR, #4 ; Test bit 2 of EXC_RETURN
+	ITE EQ
+	MRSEQ R0, MSP ; if 0, stacking used MSP, copy to R0
+	MRSNE R0, PSP ; if 1, stacking used PSP, copy to R0
+	LDR R0, [R0, #24] ; Get stacked PC from the stack frame (stacked PC = address of instruction after SVC)
+	LDRB R0, [R0, #-2] ; Get first byte of the SVC instruction now the SVC number is in R0
+
+For the C programming environment, we need to separate the SVC handler into two parts:
+• The first part extracts the starting address of the stack frame, and passes it to the second part as an input parameter. This needs to be done in assembly because we need to check the value of the LR (EXC_RETURN), which cannot be done in C.
+• The second part extracts the stacked PC from the stack frame, and then the SVC number from the program code. It can optionally extract other information like stacked register values.
+
+( see code )
+
+The advantage of passing the address of the stack frame is that it allows the C handler to extract any information in the stack frame, including the stacked registers. This is essential if you want to pass parameters to a SVC service and get a return value for the SVC service. Due to the fact that exception handlers can be normal C functions, if a SVC service is called, and a higher-priority interrupt arrives at the same time, the higher-priority ISR will be executed first and this can change the values in R0-R3, R12, etc. To ensure your SVC handler gets the correct input parameters, you need to get the parameter values from the stack frame. If your SVC service needs to return a value, you need to return the value using the stack frame. Otherwise, the return value stored in the register bank would be overwritten during the unstacking operation of an exception return. An example of a SVC service that passes parameters and returns a value is shown below.
+
+( see code )
+
+Because of the exception priority model, you cannot use SVC inside an SVC handler (because the priority is the same as the current priority). Doing so will result in a usage fault exception. For the same reason, you cannot use SVC in the NMI handler or the HardFault handler.

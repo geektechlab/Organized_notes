@@ -1,0 +1,132 @@
+All communication between host and cards is controlled by the host (master).
+
+Find what will happen if card watns to send something. SD Card may not want and controlled by host so okay. But in SDIO, is it notified by interrupts ?
+
+( 4.1 General
+  4.2 Card Identification Mode
+	( from 4.7.4 detailed command description )
+		CMD0 - Resets all cards to idle state ( CMD0.png )
+
+The host issues a 
+reset command (CMD0) with a specified voltage while assuming it may be supported by the card. CMD0 resets all cards to idle states.
+
+To verify the voltage, a following new command (CMD8). Sends SD Memory Card interface condition, which includes host supply voltage information and asks the card whether card supports voltage.
+
+For SDIO cards, send command CMD5 ( IO_SEND_OP_COND ) which is similar to ACMD41 to enquire voltage range supported by I/O card. In response card sends R4 type response. If CMD5 has no response or MP=1, meaning we have SD card.
+
+ACMDs shall be preceded with APP_CMD command (CMD55 ).
+
+SD_SEND_OP_COND (ACMD41) is designed to provide SD Memory Card hosts with a mechanism to 
+identify and reject cards which do not match the VDD range desired by the host.
+Cards which cannot perform data transfer in the specified range shall discard themselves from further 
+bus operations and go into Inactive State. The levels in the OCR register shall be defined accordingly 
+(See Section 5.1). Note that ACMD41 is application specific command; therefore APP_CMD (CMD55) 
+shall always precede ACMD41. The RCA to be used for CMD55 in idle_state shall be the card's default 
+RCA = 0x0000.
+( table 4-31 )
+( table 4-38 )
+( 5-1 OCR register )
+
+By setting the OCR to zero in the argument of ACMD41, the host can query each card and determine the 
+common voltage range before sending out-of-range cards into the Inactive State (query mode). This query 
+should be used if the host is able to select a common voltage range or if a notification to the application 
+of non-usable cards in the stack is desired. The card does not start initialization and ignores HCS in the 
+argument (refer to Section 4.2.3) if ACMD41 is issued as a query. Afterwards, the host may choose a 
+voltage for operation and reissue ACMD41 with this condition, sending incompatible cards into the 
+Inactive State. Check S18A if card supports 1.8v signalling.
+During the initialization procedure, the host is not allowed to change the operating voltage range.
+
+( Figure 4-1 : SD Memory Card State Diagram (card identification mode))
+
+If S18A is set to true in responses, use CMD11 to switch to 1.8v. It will respond R1 which can be checked at Table 4-42 : Card Status.
+
+After that, issue CMD2 to ask card to send CID numbers on the CMD line. It responds R2, which has Card IDentification (CID) register having 128 bits wide. It has Manufacturer ID, OEM/Application ID, Product name etc.
+
+After that, send CMD3 to ask crad to publish a new relative address ( RCA ). Card will respond with R6 having 16 bits as published RCA numbers. CMD3 (SEND_RELATIVE_ADDR) asks the card to publish a new relative card address (RCA), which is shorter than CID and which is used to address the card in the future data transfer mode. Once the RCA is received the card state changes to the Stand-by State. At this point, if the host wants to assign another RCA number, it can ask the card to publish a new number by sending another CMD3 command to the card. The last published RCA is the actual RCA number of the card.
+
+The host repeats the identification process, i.e. the cycles with CMD2 and CMD3 for each card in the system.
+
+CMD15 can be used to send a card into inactive state.
+
+After this card identification mode completes and data transfer mode starts
+
+Then CMD9 is sent to get CSD ( card specific data register ) to get maximum sector size. Based on that, card type: SD standard capacity/ high capacity/ extended capacity is decided.
+
+Then CMD7 is sent to select the card.
+
+Then based on bus width specified in SCR register, ACMD6 is issued to set data bus width.
+
+Then using CMD6 find highest supported speed and then set that by issueing CMD6 again.
+
+// Now initialization logic completes
+// Actual application and data transfer starts
+
+( read DMA/ADMA2 etc. )
+
+To make 2GByte card, the Maximum Block Length (READ_BL_LEN=WRITE_BL_LEN) shall be set to
+1024 bytes. However, the Block Length, set by CMD16, shall be up to 512 bytes to keep consistency with
+512 bytes Maximum Block Length cards (Less than or equal 2GByte card)
+
+// For reading
+
+Now issue CMD13 to get SD card status.
+
+For reading a block following commands can be used:
+	CMD17 is for single block of size specified by CMD23.
+	CMD18 is for reading multiple blocks of size specified by CMD23.
+
+// For writing
+
+Now issue CMD13 to get SD card status.
+
+For writing a block following commands can be used:
+	CMD24 is for single block of size specified by CMD23.
+	CMD25 is for reading multiple blocks of size specified by CMD23.
+
+// For errasing
+
+Issue CMD32 to specify erase start address of a first write block.
+Issue CMD33 to specify address of a last write block of continuous range.
+Issue CMD38 to erase/ discard/ full user area logical erase/ secure erase.
+
+The DISCARD operation is similar to the default ERASE operation. Card may de-allocate the discarded
+blocks partially or completely. The contents of a region where the discard function has been applied shall
+be treated as ‘don’t care’ by host. After discard operation the previously written data may be partially or
+fully read by the host, depending on the card implementation. content of the discarded area shall be ‘don’t care’.
+
+Full User Area Logical Erase (FULE)
+The FULE operation is similar to the default ERASE operation, except the card shall logically erase the
+entire user area completely.
+
+// Abort transfer
+
+Issue CMD12 to abort transfer.
+Later card status can be checked using CMD13.
+
+//
+
+Switch function command (CMD6) is used to switch or expand memory card functions. Currently four
+function groups are defined:
+(1) Access Mode:
+Selection of SD bus interface speed modes.
+(2) Command System:
+A specific function can be extended and controlled by a set of shared commands.
+(3) Driver Strength
+Selection of suitable output driver strength in UHS-I modes depends on host environment.
+(4) Power Limit
+Selection to limit the maximum power depends on host power supply capability and heat release
+capability.
+
+used in DDR50 implementation. In DDR50 mode, data is sampled on both edges of the CLK signal.
+
+//
+
+Card shall indicate Cache feature support in the Performance Enhancement Function Register Byte[4],
+refer to Table 5-30 and ‘PERFORMANCE_ENHANCE‘ of SD Status(b[330]), refer to Table 4.10.2-2 :
+PERFORMANCE_ENHANCE Field. The Cache shall be transparent to the host and host does not have
+direct access to the contents in the Cache. It is up to card implementation to decide which of host data
+goes into Cache.
+
+Command Queue separates bus transaction in tasks assignment phase and data transfer phase. Multiple
+of memory read/write tasks can be assigned. Card shall indicate the support for Command Queue and
+the depth of queue in Performance Enhancement Function Register Byte[6].

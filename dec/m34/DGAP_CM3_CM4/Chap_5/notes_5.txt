@@ -1,0 +1,115 @@
+Program flow control
+There are several types of instructions for program flow control:
+• Branch
+• Function call
+• Conditional branch
+• Combined compare and conditional branch
+• Conditional execution (IF-THEN instruction)
+• Table branch
+
+Branches
+	A number of instructions can cause branch operations:
+	• Branch instructions (e.g., B, BX)
+	• A data processing instruction that updates R15 (PC) (e.g., MOV, ADD)
+	• A memory read instruction that writes to PC (e.g., LDR, LDM, POP)
+
+Function calls
+	To call a function, the Branch and Link (BL) instruction or Branch and Link with eXchange (BLX) instructions can be used (Table 5.32). They execute the branch andat the same time save the return address to the Link Register (LR), so that the processor can branch back to the original program after the function call is completed. When these instructions are executed:
+	• The Program Counter is set to the branch target address.
+	• The Link Register (LR/R14) is updated to hold the return address, which is the address of the instruction after the executed BL/BLX instruction.
+	• If the instruction is BLX, the Thumb bit in EPSR will also be updated using the LSB of the register holding the branch target address.
+	Since the Cortex-M3 and M4 processors only support the Thumb state, the LSB of the register used in a BLX operation must be set to 1. Otherwise, it indicates an attempt to switch to the ARM state and will result in a fault exception.
+
+	The BL instruction will destroy the current content of your LR register. So, if your program code needs the LR register later, you should save your LR before you use BL. The most common method is to push the LR to stack in the beginning of your subroutine. For example:
+		main
+		.
+		BL functionA
+		.
+		functionA
+		PUSH {LR} ; Save LR content to stack
+		.
+		BL functionB ; Note: return address in LR will be changed
+		.
+		POP {PC} ; Use stacked LR content to return to main
+		functionB
+		PUSH {LR}
+		.
+		POP {PC} ; Use stacked LR content to return to functionA
+	In addition, if the subroutine you call is a C function, you might also need to save the contents in R0– R3 and R12 if these values will be needed at a later stage. According to AAPCS (reference 8), the contents in these registers could be changed by a C function.
+
+Conditional branches
+	Conditional branches are executed conditionally based on the current value in APSR (N, Z, C, and V flags, as shown in Table 5.33).
+
+Conditional execution (IF-THEN instruction)
+	After an IT (IF-THEN) instruction is executed, up to four of the subsequent instructions can be conditionally executed based on the condition specified by the IT instruction and the APSR value. An IT instruction block consists of an IT instruction, with conditional execution details, followed by one to four conditional execution instructions. The conditional execution instructions can be data processing instructions or memory access instructions. The last conditional execution instruction in the IT block can also be a conditional branch instruction. The IT instruction statement contains the IT instruction opcode with up to an additional three optional suffixes of “T” (then) and “E” (else). ( Table 5.36 )
+
+Table branches
+	The Cortex-M3 and Cortex-M4 support two table branch instructions: TBB (Table Branch Byte) and TBH (Table Branch Half-word). These instructions are used with branch tables, often used to implement switch statements in C code.
+
+Saturation operations
+	supports two instructions that provide saturation adjustment of signed and unsigned data. They are SSAT (for signed data) and USAT (for unsigned data). The Cortex-M4 processor also supports them, and in addition, supports instructions for saturated algorithms.
+
+	Saturation is commonly used in signal processing. For example, after certain operations such as amplification, the amplitude of a signal can exceed the maximum allowed output range. If the value is adjusted by simply cutting off the MSB bits, the resulted signal waveform could be completely distorted (Figure 5.11). The saturation operation reduces the distortion by forcing the value to the maximum allowed value. The distortion still exists, but if the value does not exceed  the maximum range by too much it is less noticeable. ( https://www.linkedin.com/posts/vardhann_what-is-0xff-0x01-while-most-of-us-would-activity-7144617554756460544-TDnM?utm_source=share&utm_medium=member_android )
+
+Exception-related instructions
+	The SuperVisor Call (SVC) instruction is used to generate the SVC exception (exception type 11). Typically, SVC is used with an embedded OS/RealTime OS (RTOS), where an application task running in an unprivileged execution state can request services from the OS, which runs in the privileged execution state. The SVC exception mechanism provides the transition from unprivileged to privileged. In addition, the SVC mechanism is useful as a gateway for application tasks to access various services (including OS services, or other API functions) because an application task can request a service without knowing the actual program memory address of the service. It only needs to know the SVC service number, the input parameters, and the returned results.
+
+	The SVC instruction requires that the priority of the SVC exception be higher than the current priority level and that the exception is not masked by masking registers like PRIMASK. Otherwise, a fault exception would be triggered instead. As a result, you cannot use SVC in a NMI handler or HardFault handler, because the priority levels of these handlers are always higher than the SVC exception. The SVC instruction has the following syntax:
+		SVC #<immed>
+	The immediate value is 8-bit. The value itself does not affect the behavior of the SVC exception, but the SVC handler can extract this value in software and use it as an input parameter; for example, to determine what service is requested by the application task
+
+	Another instruction that is related to exceptions is the Change Processor State (CPS) instruction. For the Cortex-M processors, you can use this instruction to set or clear interrupt masking registers such as PRIMASK and FAULTMASK. Note that these registers can also be accessed using MSR and MRS instructions. The CPS instruction must be used with one of these suffixes: IE (interrupt  enable) or ID (interrupt disable). You must also specify which masking register to set/clear because the Cortex-M3 and Cortex-M4 processors have several interrupt mask registers.
+
+	Table 5.40 listed various forms of the CPS instructions available for the Cortex-M3 and Cortex-M4 processors. The switching of PRIMASK or FAULTMASK to disable and enable an interrupt is commonly used to ensure timing critical code can finish quickly without getting interrupted.
+
+Sleep mode-related instructions
+	There are two main instructions for entering sleep modes (note: there is another way to enter sleep mode called Sleep-on-Exit, which allows the processor to enter sleep upon exception exit; see section 9.2.5):
+		WFI ; Wait for Interrupt (enter sleep)
+	Or in C programming with CMSIS-compliant device driver:
+		__WFI(); // Wait for Interrupt (enter sleep)
+	The WFI (Wait for Interrupt) instruction causes the processor to enter sleep mode immediately. The processor can be woken up from the sleep mode by interrupts, reset, or by debug operation. Another instruction called WFE (Wait for Event) causes the processor to enter sleep mode conditionally:
+		WFE ; Wait for Event (enter sleep conditionally)
+	Or in C programming with CMSIS-compliant device-driver:
+		__WFE(); // Wait for Event (enter sleep conditionally)
+
+	Inside the Cortex-M3/M4 processor, there is a single bit internal register to record events. If this register is set, the WFE instruction will not enter sleep and will just clear the event register and continue to the next instruction. If this register is clear, the processor will enter sleep, and will wake up upon an event, which can be an interrupt, debug operation, reset, or a pulse signal at an external event input (e.g., event pulse can be generated by another processor or an peripheral). The interface signals of the Cortex-M processor include an event input and an event output.
+
+	The event input of a processor can be generated from event outputs from other processors in a multi-processor system. So a processor in WFE sleep (e.g., waiting for a spin lock) can be woken up by other processors. In some cases, these signals are connected to the I/O port pins of a Cortex-M microcontroller. While in some other Cortex-M microcontroller the event input could be tied low and the event output could be unused. The event output can be triggered using the SEV (Send Event) instruction:
+		SEV ; Send Event
+	Or in C programming with CMSIS-compliant device driver:
+		__SEV(); // Send Event
+	When SEV is executed, a single cycle pulse is generated at the event output interface. The SEV instruction also sets the event register of the same processor.
+
+Memory barrier instructions
+	The ARM architectures (including the ARMv7-M architecture) allow memory transfers to take place in a completion order different from the program code, provided that it doesn’t affect the result of the data processing. This often happens in high-end processors with superscalar or out-of-order-execution capabilities. However, by re-ordering memory accesses, and if the data is shared between multiple processors, the data sequence observed by another processor can be different from the programmed sequence and this can causes error or glitches in the applications. The memory barrier instructions can be used to:
+	• Enforce ordering between memory accesses
+	• Enforce ordering between a memory access and another processor operation
+	• Ensure effect of a system configuration change taken place before subsequent operations
+
+	(( Out of order execution happens in multiprocessors and this is a plus as far as miss rate and miss penalty are concerned. When the processor is in execution, if it does not find the next instruction in cache, out of order execution makes sure that some other instruction which is independent of the missed one is executed so that the processor does not force itself to be in idle wasting clock cycles. ))
+
+	In C programming, these instructions can be accessed using the following functions if CMSIS-compliant device driver is used: void __DMB(void); // Data Memory Barrier void __DSB(void); // Data Synchronization Barrier void __ISB(void); // Instruction Synchronization Barrier Since the Cortex-M processors have relatively simple pipelines, and the AHB Lite bus protocol use does not allow re-ordering of transfers in the memory system, most applications work fine without any memory barrier instructions.
+
+Other instructions
+	NOP instruction can be used to produce instruction alignment, or to introduce delay:
+		NOP ; Do nothing
+		__NOP(); // Do nothing in C programming
+	Please note that in general the delay created by NOP instruction is not guaranteed, and can vary between different systems (e.g., memory wait states, processor type). If the timing delay needs to be accurate, a hardware timer should be used.
+
+	The Breakpoint (BKPT) instruction is used for creating software breakpoints in an application during software development/debugging. If a program is executed from SRAM, usually this instruction is inserted by a debugger, replacing the original instruction. When the breakpoint is hit, the processor would be halted, and the debugger then restores the original instruction and the user can then carry out the debug tasks through the debugger. The BKPT instruction can also be used to generate a debug monitor exception. The BKPT instruction has an 8-bit immediate data, and the debugger or debug monitor exception handler can extract this data and decide what action to carry out based on this information. For example, some special values can be used to indicate semi-hosting requests (this is toolchain dependent). The syntax of BKPT instruction is:
+		BKPT #<immed> ; Breakpoint
+	Similarly to SVC, you can also omit the “#” sign in most assembler tools:
+		BKPT <immed> ; Breakpoint Or
+	in C programming:
+		__BKPT (immed);
+	In addition to BKPT, the Cortex-M3 and Cortex-M4 processors also support a breakpoint unit, which provides up to  eight hardware breakpoints and does not require replacing the original program image.
+
+All other undefined instructions, when executed, will cause a fault exception (either HardFault or Usage fault exception) to take place.
+
+the Cortex-M4 processor supports a number of additional instructions such as:
+• Single Instruction, Multiple Data (SIMD)
+• Saturating instructions
+• Additional multiply and MAC (multiply and accumulate) instructions
+• Packing and unpacking instructions
+• Optional floating point instructions (if floating unit is available)
+These instructions enable the Cortex-M4, a general-purpose processor, to handle real-time digital signal processing (DSP) tasks more efficiently.

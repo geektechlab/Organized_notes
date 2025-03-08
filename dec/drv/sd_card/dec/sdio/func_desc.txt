@@ -1,0 +1,35 @@
+Common SDIO Features
+·	Targeted for portable and stationary applications
+·	Minimal or no modification to the SD Physical bus is required
+·	Minimal change to the memory initialization sequence.
+·	Multi-function support including multiple I/O and combined I/O and memory
+·	Up to 7 I/O functions plus one memory function is supported on one card.
+·	An interrupt is supported to request the host to service to an event
+·	Standard Application Specifications for Standard SDIO Functions can be defined by Part Ex
+·	Card information is provided by Tuples or other registers.
+
+The standard functions such as cameras, Bluetooth cards and GPS receivers have a standard register interface, a common operation method and a standard CIS extension. By defining a standard register interface for a specific function, an OS vendor can provide a standard card driver, application software and API for the functions.
+
+In the case of non-standard SDIO functions, a card or device manufacturer needs to provide a card driver. The user may need to install the card driver and the application software to use the non-standard SDIO function. Implementation of the non-standard register interfaces is optional for any card vendor, but compliance with the standard allows the use of standard drivers and applications.
+
+There are three SDIO Card types
+(1)	Non UHS Card
+The Full-Speed Card supports 1-bit SD and the 4-bit SD interface and shall support Default Speed mode at the clock range of 0-25MHz (up to 12.5MB/s). High-Speed mode is optional at the clock range of 0-50MHz (up to 25MB/s).In addition, Low-Speed SDIO cards shall support clock range of 0-400 KHz.
+(2)	UHS-I SDIO Card
+In addition to the Full-Speed Card feature, 1.8V signaling mode is supported. Support of High-Speed mode, SDR12 (up to 12.5MB/s), SDR25 (up to 25MB/s) and SDR50 (up to 50MB/s) is mandatory and the support of the other UHS-I modes is optional.
+(3)	UHS-II SDIO Card
+In addition to the UHS-I SDIO Card feature, support of UHS-II mode is mandatory.
+
+Figure 2-1 : Signal Connection to Two 4-bit SDIO Cards
+
+Each function within an SDIO or Combo card may implement interrupts as needed. The interrupt used on SDIO functions is a level sensitive, means that any function may signal for an interrupt at any time, but once the function has signaled an interrupt, it shall not release (stop signaling) the interrupt until the cause of the interrupt is removed or commanded to do so by the host.
+
+Since there is only 1 interrupt line, it may be shared by multiple interrupt sources. The function shall continue to signal the interrupt until the host responds and clears the interrupt. Since multiple interrupts may be active at once, it is the responsibility of the host to determine the interrupt source(s) and deal with it as needed.
+
+This is done on the SDIO function by the use of two bits, the interrupt enable and interrupt pending. Each function that may generate an interrupt has an interrupt enable bit. In addition, the SDIO card has a master interrupt enable that controls all functions. An interrupt shall only be signaled to the SD bus if both the function's enable and the card's master enable are set.
+
+The second interrupt bit is called interrupt pending. This read-only bit tells the host which function(s) may be signaling for an interrupt. There is an interrupt pending bit for each function that can generate interrupts. These bits are located in the CCCR area.
+
+IMP: Using CMD52, I/O read/write command registers can be read/write 1 byte and R5 response is generated.
+
+similarly, CMD53 can be used but it allows large number of I/O registers with single command. since, this is data transfer comamnd, it gives highest speed.

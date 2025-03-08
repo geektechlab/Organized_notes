@@ -1,0 +1,101 @@
+Instrumentation trace macrocell (ITM)
+
+The ITM has multiple functionalities:
+• Software trace e software can directly write messages to ITM stimulus port
+registers and the ITM can encapsulate the data in trace packets and output them
+through the trace interface.
+• The ITM works as a trace packet merging device inside the processor to merge
+trace packets from DWT, stimulus port, and the timestamp packet generator
+(Figure 14.15). There is also a small FIFO in the ITM to help reducing trace
+packet overflow.
+• The ITM can generate timestamp packets that are inserted in to the trace stream
+to help the debugger to reconstruct the timing information of the events.
+
+To use ITM for debugging, the microcontroller or SoC device must have a trace
+port interface. If the device you use does not have a trace interface, or the debug
+adaptor you use does not support trace capture, you can still output console text messages using other peripheral interfaces such as UART or LCD. However, other features such as DWT profiling will not work. Some debuggers also support printf (and
+other semi-hosting features) by using core debug registers (e.g., CoreDebug-
+>DCRDR) as a communication channel.
+
+Before accessing any ITM registers or use any ITM features, the TRCENA bit
+(Trace Enable) in CoreDebug->DEMCR (see Table 14.5) must be set to 1.
+
+In addition, there is a lock register in the ITM. You need to write the access key
+0xC5ACCE55 (CoreSight Access) to this register before programming the ITM
+Trace Control Register (this could be done automatically by the debugger). Otherwise the write operations will be ignored:
+ITM->LAR = 0xC5ACCE55; // Enable access to ITM register
+
+In a CoreSight trace system, each trace source must be assigned with a trace
+source ID value. This is a programmable value and is one of the bit fields (ATBID)
+in the ITM Trace Control register. Normally this trace ID value is automatically
+setup by a debugger. This ID value must be unique from the IDs for other trace sources, so that the debug host receiving the trace packet can separate the ITM’s trace
+packets from other trace packets.
+
+One of the main uses of the ITM is to support debug message output (such as printf).
+The ITM contains 32 stimulus ports, allowing different software processes to output
+to different ports. The messages can be separated later at the debug host. Each port
+can be enabled or disabled by the Trace Enable register and can be programmed (in
+groups of eight ports) to allow or disallow user (unprivileged) processes to write to it.
+Unlike UART-based text output, using the ITM to output does not cause much
+delay for the application. A FIFO buffer is used inside the ITM, so writing output
+messages can be buffered. However, it is still necessary to check whether the
+FIFO is full before you write to it.
+The output messages can be collected at the trace port interface or the Serial Wire
+Viewer (SWV) interface on the TPIU. There is no need to remove code that generates the debug messages from the final code, because if the TRCENA control bit is
+low, the ITM will be inactive and debug messages will not be output. You can also
+switch on the output message in a “live” system and use the Trace Enable register in
+the ITM to limit which ports are enabled so that only some of the messages can be
+output.
+
+CMSIS-Core provides a function for handling text messages using the ITM stimulus port:
+unit32_t ITM_SendChar (uint32_t ch)
+This function uses stimulus port #0. It returns the value of “ch” input. Normally
+the debugger can set up the trace port and ITM for you, so you only need to call this
+function to output each character you want to display. To use this function you must
+also set up the debugger to enable trace capture. For example, if the SWO signal is
+used, the debugger must capture the trace using the correct baud rate. Usually the
+debugger GUI allows you to configure the processor frequency and Serial Wire
+Viewer (part of the TPIU) baud rate divide ratio. Also, if the SWO output is shared
+with TDO pin, the Serial Wire debug communication protocol must be selected.
+Although the ITM only allows data output, the CMSIS-Core also includes a function for the debugger to output a character to the application running on the
+microcontroller. The function is:
+int32_t ITM_ReceiveChar (void)
+The actual communication is handled by the debug interface (i.e., Serial Wire or
+JTAG). If there is no data to receive, the function returns 1. If data is available it
+returns the character received. Another function is available for checking if a character is received:
+int32_t ITM_CheckChar (void)
+The ITM_CheckChar() returns 1 if a character is available. Otherwise, it returns 0.
+The ITM Stimulus Port #31 is typically used by RTOS and debug to allow
+OS-aware debugging. The OS outputs information about the OS status so the
+debugger can tell when context switching has taken place and which task the processor is running.
+
+Note: The ITM FIFO is shared between multiple Stimulus Port channels. If the ITM
+stimulus ports are used by different tasks in a multi-tasking environment, you should
+use the semaphore feature in the OS to ensure that only one task has access to the
+ITM stimulus port at a time. The need for semaphore also applies when program
+code in Thread mode and exception handlers can use the ITM stimulus port simultaneously. Otherwise, the follow sequence could happen:
+1. Task A polled the FIFO status and confirmed that the FIFO is not full.
+2. A context switch takes place, Task B (or an exception handler) then polled a
+different ITM stimulus port and found that the FIFO is not full, so it output data
+to the stimulus port. Now the FIFO is full.
+3. A context switch takes place and returns to task A. Since this task has already
+polled the Stimulus Port status, it thinks that the FIFO is not full and writes data
+to the Stimulus Port. This triggers a trace overflow.
+In practice the risk of this happening is fairly low as it does take some time for
+context switching to be completed. However it is still a possible problem, especially
+if the trace bandwidth is low
+
+The ITM handles merging of packets from the DWT. To use the DWT trace, you
+need to set the DWTENA bit in the ITM Trace Control Register; the rest of the
+DWT trace settings are still required. All these are likely to be handled by the
+debugger automatically.
+
+The ITM has a timestamp feature that allows trace capture tools to obtain timing information by inserting delta timestamp packets into the traces when a new trace
+packet enters the FIFO inside the ITM. The timestamp packet is also generated
+when the timestamp counter overflows.
+The timestamp packets provide the time difference (delta) with respect to previous events. Using the delta timestamp packets, the trace capture tools can then establish the time when each packet is generated, and hence reconstruct the timing of
+various debug events. Cortex-M4 and Cortex-M3 r2p1 also have a global timestamp mechanism, which allows correlation of trace information between different
+trace sources (e.g., between ITM and ETM, or even between multiple processors).
+Combining the trace functionality of DWT and ITM, we can collect a lot of useful information. For example, the exception trace windows in the Keil mVision
+development tool can tell you what exceptions have taken place and how much
+time was spent on the exceptions, as shown in Figure 14.17.

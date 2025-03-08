@@ -1,0 +1,75 @@
+When the processor enters a fault exception, several registers are pushed into the stack (i.e.,
+the stack frame). If the stack pointer is still pointing to a valid RAM location, the information
+in the stack frame can be used for debugging. The analysis of the stack frame is often called
+stack tracing and can be carried out either inside the debug tools or inside the fault handlers.
+The first step of stack trace is to determine which stack pointer was used for the stacking
+operation (Fig. 13.6). In Cortex-M processors, this is identified using the EXC_RETURN value
+and the CONTROL_S and CONTROL_NS registers. Please note, if TrustZone is implemented
+and if there is no Secure debug access permission, Secure fault events (e.g., SecureFault,
+Secure MemManage Fault, etc.) and faults that were triggered during the execution of the
+Secure software cannot be analyzed.
+The second step is to determine whether the stack frame contains additional state context
+(Fig. 13.7). This information is needed if we want to extract the stacked return address. If
+TrustZone is implemented and if there is no Secure debug access permission, only the
+Non-secure stack frames, which do not have the additional state context, can be examined.
+Note: If the Secure code is interrupted by a Non-secure IRQ and is halted inside the Nonsecure ISR, the additional state context in the Secure stack frame is visible—even when
+EXC_RETURN.DCRS is 1—to a debugger which has Secure debug permission.
+Once the stack frame contents have been identified, the stacked registers, such as the
+stacked return address and the stacked xPSR, are then easily located. These stacked values
+are useful for debugging in the following ways:
+– Stacked return address: In many instances, the stacked return address provides the most
+important help when debugging faults. By generating a disassembled code listing of the
+program image in the tool chain, the code fragment where the fault occurred is easily
+pin-pointed. With the additional information provided from the current stacked register
+values, and the Fault Status Registers, it should be easy to understand why the fault
+exception occurred.
+– Stacked xPSR: This can be used for identifying whether the processor was, when the fault
+occurred, in Handler mode and whether there had been an attempt to switch the processor
+into Arm state (if the T-bit in the EPSR is cleared, then one can safely assume that there has
+been an attempt to switch the processor into Arm state).
+– EXC_RETURN value in the Link Register (LR): The EXC_RETURN value in the LR when
+entering the fault handler might also provide information about the cause of the fault. If the
+fault event is caused by an invalid EXC_RETURN value during an exception return, the
+fault event would cause a tail chaining of the fault exception. In this situation, the
+EXC_RETURN value of the fault handler will show the partial value of the invalid EXC_RETURN (some of the bits in the EXC_RETURN could be different because the fault
+handler could be in a different security state than the previous faulting exception handler).
+The fault handler can, optionally, report the EXC_RETURN value in the LR and could be
+used by software programmers to determine whether the fault was caused by a corruption
+of the EXC_RETURN value in the exception handler.
+
+( very imp: FIG. 13.6 Checking of the EXC_RETURN and the SPSEL bit in the CONTROL register to determine which stack
+pointer was used. )
+
+( very imp: FIG. 13.7 Identifying the stack frame format for the stack trace. )
+
+Fault handler to extract stack frame and display fault status
+
+After establishing the method to extract information from the stack frame, we can then
+create a fault handler to extract and display that information in a console (assuming
+“printf” redirection or semihosting is in place). To do this, we need to have an assembly
+wrapper:
+– To extract the stack pointer value (because the C compiler inserts stack operations in a
+prologue of C function, which would change the current selected SP value)
+– To extract the value of the EXC_RETURN
+
+In the C handler, we then need to:
+• Extract the right stack pointer, and
+• Extract various pieces of useful information (e.g., stacked register values)
+If the fault handler is written for the Non-secure world, the fault handler code is similar to
+the SVC example:
+
+If the fault handler is written for the Secure world, additional steps are needed. For example, it is possible for a Secure configurable fault handler to view the additional state context (it
+contains the integrity signature and stacked values of r4–r11) in the stack frame if it is configured to be of a lower priority level than that of a Non-secure IRQ. If a Secure configurable
+fault is triggered and stacking commences, a higher priority Non-secure IRQ arriving at that
+time could be served first, causing the additional state context to be pushed to the Secure
+stack. This additional state information would remain on the stack frame when the
+configurable fault handler executed: the calculation of stack frame address would need to
+take this into account (The following handler code refers):
+
+Because there are more stack pointers to choose from, the operation of this handler is somewhat more complex than the SVC example detailed in Chapter 11.
+After the stack frame is extracted, the information can be displayed using the “printf” statements. If available, the handler can also display the fault status registers, which contain fault
+event information.
+Please note, this handler will not work correctly if the stack pointer is pointing to an invalid
+memory region (e.g., because of stack overflow). This affects all C code as most C functions
+need stack memory.
+To help debug the issue, a disassembled code list file can be generated so that the instruction, which triggered the fault can be located using the report stacked program counter value.

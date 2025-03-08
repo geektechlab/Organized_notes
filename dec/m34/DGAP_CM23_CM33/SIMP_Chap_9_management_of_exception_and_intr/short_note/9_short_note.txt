@@ -1,0 +1,333 @@
+Arm Cortex®-M processors use a combination of memory-mapped registers and special
+registers for the management of interrupts and system exceptions. These registers reside in
+various parts of the processor:
+• Most management registers for interrupts are in the NVIC.
+• System exceptions are managed by registers in the System Control Block (SCB).
+• Interrupt masking registers (PRIMASK, FAULTMASK, and BASEPRI) are special
+registers, and can be accessed by using the MSR and the MRS instructions. Both the NVIC and SCB registers are in the System Control Space (SCS) address range. If the TrustZone® security extension is implemented, Secure
+software can also access a Non-secure view of SCS using a SCS Non-secure alias.
+
+There are a number of registers in the NVIC for interrupt control (exception types 16–495).
+These registers are located in the address range of the System Control Space (SCS). All these registers, with the exception of the Software Trigger Interrupt Register (STIR), are
+only accessible at privileged level.
+
+After a system reset, the initial status of the interrupts are as follows:
+• All interrupts are disabled (enable bits=0)
+• All interrupts have a priority level of 0 (the highest programmable level)
+• All interrupts pending status are cleared
+• All interrupts target the Secure state if the TrustZone security extension is implemented
+If an interrupt targets the Secure state, then, from a Non-secure software point of view, all
+NVIC registers associated with that interrupt are read-as-zero and write is ignored.
+Secure software can access the Non-secure view of the NVIC by using the NVIC Nonsecure alias. The NVIC Non-secure alias is not available to
+Non-secure software or to the debugger.
+
+( TABLE 9.7 Summary of the registers in the NVIC for interrupt control )
+
+The Interrupt Enable register is programmed through two addresses. To set the enable bit,
+you need to write to the NVIC->ISER[n] register address and, to clear the enable bit, you need
+to write to the NVIC->ICER[n] register address. By doing this, the enabling or disabling of an
+interrupt will not affect the enable states of other interrupts.
+
+If an interrupt takes place but cannot be executed immediately (e.g., because another
+higher-priority interrupt handler is running), it will be pended. The interrupt-pending status is accessible via the Interrupt Set Pending (NVIC->ISPR[n]) and Interrupt Clear Pending
+(NVIC->ICPR[n]) registers.
+
+the IPSR (Interrupt Program Status Register,
+see “Program Status Register (PSR)” section in Section 4.2.2.3) shows the current executing
+exception service (i.e., the exception number of the higher-priority interrupt).
+
+Each Interrupt Active Status Register contains the active status of 32 interrupts. If there are
+more than 32 external interrupts, there will be more than one active register. The active status
+registers for external interrupts are read-only (Table 9.10).
+
+When the TrustZone security extension is implemented, Interrupt Target Non-secure
+Register(s) (NVIC->ITNS[n], Table 9.11) are also implemented to allow Secure privileged
+software to assign each interrupt as Secure or Non-secure.
+
+As well as using the NVIC->ISPR[n] registers, you can, if you are using an Armv8-M Mainline processor such as the Cortex-M33, program the Software Trigger Interrupt Register
+(NVIC->STIR, Table 9.13) to trigger an interrupt.
+For example, you can generate interrupt #3 by writing the following code in C:
+NVIC->STIR = 3; // Triggers IRQ #3
+
+Unlike the NVIC->ISPR[n], which is only accessible with a privileged access level, you can
+enable unprivileged program code to trigger a software interrupt using NVIC->STIR. To do
+this, privileged software needs to set bit 1 (USERSETMPEND) of the Configuration Control Register. By default, the USERSETMPEND bit is 0,
+which means only privileged code can use NVIC->STIR when the system starts.
+Similar to NVIC->ISPR[n], NVIC->STIR cannot be used to trigger system exceptions such as
+NMI, SysTick, etc. The Interrupt Control and State Register (ICSR) in the System Control Block
+(SCB) is, however, available for such system exception management features (Section 9.3.2).
+
+The NVIC also has an Interrupt Controller Type Register. This readonly register gives the number of interrupt inputs supported by the NVIC in granularities of
+32 (Table 9.14).
+
+While the Interrupt Controller Type register provides an approximate range of the
+available interrupts, it does not furnish you with the exact number of interrupts that have
+been implemented. If such information is needed, you can use the following steps to determine how many interrupts have been implemented:
+(1) Set the PRIMASK register (to prevent interrupts from being triggered when undertaking
+this test)
+(2) Calculate N=(((INTLINESNUM+ 1)*32)-1)
+(3) Starting with interrupt number N, set the interrupt enable register bit of this interrupt
+(4) Read back the interrupt enable register to determine whether the enable bit has been set
+(5) If the enable bit is not set, decrement N (i.e., N=N-1) and then retry steps 3 and 4. If the
+enable bit is set, then the current interrupt number N is the highest available interrupt
+number.
+It is also possible to apply the same techniques with other interrupt management registers
+(e.g., the pending status or priority level registers) to determine whether a certain interrupt
+has been implemented.
+
+The System Control Block (SCB) contains a collection of registers for:
+• System management (including system exceptions).
+• Fault handling
+• Access management for the Coprocessor and the Arm Custom Instructions feature
+• Software to determine the processor’s available features using a number of ID registers
+(this is essential in some applications because of the configurability of the processors).
+
+( TABLE 9.15 Summary of the SCB registers for system exception management )
+
+• To trigger PendSV/NMI/SysTick exception, software needs to access the ICSR.
+• To manage (e.g., to enable) configurable fault exceptions (i.e., BusFault, UsageFault,
+MemManage Fault, and SecureFault) for the Cortex-M33 processor, software needs to
+access the SHCSR
+
+Interrupt Control and State Register (SCB->ICSR)
+
+The ICSR register is used by application code to:
+• Set and clear the pending status of system exceptions, including SysTick, PendSV,
+and NMI.
+• Determine the current executing exception/interrupt number by reading VECTACTIVE.
+
+The ICSR, in addition to being used for software purposes, is also be used by the debugger
+to determine the processor’s interrupt/exception status. The VECTACTIVE field in the SCB-
+>ICSR is equivalent to the IPSR and is easily accessed by a debugger. The bit fields of the ICSR
+are listed in Table 9.16.
+In this register, a fair number of the bit fields are for use by the debugger to determine the
+system’s exception status. In many applications, only the system exception’s pending bits and
+STTNS are used by the software.
+
+( TABLE 9.16 Interrupt Control and State Register (SCB->ICSR, 0xE000ED04) )
+
+System Handler Priority Registers (SCB->SHP[n])
+
+Some of the priority levels of system exceptions are programmable. The programmable
+level registers for system exceptions have the same width as the interrupt priority level registers.
+
+• Priority levels for SVC, PendSV, and SysTick, fault exceptions and the Debug Monitor
+exception are programmable.
+• The priority level bit fields are 8-bit wide, with configurable number of implemented bits
+(ranging from 3 to 8). The unimplemented bits are always 0.
+
+( very imp: TABLE 9.17 Banking of priority level registers for system exceptions )
+
+Application Interrupt and Reset Control Register (SCB->AIRCR)
+
+The AIRCR register (Table 9.18) is used for:
+• Controlling priority grouping in exception/interrupt priority management.
+• Providing information about the Endianness of the system (can be used by software as well
+as the debugger).
+• Providing a self-reset feature.
+The priority grouping feature is covered in Section 8.5.2.
+
+( TABLE 9.18 Application Interrupt and Reset Control Register (SCB->AIRCR, 0xE000ED0C) )
+
+there are some differences between the AIRCR in Armv8-M and the same registers in the architectures of Armv6-M and Armv7-M. For example:
+• If TrustZone is implemented, there are new bit fields that are available to the Secure
+software. These new bit fields include SYSRESETREQS (for managing the accessibility of
+the self-reset feature), PRIS (for prioritizing Secure exceptions), and BFHFNMINS (for
+defining the target security states for BusFault, HardFault, and the NMI exceptions).
+
+System Handler Control and State Register (SCB->SHCSR)
+
+With Armv8-M Mainline, configurable fault exceptions (including UsageFault, Memory
+management (MemManage) faults, BusFault, and SecureFault exceptions) can be enabled
+by writing to the enable bits in the System Handler Control and State Register. The pending status of faults and the active status of most of the system exceptions are also available in this register (Table 9.19).
+
+( TABLE 9.19 System Handler Control and State Register (SCB->SHCSR, 0xE000ED24) )
+
+Interrupt masking registers can be used as follows:
+• PRIMASK––For general disabling of interrupts and exceptions, e.g., to enable critical
+regions in the code to be executed without getting interrupted.
+• FAULTMASK––Can be used by fault exception handlers to suppress the triggering of
+further faults during fault handling (Note: only some types of faults can be suppressed).
+• BASEPRI––For general disabling of interrupts and exceptions based on priority levels. For
+some OS operations, it is desirable to block some exceptions for a brief period of time while,
+at the same time, still allowing certain high priority interrupts to be serviced.
+
+When TrustZone is implemented, these interrupt masking registers are banked between
+security states. As you would expect, the Secure interrupt masking registers cannot be
+accessed from the Non-secure world. The effect of each of the interrupt masking registers
+on the processor’s effective priority level means that these registers can mask both Secure
+and Non-secure interrupts/exceptions.
+Please note, the masked priority levels of the Non-secure PRIMARK_NS,
+FAULTMASK_NS, and BASEPRI_NS (is) are affected by the PRIS (Prioritize Secure Exceptions) control bit in the Application Handler Control and State Register (AIRCR.PRIS). For
+example, when PRIMASK_NS is set, the effective masked priority level is 0x80, meaning that
+Secure interrupts/exceptions with a priority range of 0 to 0x7F can still take place.
+The masking registers are accessible in privileged level only. To access these registers,
+MRS, MSR, and CPS (Change Processor State) instructions should be used.
+
+When using interrupt masking registers when writing software, instead of just setting an
+interrupt masking register before entering the critical code and clearing the register afterward, it is often necessary to use a read-modify-write sequence. When this is the case, it would
+be necessary to read the current status of the interrupt masking register before setting it. The
+critical code would then need to be executed and, after the critical code has been executed, the
+original value of the interrupt masking register would then need to be restored. See example.
+
+PRIMASK
+
+For many applications, you might need to temporarily disable all of the peripheral interrupts in order to carry out a timing-critical task. You can use the PRIMASK register
+(Table 9.22) for this purpose. The PRIMASK register is only accessible in privileged state.
+The PRIMASK register is used to disable all exceptions except the NMI and HardFault (it
+sets the effective priority level to 0x0). If the AIRCR.PRIS is to 1, the Non-secure PRIMASK is
+be used to block
+• all Non-secure interrupts with priority levels 0x00 to 0xFF (an effective level of 0x80 to 0xFF
+when viewing from the Secure world), and
+• Secure interrupts with priority levels 0x80 to 0xFF.
+
+When PRIMASK is set, fault events for configurable fault exceptions (i.e., MemManage,
+Bus Fault, Usage Fault) could be blocked and, if this is the case, it will trigger an escalation,
+and lead to a HardFault exception.
+
+FAULTMASK
+
+In terms of behavior, FAULTMASK is very similar to PRIMASK, except that it could also
+block the HardFault handler. The behavior of FAULTMASK is detailed in Table 9.23.
+
+FAULTMASK is often used by Configurable Fault Handlers (i.e., MemManage, Bus Fault,
+Usage Fault) to raise the processor’s current priority level. By so doing, this means the aforementioned handlers can:
+• Bypass the MPU (Further information on this can be found in Table 12.3, in the description
+of the HFNMIENA bit in the MPU Control Register)
+
+For assembly language users, the current status of the FAULTMASK is changed by using
+the following CPS instructions:
+CPSIE F ; Clears FAULTMASK
+CPSID F ; Sets FAULTMASK
+You can also access the FAULTMASK registers by using the MRS and the MSR instructions. The following examples detail the setting and clearing of the FAULTMASK of the current security domain when using the MSR instruction:
+MOVS R0, #1
+MSR FAULTMASK, R0 ; Write 1 to FAULTMASK to disable all interrupts
+and:
+MOVS R0, #0
+MSR FAULTMASK, R0 ; Write 0 to FAULTMASK to allow interrupts
+The FAULTMASK register(s) is cleared automatically at an exception return, subject to the
+following conditions:
+• If TrustZone is not implemented, then FAULTMASK_NS is cleared automatically at an
+exception return, except when the exception is an NMI exception.
+• If TrustZone is implemented, then the FAULTMASK of the current exception state
+(which is indicated by EXC_RETURN.ES) is, except for NMI and HardFault exceptions,
+cleared to 0.
+
+The characteristic of FAULTMASK being automatically cleared at an exception return provides an interesting application for it: when we want an exception handler to trigger a higher
+priority handler (except for the NMI), but want this higher priority handler to start AFTER the
+current handler has completed, we can take the following steps:
+1. Set the FAULTMASK to disable all interrupts and exceptions (apart from the NMI
+exception)
+2. Set the pending status of the higher priority interrupt or exception
+3. Exit the current handler
+Because the pending higher priority exception handler cannot start while FAULTMASK is
+set, the higher priority exception stays in a pending state until FAULTMASK has cleared;
+which happens when the lower priority handler finishes. As a result, you can force the higher
+priority handler to start after the lower priority handler has finished.
+
+In some instances, you might want to disable interrupts with a priority lower than a certain
+level. In this case, you could use the BASEPRI register. To do this, simply write the required
+masking priority level to the BASEPRI register, as detailed in Table 9.24.
+
+For example, if you want to block all exceptions with a priority level equal to or lower than
+0x60, you can write the following value to BASEPRI:
+MOVS R0, #0x60
+MSR BASEPRI, R0 ; Disables interrupts with priority
+; 0x60-0xFF
+
+The following points need to be considered when relocating the vector table:
+• The starting address of the vector table must be a multiple of 128 for the Cortex-M33.
+This multiplication requirement is because the starting
+address of the vector table is indicated by the Vector Table Offset Register (VTOR). And in
+the VTOR register, some of the lowest bits are not implemented, resulting in the
+aforementioned 128 bytes/256 bytes alignment requirement. The implemented and
+unimplemented bits in the VTOR are as follows:
+• In the Cortex-M33 processor, the implemented bits are from bit 7 to bit 31, and the
+unimplemented bits (i.e., tied to 0) are bits 0–6.
+As a result, the starting address of the vector table must match the alignment
+characteristic of the address value in the VTOR.
+• A data memory barrier would need to be executed after the vector table was updated to
+ensure that all subsequent operations used the new vector table (Even when an SVC
+instruction is executed immediately after the vector table was updated, the new vector
+configurations would still be used).
+• A vector table would need to be placed in the address range for the corresponding security
+domain, i.e., the Secure vector table must be placed in a Secure address and the Non-secure
+vector table in a Non-secure address.
+
+The term interrupt latency refers to the delay that occurs from the start of the interrupt request to
+the start of the interrupt handler’s execution. if the memory system has zero latency, and in the case of the Cortex-M33, provided that the bus system
+design allows vector fetch and stacking to happen at the same time, the typical interruptlatency is: 12 cycles for the Cortex-M33 (the same as the Cortex-M3 and the Cortex-M4), which
+increases to 21 cycles if the processor is running Secure code and if the interrupt that
+occurred targeted the Non-secure state.
+
+This cycle count includes stacking the registers, vector fetch, and fetching instructions for
+the interrupt handler.
+
+The duration of the execution sequence also depends on the access speed of the memory.
+As well as memory/peripheral wait states, there can be other factors that increase the interrupt latency. For example:
+• If the processor was serving another exception of the same or of a higher priority.
+• If the processor was running a Secure program and the interrupt targets Non-secure state.
+In this case, additional context will need to be pushed into the stack frame.
+• The debugger accesses the memory system.
+• If the processor was carrying out an unaligned transfer. From the processor’s point of view, this might be a single access,
+but at the bus level it would be seen as multiple transfers. This is because the processor bus
+interface converts an unaligned transfer into multiple aligned transfers in order to handle
+the transfer though the AHB interface.
+• In the case of a fault exception, the latency can be different from interrupts because they are
+handled differently from external interrupt signals.
+The Cortex-M23 and Cortex-M33 processors reduce the latency of servicing interrupts in a
+number of ways. For example, most operations, such as nested interrupt handling, are automatically handled by the processor’s hardware, thus reducing latency. This is because thereis no need to use software tomanage the nesting of theinterrupts. Similarly, because of the vectored interrupt support, thereis no need to use software to determinewhichinterrupt to service and, additionally, there is no need to look-up the starting address of the Interrupt Service Routines (ISR).
+
+Some instructions take multiple clock cycles to execute. If an interrupt request arrives
+when the processor is executing a multiple cycle instruction (e.g., an integer divide), the instruction could be abandoned and then restarted after the interrupt handler has finished.
+
+When an exception takes place and the processor is handling another exception of the same
+or of a higher priority, the exception enters pending state. When the processor finishes executing the current exception handler, it then proceeds to process the pended exception/interrupt request. Instead of restoring the register’s data back from the stack (i.e., unstacking) and
+then pushing that data back to the stack (i.e., stacking), the processor skips some of the
+unstacking and stacking steps and, as soon as possible, enters the exception handler of the
+pended exception (Fig. 9.3). With this arrangement, the timing gap between the two exception
+handlers is considerably reduced.
+Tail-chaining optimization makes the processor system more energy efficient because the
+number of stack memory accesses is reduced and because each memory access consumes
+energy.
+
+Unlike the Cortex-M3 or Cortex-M4 processors, the tail chain operation does not
+completely eliminate memory access between the exception handlers. This is because
+TrustZone brought additional security check requirements to the exception return. For example, the processor might need to check the integrity signature in the Secure stack frame to ensure that the exception return is valid before handling the next exception. If the security
+checks fail, the processor would first need to trigger a fault exception. The processor might also need to carry out additional stacking operations if the interrupted software and the first
+ISR were both Secure and the tail-chaining interrupt was Non-secure (Fig. 9.4).
+
+When an exception takes place, the processor accepts the exception request and starts the
+stacking operation. If during the stacking operation another exception of a higher priority
+takes place, the higher priority late arrival exception will be serviced first.
+For example, if Exception #1 (a lower priority) takes place a few cycles before Exception #2
+(a higher priority), the processor will, service Interrupt #2 as soon as the stacking completes,
+as shown in Fig. 9.5. The late arrival of a higher priority interrupt could result in having to stack additional
+callee-saved registers. This would occur when the interrupted code and the first interrupt
+event are Secure and when the second interrupt (higher priority) is Non-secure.
+
+If an exception request arrives during the unstacking process for an exception handler that
+has just finished, the processor could abandon the unstacking operation and start the vector
+fetch and instruction fetch for the next exception. This optimization is called pop preemption
+(Fig. 9.6).
+As is the case for tail-chaining, it is possible that the new interrupt event could result in the
+stacking of additional callee-saved registers.
+
+If the FPU is available, has been enabled and the FPU has been used when an interrupt
+arrives, the registers in the FPU’s register bank will contain data that will need to be
+saved. Without lazy stacking, the FPU registers would be pushed to the stack during exception stacking, and would, at the end of the interrupt service, need to be restored to
+the FPU.
+The saving and restoring of these registers could take a number of clock cycles. If the interrupt handler does not contain any floating-point instruction, the saving and restoring of
+the FPU registers would be a waste of time and would increase interrupt latency. To make
+Cortex-M processors more efficient, the lazy stacking optimization was introduced.
+When an interrupt occurs when the lazy stacking feature is enabled (i.e., default), the processor does not push the FPU registers into the stack, but only reserves the space for them. In
+addition, a lazy stacking pending register bit is set. If the interrupt handler does not use a
+floating-point instruction, the restoring of the FPU registers during unstacking does not take
+place.
+If the interrupt handler uses the FPU, the processor’s pipeline is stalled when the first
+floating-point instruction in the interrupt handler is detected. The processor would then carry
+out the deferred stacking operation (i.e., pushing the FPU registers into the reserved space in
+the stack frame), clear the lazy stacking pending register, and would then resume its operation. At the end of the interrupt handler, the FPU registers would, during the unstacking process, be restored from the stack frame.
+Because of the lazy stacking feature, the interrupt latency of the Cortex-M33 processor with
+an FPU remains relatively low (e.g., 12, or 21 clock cycles if additional contexts need to be
+saved).

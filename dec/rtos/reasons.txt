@@ -1,0 +1,18 @@
+why fromisr api
+	- those are non-blocking
+	- if higher priority task gets unblocked, it will use xnotifyhigherpriorityunblocked variable and will wakeup higher priority task only after isr completion
+	- if higher priority task is allowed to run immediately from isr then it can cause unpredictable running behaviour because task will execute in priviledged mode and also it may call normal freertos api ( not the one fromisr ) and then it will cause mutual exclusion issues ( not sure if this true, evaluate and find the case), stack corruption maybe because it will MSP and may run beyond than that etc.
+	- if not used then immediately other task could get swtiched because it's blocking condition is met and may lead to some unknown execution path ( may call some other freertos api and sequence of those can happen and all these will be happening within ISR )
+
+so it minimizes time spent in isr
+
+If the FreeRTOS port in use supports interrupt nesting, and the service routine for an interrupt
+makes use of the FreeRTOS API, then it is essential the interrupt’s priority is set at or below
+configMAX_SYSCALL_INTERRUPT_PRIORITY, as described in section 6.8, Interrupt
+Nesting. Failure to do this will result in ineffective critical sections, which in turn will result in
+intermittent failures.
+
+this is because in critical sectiton, generally interrupts are disabled till configMAX_SYSCALL_INTERRUPT_PRIORITY. If current interrupt logical priority is above than this and if it uses freertos api which wants to enter critical section to maintain exclusivity of resource, then it is not guaranteed,. because this if some other interrupt genuinly lower than configMAX_SYSCALL_INTERRUPT_PRIORITY uses freertos api using critical section then this interrupt will come and use freertos api making that shared resource not mutually exclusive.
+
+( read 6.8, very important )
+

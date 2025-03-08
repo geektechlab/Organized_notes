@@ -1,0 +1,18 @@
+https://infineon.github.io/usbdev/usbfs_dev_api_reference_manual/html/index.html
+https://www.udemy.com/course/usb-behind-the-scenes-hands-on-hid-firmware-development/#overview
+usb udemy ppt
+https://www.infineon.com/dgdl/Infineon-AN57294_USB_101_An_Introduction_to_Universal_Serial_Bus_2.0-ApplicationNotes-v09_00-EN.pdf?fileId=8ac78c8c7cdc391c017d072d8e8e5256&utm_source=cypress&utm_medium=referral&utm_campaign=202110_globe_en_all_integration-application_note
+https://www.infineon.com/dgdl/Infineon-AN57473_USB_HID_Basics_with_PSoC_3_and_PSoC_5LP-ApplicationNotes-v12_00-EN.pdf?fileId=8ac78c8c7cdc391c017d072d9ba7525f#:~:text=AN57473%20describes%20the%20basics%20of,and%20joystick%20inputs%20as%20examples.
+https://www.infineon.com/dgdl/Infineon-AN58726_USB_HID_Intermediate_with_PSoC_3_and_PSoC_5LP-ApplicationNotes-v11_00-EN.pdf?fileId=8ac78c8c7cdc391c017d072e541b52df#:~:text=http%3A%2F%2Fwww.cypress.com,PSoC%20Creator%E2%84%A2%20USBFS%20Component.
+https://www.infineon.com/dgdl/Infineon-AN82072_PSoC_3_and_PSoC_5LP_USB_General_Data_Transfer_with_Standard_HID_Drivers-ApplicationNotes-v07_00-EN.pdf?fileId=8ac78c8c7cdc391c017d073bc5b95fcb
+https://www.infineon.com/dgdl/Infineon-AN56377_PSoC_3_and_PSoC_5LP_Introduction_to_Implementing_USB_Data_Transfers-ApplicationNotes-v14_00-EN.pdf?fileId=8ac78c8c7cdc391c017d072dc1e8527a
+https://www.infineon.com/dgdl/Infineon-AN73503_PSoC_USB_HID_Bootloader-ApplicationNotes-v12_00-EN.pdf?fileId=8ac78c8c7cdc391c017d0725d2bb4abf&utm_source=cypress&utm_medium=referral&utm_campaign=202110_globe_en_all_integration-application_note
+https://www.infineon.com/dgdl/Infineon-AN75705_Getting_Started_with_EZ-USB_FX3-ApplicationNotes-v11_00-EN.pdf?fileId=8ac78c8c7cdc391c017d073989df5e15
+https://www.infineon.com/dgdl/Infineon-AN76348_Differences_in_Implementation_of_EZ-USB_FX2LP_and_EZ-USB_FX3_Applications-ApplicationNotes-v06_00-EN.pdf?fileId=8ac78c8c7cdc391c017d073353c25743
+https://www.beyondlogic.org/usbnutshell/usb1.shtml#Introduction
+USB Complete, The Developer’s Guide, Fifth Edition, Jan Axelson
+https://www.usb.org/sites/default/files/hid1_11.pdf
+https://www.usb.org/sites/default/files/USB%20Type-C%20Spec%20R2.0%20-%20August%202019.pdf
+Universal Serial Bus Specification 2.0
+https://www.infineon.com/dgdl/Infineon-PSoC_6_MCU_PSoC_62_Architecture_Technical_Reference_Manual-AdditionalTechnicalInformation-v08_00-EN.pdf?fileId=8ac78c8c7d0d8da4017d0f94758401d1
+other TRMs

@@ -1,0 +1,83 @@
+The term interrupt latency refers to the delay that occurs from the start of the interrupt request to
+the start of the interrupt handler’s execution. In Cortex-M23 and Cortex-M33 processors, if the memory system has zero latency, and in the case of the Cortex-M33, provided that the bus system
+design allows vector fetch and stacking to happen at the same time, the typicalinterruptlatency is: 12 cycles for the Cortex-M33 (the same as the Cortex-M3 and the Cortex-M4), which
+increases to 21 cycles if the processor is running Secure code and if the interrupt that
+occurred targeted the Non-secure state.
+
+This cycle count includes stacking the registers, vector fetch, and fetching instructions for
+the interrupt handler.
+
+However, in many cases the latency can be higher due to wait states in the memory system.
+If the processor is carrying out a memory transfer, the outstanding transfer has, due to the
+nature of the AMBA® AHB bus protocol (the AHB can deal with just one transaction at a time)
+[2], to be completed before the exception sequence starts. The duration of the execution sequence also depends on the access speed of the memory.
+As well as memory/peripheral wait states, there can be other factors that increase the interrupt latency. For example:
+• If the processor was serving another exception of the same or of a higher priority.
+• If the processor was running a Secure program and the interrupt targets Non-secure state.
+In this case, additional context will need to be pushed into the stack frame.
+• The debugger accesses the memory system.
+• If the processor was carrying out an unaligned transfer (not applicable to the Cortex-M23
+or Armv8-M Baseline). From the processor’s point of view, this might be a single access,
+but at the bus level it would be seen as multiple transfers. This is because the processor bus
+interface converts an unaligned transfer into multiple aligned transfers in order to handle
+the transfer though the AHB interface.
+• In the case of a fault exception, the latency can be different from interrupts because they are
+handled differently from external interrupt signals.
+The Cortex-M23 and Cortex-M33 processors reduce the latency of servicing interrupts in a
+number of ways. For example, most operations, such as nested interrupt handling, are automatically handled by the processor’s hardware, thus reducinglatency. Thisis because thereis no need
+to use software tomanage the nesting of theinterrupts. Similarly, because of the vectoredinterrupt
+support, thereis no need to use software to determinewhichinterrupt to service and, additionally,
+there is no need to look-up the starting address of the Interrupt Service Routines (ISR).
+
+Some instructions take multiple clock cycles to execute. If an interrupt request arrives
+when the processor is executing a multiple cycle instruction (e.g., an integer divide), the instruction could be abandoned and then restarted after the interrupt handler has finished.
+
+When an exception takes place and the processor is handling another exception of the same
+or of a higher priority, the exception enters pending state. When the processor finishes executing the current exception handler, it then proceeds to process the pended exception/interrupt request. Instead of restoring the register’s data back from the stack (i.e., unstacking) and
+then pushing that data back to the stack (i.e., stacking), the processor skips some of the
+unstacking and stacking steps and, as soon as possible, enters the exception handler of the
+pended exception (Fig. 9.3). With this arrangement, the timing gap between the two exception
+handlers is considerably reduced.
+Tail-chaining optimization makes the processor system more energy efficient because the
+number of stack memory accesses is reduced and because each memory access consumes
+energy.
+Unlike the Cortex-M3 or Cortex-M4 processors, the tail chain operation does not
+completely eliminate memory access between the exception handlers. This is because
+TrustZone brought additional security check requirements to the exception return. For example, the processor might need to check the integrity signature in the Secure stack frame to ensure that the exception return is valid before handling the next exception. If the security
+checks fail, the processor would first need to trigger a fault exception. The processor might also need to carry out additional stacking operations if the interrupted software and the first
+ISR were both Secure and the tail-chaining interrupt was Non-secure (Fig. 9.4).
+
+When an exception takes place, the processor accepts the exception request and starts the
+stacking operation. If during the stacking operation another exception of a higher priority
+takes place, the higher priority late arrival exception will be serviced first.
+For example, if Exception #1 (a lower priority) takes place a few cycles before Exception #2
+(a higher priority), the processor will, service Interrupt #2 as soon as the stacking completes,
+as shown in Fig. 9.5. The late arrival of a higher priority interrupt could result in having to stack additional
+callee-saved registers. This would occur when the interrupted code and the first interrupt
+event are Secure and when the second interrupt (higher priority) is Non-secure.
+
+If an exception request arrives during the unstacking process for an exception handler that
+has just finished, the processor could abandon the unstacking operation and start the vector
+fetch and instruction fetch for the next exception. This optimization is called pop preemption
+(Fig. 9.6).
+As is the case for tail-chaining, it is possible that the new interrupt event could result in the
+stacking of additional callee-saved registers.
+
+If the FPU is available, has been enabled and the FPU has been used when an interrupt
+arrives, the registers in the FPU’s register bank will contain data that will need to be
+saved. Without lazy stacking, the FPU registers would be pushed to the stack during exception stacking, and would, at the end of the interrupt service, need to be restored to
+the FPU.
+The saving and restoring of these registers could take a number of clock cycles. If the interrupt handler does not contain any floating-point instruction, the saving and restoring of
+the FPU registers would be a waste of time and would increase interrupt latency. To make
+Cortex-M processors more efficient, the lazy stacking optimization was introduced.
+When an interrupt occurs when the lazy stacking feature is enabled (i.e., default), the processor does not push the FPU registers into the stack, but only reserves the space for them. In
+addition, a lazy stacking pending register bit is set. If the interrupt handler does not use a
+floating-point instruction, the restoring of the FPU registers during unstacking does not take
+place.
+If the interrupt handler uses the FPU, the processor’s pipeline is stalled when the first
+floating-point instruction in the interrupt handler is detected. The processor would then carry
+out the deferred stacking operation (i.e., pushing the FPU registers into the reserved space in
+the stack frame), clear the lazy stacking pending register, and would then resume its operation. At the end of the interrupt handler, the FPU registers would, during the unstacking process, be restored from the stack frame.
+Because of the lazy stacking feature, the interrupt latency of the Cortex-M33 processor with
+an FPU remains relatively low (e.g., 12, or 21 clock cycles if additional contexts need to be
+saved).

@@ -1,0 +1,24 @@
+One Standard Register Set is defined for each slot. If the Host Controller has two slots, two register sets is required. Each slot is controlled independently. This enables support for combinations of bus interface voltage, bus timing and SD Clock frequencies.
+
+Figure 1-3 shows the register map for a multiple slot Host Controller. The Host Driver shall determine the number of slots and base pointers to each slot's Basic Register Set using PCI Configuration register or vendor specific methods. Offsets from 0F0h to 0FFh are reserved for the Common register area that defines information for slot control and common status. The common register area is accessible from any slot's register set. This allows software to control each slot independently, since it has access to the Slot Interrupt Status register and the Host Controller Version register from each register set. From 100h to mFFh, Extended Register Set can be assigned. A parameter "m" denotes integer to determine size of the Extended Register Set.
+
+The Host Controller provides a "programmed I/O" method for the Host Driver to transfer data using the Buffer Data Port register. Optionally, Host Controller implementers may support data transfer using DMA.
+
+SDMA (Single Operation DMA). Only one SD command transaction can be executed per an SDMA operation. Support of SDMA can be checked by the SDMA Support in the Capabilities register. This specification defines a DMA transfer algorithm called ADMA (Advanced DMA). ADMA provides data transfer between system memory and SD card without interruption of CPU execution. Support of ADMA can be checked by the Capabilities register.
+
+There are three types of DMAs: SDMA, ADMA2 and ADMA3. SDMA (Single Operation DMA) performs a read / write SD command operation. SDMA is suitable for short data transfer because SDMA requires address update at page boundary of system memory. DMA Interrupt generated at every page boundary disturbs CPU to reprogram the new system address. A long data transfer should use ADMA to avoid performance bottleneck by interruption at every page boundary. ADMA2 and ADMA3 adopt scatter gather DMA algorithm so that higher data transfer speed is available. The Host Driver can program a list of data transfers between system memory and SD card to the Descriptor Table. ADMA2 performs a read / write SD command operation at a time. ADMA3 can program multiple read / write SD commands operation in a Descriptor Table. ADMA3 is suitable to perform very large data transfer.
+
+Figure 1-8 : Block Diagram of ADMA2
+Figure 1-9 : An Example of ADMA2 Data Transfer
+
+Figure 1-13 : Example of ADMA3 Operation
+Figure 1-15 : Command Descriptor Format
+
+Block Count is the parameter for SD Bus data transfer to determine total data length by multiplying Block Length. Data transfer length sets to SD Card shall be equivalent to data transfer length sets to ADMA2 and ADMA3 Descriptor.
+
+( reading not required after this, just for knowledge )
+
+2. SD Host Standard Register
+2.1 Summary of register set
+2.1.1 SD Host Control Register Map
+Table 2-1 summarizes the standard SD Host Controller register set. The Host Driver needs to determine the base address of the register set by a Host System specific method. The register set is 256 bytes in size. For multiple slot controllers, one register set is assigned per each slot, but the registers at offsets 0F0h-0FFh are assigned as a common area. These registers contain the same values for each slot's register set.

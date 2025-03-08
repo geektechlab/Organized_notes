@@ -1,0 +1,51 @@
+Four types of cards:
+
+Secure Digital Standard Capacity (SDSC)
+Secure Digital High Capacity (SDHC)
+The Secure Digital eXtended Capacity (SDXC)
+Secure Digital Ultra Capacity (SDUC)
+
+Communication over the SD bus is based on command and data bit streams that are initiated by a start bit and terminated by a stop bit.
+
+Command : a command is a token that starts an operation. A command is sent from the host either to a single card (addressed command) or to all connected cards (broadcast command). A command is transferred serially on the CMD line.
+
+Response : a response is a token that is sent from an addressed card, or (synchronously) from all connected cards, to the hosts as an answer to a previously received command. A response is transferred serially on the CMD line.
+
+Data : data can be transferred from the card to the host or vice versa. Data is transferred via the data lines.
+
+figure 3.1 SD card bus system topology
+
+look 4.7.2 command format and figure 3.7 command token format 
+
+Response tokens have one of four coding schemes, depending on their content. The token length is either 48 or 136 bits. The CRC protection algorithm for block data is a 16-bit CCITT polynomial.
+
+figure 3.8 response token format
+
+figure 3-4 no response and no data operation
+
+( check 2- system features )
+
+The SD Memory Card system defines three communication protocols: SD, SPI and UHS-II. The host 
+system can choose one of these modes. The card detects which mode is requested by the host just after 
+the power up. Common SD bus signals for multiple card slots are not recommended. A single SD bus 
+should connect a single removable SD card.
+
+In default speed, the SD Memory Card bus has a single master (application); multiple slaves (cards), 
+synchronous star topology (refer to Figure 3-1). In high speed and UHS-I, the SD Memory Card bus has 
+a single master (application) single slave (card), synchronous point to point topology. Clock, power and 
+ground signals are common to all cards. Command (CMD) and data (DAT0 - DAT3) signals are dedicated 
+to each card providing continues point to point connection to all the cards.
+
+Note that while DAT1 to DAT3 are not in use, the related Host's DAT lines should be
+in tri-state (input mode). For SDIO cards DAT1 and DAT2 are used for signaling.
+
+( 3.7 SD Memory Card–Pins and Registers
+	 only 3.7.1 SD Bus Pin Assignment
+	 only 3.8 ROM Card
+	 only 3.9 Ultra High Speed Phase I (UHS-I) Card )
+
+check if uhs-2 supported
+
+Table 3-1 : SD Memory Card Pad Assignment
+Table 3-2 : SD Memory Card Registers
+

@@ -1,0 +1,157 @@
+To decide whether sleep or deep sleep mode should be used when entering sleep, one of
+the bit-fields called SLEEPDEEP would need to be programmed by software. SLEEPDEEP is
+bit 2 in the System Control Register (SCR). The SCR is a memory-mapped register located in
+address.
+
+( IMP: Information on the SCR bit fields is listed in Table 10.2. )
+
+Just like most other registers in the
+System Control Block (SCB), the SCR can only be accessed in a privileged state.
+The SLEEPDEEP bit (bit 2) can be set to enable the Deep Sleep mode. When TrustZone is
+implemented, the access of this bit can be controlled by Secure privileged software using
+SLEEPDEEPS bit (bit 3; this is a new bit field introduced in Armv8-M).
+When TrustZone is implemented, Secure privileged software is also able to access the Nonsecure privileged view of this register using SCB_NS->SCB.
+
+Cortex-M processors provide two instructions for entering sleep modes (Table 10.3). Both WFI sleep and WFE sleep can be woken up by interrupt requests. This depends on the
+priority of the interrupt, the current priority level, and the interrupt mask settings
+(Section 10.3.4).
+
+WFE sleep can be woken up by events. Event sources include:
+- An exception entrance and exit.
+- A SEVONPEND event: When the SEV-On-Pend feature is enabled (bit 4 of the System
+Control Register), then the event register is set when an interrupt pending status is changed
+from 0 to 1.
+- The assertion of an external event signal (an RXEV input on the processor). This indicates an
+event from on-chip hardware has occurred. The event signal can be a single cycle pulse and
+the connection of this signal is device-specific.
+- The execution of a SEV (Send Event) instruction.
+- A debug event (e.g., a halting request).
+
+The processor can be woken up from WFE sleep by either a current or past event. If the
+internal event register has been set, this indicates an event has been received since the last
+WFE execution or sleep. When this happens, the execution of WFE does not enter sleep (it
+may, potentially, only momentarily cause the processor to enter sleep mode and, if it does,
+will then immediately wake up). Inside the processor, there is a single bit event register which
+indicates whether an event has previously occurred. This event register is set by the aforementioned event sources and is cleared by the execution of a WFE instruction.
+
+Similar to WFE sleep, during WFI sleep the processor can be woken up by an interrupt
+request if the interrupt has a higher priority than the processor’s current priority level.
+The processor’s current priority level is based on one of the following:
+• the priority level of the running exception service, or
+• the priority level of whichever active interrupt masking register (such as BASEPRI) has
+been set.
+
+These two priority levels are compared by the processor’s hardware and the one with the
+higher priority level is used as the processor’s current priority level. The chosen level is then
+compared against the priority level of a new incoming interrupt and will wake the processor
+up if the interrupt request has a higher priority.
+
+Alternatively, if the new incoming interrupt has the same or a lower priority than the processor’s current priority level, and if the SEV-on-pend feature is enabled, this is treated as an
+event and will wake the processor up from WFE sleep.
+
+The Sleep-on-Exit feature is very useful for interrupt-driven applications where all operations (apart from the initialization) are carried out using interrupt handlers. This is a programmable feature and can be enabled or disabled using bit 1 of the System Control
+Register (SCR—see Section 10.2.3). When enabled, the Cortex®-M processor automatically enters sleep mode (with WFI behavior) when exiting from an exception handler and when
+returning to Thread mode (i.e., when no other exception request is waiting to be processed).
+
+For example, a program utilizing the Sleep-on-Exit feature might have a program flow as
+shown in Fig. 10.2.
+The activities of the program running in the system shown in Fig. 10.2 are shown in
+Fig. 10.3. Unlike normal interrupt handling sequences, the stacking and unstacking processes
+during Sleep-on-Exit are reduced to save power in the processor and its memories. However,
+the first occurrence of the interrupt, as shown in Fig. 10.3, would still require a full stacking
+operation.
+Please note, the “loop” in Fig. 10.2 is required because the processor could still be woken up
+by debug requests when a debugger is attached.
+
+Important: The Sleep-On-Exit feature should not be enabled until the end of the initialization stage. Otherwise, if an interrupt event happens during the initialization stage, and if the
+Sleep-on-Exit feature was already enabled, the processor will enter sleep mode even though
+the initialization stage had not finished.
+
+One of the programmable control bits in the System Control Register (SCR) is the
+SEVONPEND. This feature is used with the WFE sleep operation. When this bit is set to 1,
+any new incoming interrupt that sets the interrupt pending status is treated as a wakeup
+event, and wakes up the processor from WFE sleep mode, regardless of:
+• Whether or not the interrupt is enabled in the NVIC
+• Whether the priority of the new interrupt has a higher priority than the current priority
+level
+If the pending status of the interrupt was already set to 1 before entering sleep, a new interrupt request will not trigger a SEV-on-pend event and will not wake up the processor.
+
+check DGAM34: WIC 
+
+check DGAM34: 10.2.9 Event communication interface
+
+In Cortex-M23 and Cortex-M33 processors with TrustZone implemented, the Non-secure
+software can, as in previous generations of Cortex-M processors, enter sleep or deep sleep
+modes using WFI, WFE or Sleep-on-Exit. However, Secure software can, optionally, prohibit
+Non-secure software from altering the sleep setting (i.e., SLEEPDEEP, bit 2 in SCB->SCR) by
+setting SLEEPDEEPS, bit 3 in SCB->SCR. Although SLEEPDEEP cannot be changed by the
+Non-secure software when the SLEEPDEEPS bit is set, SLEEPDEEP can be changed by
+way of a Secure API provided by the Secure firmware. This mechanism allows the Non-secure
+software to access the power management features and, hence change SLEEPDEEP.
+The use of Secure APIs for accessing power management features is essential in some
+TrustZone enabled microcontroller systems. These systems would likely have additional
+device-specific power management control registers, but setting these registers incorrectly
+could affect the integrity of the system’s security. Because of this, access to those registers
+must be protected by the system’s security permission control. By providing power management APIs in the Secure firmware, application software running in the Non-secure world can
+utilize the system’s low power features and can still protect the security of the device.
+
+check DGAM34: 10.3 More on WFI, WFE, and SEV instructions
+
+If the TrustZone security extension is implemented, some of these registers are banked between security states:
+• When in Secure state, privileged software access to the SCB data structure sees the Secure
+view of the SCB registers.
+• When in a Non-secure state, privileged software access to the SCB data structure sees the
+Non-secure view of the SCB registers.
+• When in Secure state, privileged software can see the Non-secure view of the SCB registers
+using Non-secure alias (SCB_NS) using address 0xE002EDxx (Fig. 10.13).
+
+A debugger with permission to debug the Secure world software can access both the Secure and the Non-secure SCB data structures. However, the alias method used by Secure software, which allows the registers to be accessed with the SCB and the SCB_NS views, is not
+suitable for the aforementioned debugger. Because the SCB data view at address 0xE000EDxx
+is dependent on the processor’s security state, the SCB view is, as a result, frequently changed
+(Note: When the processor is running, it can frequently switch between Secure and Nonsecure states). Instead of using the same alias method that is used by software, the debug tool
+uses the SBRSEL (Secure Bank Register Select) and the SBRSELEN control bits in the DSCSR
+(Debug Security Control and Status Register) to decide which SCB view to use. With this arrangement, even though the processor often switches between the Secure and Non-secure
+states, the processor’s state does not affect the debugger’s access to the SCB. This ensures that
+the debugger is always able to access the desired SCB register.
+
+Inside the System Control Block (SCB) there is a register called CPU ID Base Register can be accessed using the “SCB->CPUID” symbol.
+Software and debug tools read this register to detect which Cortex-M processor is in the
+device. For reference, the CPU ID values of previous Cortex-M processors are as per
+Table 10.10.
+If TrustZone is implemented and if the processor is in Secure privileged state, software
+running on the processor can read the Non-secure alias of the CPU ID base register at
+0xE002ED00 (using symbol SCB_NS->CPUID). By reading SCB_NS->CPUID, privileged
+software can detect whether it is running in a Secure or a Non-secure state: if it is in the Secure
+state, the read value is nonzero. If it is in the Non-secure state, the read value is zero because
+Non-secure software does not see the SCB’s Non-secure alias addresses.
+
+One of the key usages of the Application Interrupt/Reset Control Register (SCB->AIRCR,
+see Section 9.3.4) is to allow software or the debugger to trigger a system reset. The Data Memory Barrier (DMB) instruction is needed so that previous data memory accesses are completed before the reset happens. The SCB->AIRCR register has other bit fields and, to prevent problems, it is recommended
+that a read-modify-write sequence is used to request the reset.
+
+SCB->CCR is a register in the SCB for controlling several processor configurations. This register is privileged access only.
+
+STKOFHFNMIGN (Stack Over-Flow HardFault NMI Ignore) bit allows HardFault and NMI
+handlers to bypass stack limit checks.
+
+CCR—BFHFNMIGN bit
+When this bit is set, handlers with a priority of 1 (e.g., HardFault) or 2 (e.g., NMI) will
+ignore data bus faults caused by load and store instructions. If this bit is not set, a data bus fault in the NMI or the HardFault handler will result in the
+system entering into a lock upstate
+
+CCR—DIV_0_TRP bit
+When this bit is set, a Usage Fault exception is triggered when a divide by zero occurs in the
+SDIV (signed divide) or the UDIV (unsigned divide) instructions.
+
+CCR—UNALIGN_TRP bit
+The Cortex-M33 processor supports unaligned data transfers (see Section 6.6). However,
+unaligned data access can be less efficient than aligned data access. This is because multiple
+clock cycles are required for each unaligned transfer. Also, in some instances, the occurrence
+of unaligned transfers might indicate the use of incorrect program code (e.g., the use of an
+incorrect data type). To allow software developers to detect and remove unnecessary unaligned transfers, a trap exception mechanism is, therefore, implemented in the processor
+to detect the presence of unaligned transfers.
+
+CCR—USERSETMPEND bit
+By default, the Software Trigger Interrupt Register (NVIC->STIR) can only be accessed in a
+privileged state. If the USERSETMPEND is set to 1, unprivileged access is allowed on this
+register.

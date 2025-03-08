@@ -1,0 +1,17 @@
+The Cortex-M23 and Cortex-M33 processors are based on a processor architecture version called Armv8-M, which was announced in 2015. This architecture version is a successor to the previous Armv6-M and Armv7-M architectures, which were used in a number of very successful Cortex-M processor products (Fig. 1.2). Previously, there were two versions of architecture for the Cortex-M processors:
+• Armv6-M architecture: Designed for ultra-low-power applications. Supports a small, compact instruction set and is suitable for general data processing and I/O control tasks.
+• Armv7-M architecture: Designed for mid-range and high-performance systems. This architecture supports a richer instruction set (a superset of the instructions in Armv6-M and has an optional floating-point and DSP extensions).
+
+The Armv8-M maintains a similar partitioning by splitting the architecture into two subprofiles:
+• Armv8-M Baseline: Architecture designed for ultra-low-power designs. The features and
+instruction set are a superset of Armv6-M.
+• Armv8-M Mainline: Architecture designed for mainstream and high-performance designs.
+The features and instruction set are a superset of Armv7-M.
+
+From an architectural specification point of view, Armv8-M Mainline is an extension of the Armv8-M Baseline architecture. There are other extensions in the architecture, including:
+• DSP instructions (including a range of single instruction multiple data (SIMD) operations), available in Mainline subprofile only.
+• A floating-point extension (includes the floating-point unit hardware and instructions), available in Mainline subprofile only.
+• A security extension called TrustZone®; available for both Baseline and Mainline subprofiles.
+• Helium™ technology, a vector extension also known as M-profile Vector Extension (MVE). This was introduced in Armv8.1-M and is available in the Cortex-M55 processor. The Cortex-M55 processor was announced in February 2020. (Note: Helium technology is not available in the Cortex-M33 processor).
+
+see figure 1.2

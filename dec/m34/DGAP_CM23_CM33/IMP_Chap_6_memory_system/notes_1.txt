@@ -1,0 +1,32 @@
+The Cortex-M33 processor is based on Harvard bus architecture, i.e., multiple bus interfaces are used to enable both fetching of instructions and data access to be carried out at the same time. It is worth noting that the memory space in a Cortex-M processor is unified,  and therefore, instructions and data share the same address space.
+
+Cortex-M33 processors provide a range of features. These include:
+- Bus interface designs based on the AMBA® (Advanced Microcontroller Bus Architecture) 5 AHB™ (Advanced High-performance Bus) protocol [2]. This bus protocol enables pipelined operations in the system bus to access memories and peripherals. The processors also use the Advanced Peripheral Bus (APB) protocol[3] for accessing debug components. AMBA is a collection of bus interface protocol specifications and is a de-facto on-chip bus standard for embedded SoC designs.
+- For the Cortex-M23 only, an optional single-cycle I/O interface for low latency peripheral register access.
+- For the Cortex-M33 only, a Harvard bus architecture.
+- For the Cortex-M33 only, the ability to handle unaligned data.
+- Exclusive access (this is commonly used for semaphore operations in systems with an embedded OS or RTOS).
+- Optionally, the support for TrustZone® security at the system level.
+- A configuration option for little-endian and big-endian memory systems.
+- Memory attributes and access permissions for different memory regions.
+- Support for the optional Memory Protection Unit (MPU). The Memory attributes and access  permissions configurations can, if the MPU is available, be programmed at runtime. Similar to that in the Armv7-M and Armv6-M architectures, the 4GB address space in the Armv8-M architecture is, as mentioned in Chapter 3, Fig. 3.4, architecturally divided into predefined regions. If the TrustZone security extension is implemented, the address space is further partitioned into Secure and Non-secure address ranges.
+
+Memory system differences between the Cortex-M0/M0+ and the Cortex-M23 include:
+• The initial boot vector table is no longer limited to address 0x0. And, if the TrustZone security extension is implemented, the system has separate Secure and Non-secure initial vector table addresses.
+• A new programmer’s model for the MPU.
+• The addition of the TrustZone security extension (This is optional. Some microcontrollers based on the Cortex-M23 processor do not have TrustZone).
+• The addition of exclusive access support. Similarly, memory system differences between the Cortex-M3/M4 and the Cortex-M33 include:
+• The initial boot vector table is no longer limited to address 0x0. And, if the TrustZonesecurity extension is implemented, the system  has separate Secure and Non-secure initial vector table addresses.
+• A new programmer’s model for the MPU.
+• The addition of the TrustZone security extension (This is optional. Some microcontrollers based on the Cortex-M33 processor do not have TrustZone).
+• The removal of the bit band feature that was in the Cortex-M3/M4 processor: this has been removed in Armv8-M because the address  remapping nature of the bit band feature sometimes conflicted with the TrustZone security.
+
+( very very important: FIG. 6.1 Default memory map of the Cortex-M23 and Cortex-M33 processors. )
+
+Program execution from Peripherals, Devices, and System memory regions is not allowed. Architecturally, these regions are preset with the eXecute-Never (XN) attribute which prohibits program execution in these spaces. However, like other memory attributes, the XN attribute of memory regions (like CODE, SRAM, Peripheral, RAM, and Device) can be overridden by software using the MPU.
+
+( very very important: TABLE 6.1 Memory regions. )
+
+The memory space for the NVIC, the MPU, the SCB, and various system peripherals is called the System Control Space (SCS).
+
+( very very important: TABLE 6.2 Various built-in components in the Cortex-M23 and Cortex-M33 processors. )

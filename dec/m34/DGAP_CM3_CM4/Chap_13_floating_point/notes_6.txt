@@ -1,0 +1,19 @@
+In most applications, the accuracy of a single-precision floating point is sufficient. Using double-precision floating point data can increase code size and can take much longer, because the FPU in the Cortex-M4 only supports single-precision calculation, so double-precision operations have to be done by software (using run-time library functions inserted by the development toolchain).However, it is common for software developers to use double-precision floating point accidentally. For example, the following code from the Whetstone benchmark will be compiled with double precision, even if X, Y, T, and T2 variables are defined as “float” (single precision):
+	X=T*atan(T2*sin(X)*cos(X)/(cos(X+Y)+cos(X-Y)-1.0));
+	Y=T*atan(T2*sin(Y)*cos(Y)/(cos(X+Y)+cos(X-Y)-1.0));
+This is because the math functions used here are double precision by default, and the constant 1.0 is also treated as double precision bydefault. To generate a pure single precision calculation, we need to modify this code to:
+	X=T*atanf(T2*sinf(X)*cosf(X)/(cosf(X+Y)+cosf(X-Y)-1.0F));
+	Y=T*atanf(T2*sinf(Y)*cosf(Y)/(cosf(X+Y)+cosf(X-Y)-1.0F));
+Depending on the development tool being used, it might be possible to report if any double-precision calculation have been used, or forceall calculation to single precision only. Alternatively, you can also generate disassembled code or linker report files to check whether the compiled image contains any double-precision run-time functions.
+
+For gcc users, you can use the following command line options to use the FPU:
+	“-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard”, or
+	“-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=softfp”
+Note: Some free versions of gcc distributions might not provide the math runtime library for handling floating point calculations.
+
+In most C compilers, you can specify how floating point calculations are handled using different ABI (Application Binary Interface) arrangements. In many cases, even if you have a FPU in the processor, you still need to use a number of run-time library functions, because many mathematical functions require a sequence of calculations. The ABI options affect:
+• If the floating point unit is used
+• How parameters are passed between caller functions and callee functions
+With most development toolchains you can have three different options (Table 13.11). The differences in the operations of these options are shown in Figure 13.25.
+
+For example, if a software library is to be compiled for various different Cortex- M4 products including some with FPU and some without, we can use the soft ABI option. During the linking stage, if the target processor supports FPU, the run-time library functions inserted by the linker can then utilize the FPU for best performance. The hard floating point ABI allows you to get the best performance if all the floating point calculations are single precision only. However, for applications using mostly double-precision calculations, the performance of hard ABI can be worse than using soft ABI. This is because when using hard ABI, the values to be processed are often transferred using the floating point register bank. Since the Cortex-M4 FPU does not support double-precision floating point calculations, the values have to be copied back to the integer register bank to be processed by software. This can result in additional overhead, and you might be better off using soft ABI with FPU hardware.

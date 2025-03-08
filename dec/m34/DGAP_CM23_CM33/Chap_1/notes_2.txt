@@ -1,0 +1,38 @@
+Both the Cortex-M23 and Cortex-M33 processors:
+• are 32-bit processors,with 32-bit businterfaces and have a 32-bit arithmeticlogic unit (ALU).
+• have a 32-bit linear address space, which supports up to 4GB of memories and peripherals.
+• use a hardware unit called Nested Vectored Interrupt Controller (NVIC) for interrupt management (includes peripheral interrupts and internal system exceptions).
+• include various features for operating system (OS) support such as system tick timer, shadowed stack pointers.
+• include sleep mode support and various low-power optimization features.
+• support separation of privileged and unprivileged execution levels, which allows the OS (or other privileged software) to restrict unprivileged application tasks from accessing critical system control resources.
+• support the optional Memory Protection Unit (MPU), which allows the OS (or other privileged software) to define memory spaces, which are accessible by each unprivileged application tasks.
+• can be used in a single processor or in multiprocessor designs.
+• support a range of optional debug and trace features to enable software developers to quickly analyze problems and bugs in application codes.
+• support an optional TrustZone security extension to allow the software to be further partitioned into different security domains. There are also a number of differences between the two processors. The Cortex-M23 processor:
+• is a two-stage Von-Neumann processor design. The main system bus is based on the Advanced High-performance Bus (AHB) on-chip bus protocol from Advanced Microcontroller Bus Architecture (AMBA®) version 5.
+• supports an optional single-cycle I/O interface (which is also available in the Cortex-M0+ processor). This interface allows some of the peripherals to be accessed with just one clock cycle (the normal system bus is based on a pipelined on-chip bus protocol and needs a minimum of two clock cycles per transfer).
+• supports a subset of the instructions defined in the Armv8-M architecture (i.e., Baseline subprofile).
+
+The Cortex-M33 processor:
+• is a three-stage pipeline design with Harvard bus architecture support. It has two main bus interfaces (based on AMBA 5 AHB) which allow instruction and data accesses to be carried out at the same time. There is also a separate AMBA Advanced Peripheral Bus (APB) interface for extending the debug subsystem.
+• supports an optional coprocessor interface. This interface allows chip designers to add hardware accelerators that are tightly coupled to the processor for the acceleration of specialized processing operations.
+• supports instructions defined in the Armv8-M Mainline subprofile, including optional DSP instructions and optional single-precision floating-point instructions. In October 2019, Arm announced that the future release of the Cortex-M33 processor will support Arm Custom Instructions. This new optional feature will enable chip designers to optimize their products for a range of specialized data processing operations. Traditionally, Arm processors are defined as Reduced Instruction Set Computing (RISC) architecture. However, with the instruction set in Arm processors having evolved over a number of years, the number of instructions supported by the Cortex-M33 processor is quite high compared to classic RISC processors. At the same time, some of the Complex Instruction Set Computing (CISC) processors are designed with pipeline structures similar to RISC processors. As a result, the boundary between RISC and CISC has become blurred and somewhat nonapplicable.
+
+refer table 1.2
+
+The instruction set enhancements from Armv6-M to Armv8-M Baseline include:
+• Signed and unsigned integer divide instructions.
+• Two compare-and-branch instructions (both 16 bits) and a 32-bit branch instruction (supports a larger branch range).
+• Additional MOV (move) instructions for immediate data generation.
+• Exclusive access instructions for semaphore operations.
+• Load acquire, store release instructions for C11 atomic data support.
+• Instructions that are required for the TrustZone security extension.
+
+refer figure 1.3
+
+Although there are many different enhancements, migration of most applications from the previous Cortex-M processors to the new processors should be straightforward because:
+• They are still based on 32-bit architecture and have the same 4GB architecturally defined memory space partitioning. Processor internal components like NVIC and SysTick support the same programming model.
+• All instructions in previous processors are supported
+
+Interrupt latency is only 15 clock cycles in the Cortex-M23 and 12 cycles in the Cortex-M33 processor. In order to reduce the overhead of software executions, the reading of exception vectors (the starting addresses of interrupt service routines), the stacking of essential registers, and the nesting of interrupt services are automatically handled by the hardware.
+

@@ -1,0 +1,55 @@
+Introduction to the Armv8-M architecture
+
+As explained in Chapter 3, the operation of the processor can be divided into:
+• Privileged and unprivileged states—this state separation is always available,
+• Secure and Non-secure states—this state separation is available if the TrustZone security extension is implemented.
+When the processor is in unprivileged state, access to some parts of the memory space is restricted. For example, most of the processor’s internal peripherals, such as the NVIC, the MPU and its system control registers, are blocked from unprivileged software access. Additional memory access permission rules can be set using the Memory Protection Unit (MPU). For example, an RTOS can use the MPU to further restrict the memory space accessible by an unprivileged application-task.
+
+In typical systems, running an RTOS utilizes the privilege level as follows:
+• OS software and peripheral interrupt handlers—they execute in privileged state.
+• Application threads/tasks—they execute in unprivileged state.
+This arrangement allows the software to be more reliable—even if an application thread/ task crashes it won’t be able to corrupt memories or resources used by the OS or any other application threads/task. Unprivileged state is also sometimes referred to as “User mode” in some documents, a term inherited from legacy Arm processors like Arm7TDMI, which has a User mode for unprivileged operations. When the processor is in Non-secure privileged state it can then gain access to all resources subject to security access permissions as defined by the Secure software. When the processor is in Secure privileged state it can gain access to all resources.
+
+In addition to the separation between privileged and unprivileged and the separation between Secure and Non-secure, Cortex-M processors also have the following concepts of processor states and operation modes:
+• Thumb® state and Debug state—Thumb state means the processor is executing thumb instructions. Debug state means the processor has halted allowing the debugger to examine its internal registers’ states.
+• Handler mode and Thread mode—when the processor is executing an exception handler (such as an interrupt service routine) the processor is in Handler mode. Otherwise, it is in Thread mode. The processor’s mode is related to the privilege level as follow:
+	• Handler mode has privileged access level
+	• Thread mode can either be privileged or unprivileged. When combining all these together, we have the state diagram, as shown in Fig. 4.2.
+
+Software running in privileged thread mode can switch the processor into unprivileged thread mode by programming a special register called “CONTROL”(see nPRIV bitin “CONTROL register”inSection 4.2.2.3).But, once the processor is switched to unprivileged level, the threadmode software cannot switch itself back to privileged threadmode by writing to CONTROL-because the CONTROL register is writable in privileged state only. Unprivileged code can gain access to privileged system services by triggering one of the system exceptions (e.g., System Service Call, SVC—see Sections 4.4.1 and 11.5). This mechanism is usually used to allow the RTOS to provide OS service Application Programming Interfaces (APIs). Exception handlers can also program the CONTROL register to allow the system to return to a privileged thread operation after an exception return. Please note, the transition between privileged and unprivileged states can also happen during function calls that switch from one security domain to another. This is because the nPRIV bit in the CONTROL register is banked (Secure and Non-secure states both have their own nPRIV bits). At first glance this might sound strange because typical secure systems do not allow unprivileged code access to privileged level, except via OS’s APIs. However, this is not an issue in the Armv8-M processor as explained in the following scenarios:
+• Non-secure unprivileged thread software calling Secure privileged APIs (Fig. 4.3): The Secure APIs are created by a Trusted party. The codes in these trusted APIs are designed with security measures in mind to prevent the APIs from being exploited. As a result, allowing a transition from unprivileged to privileged level in the execution of these APIs is not a security issue concern.
+• Secure unprivileged thread software calling Non-secure privileged code (Fig. 4.4): As the Secure code is expected to be developed by trusted parties, the security risk in Secure unprivileged code gaining Non-secure privileged is not an issue. Even if the Secure unprivileged software is not fully trusted, allowing it to access Non-secure privileged resources does not pose a security risk. This is because it does not allow the Secure unprivileged software to bypass or disable the security management of the Secure privileged code.
+
+For simple applications, it is possible to leave the unprivileged thread state unused. In this case, only privileged thread (for most of the application code) and Handler mode (e.g., for peripheral’s interrupt service routines) are used.
+
+For a system with the TrustZone security extension implemented, it is also possible to leave the Non-secure state unused and to execute the whole application in the Secure state. The debug state is used during software development.
+
+When the halt mode debug features are enabled (this requires a debug connection), the processor can enter the debug state when the software developer halts the processor, or if a debug event like a breakpoint has taken place. This allows the software developer to examine or change the register values of the processor. The memory contents and peripheral registers can be examined or changed via the debugger in either Thumb or debug states. In a deployed system without a debugger connected to it, the processor will not enter the debug state.
+
+Coprocessor registers—the Cortex-M33 processor has a coprocessor interface that allows chip designers to add coprocessors (hardware for accelerating certain processing tasks). The coprocessor hardware contains coprocessor registers, which can be accessed using coprocessor instructions.
+
+The register bank in Cortex-M processors has 16 registers: R0–R15 (see Fig. 4.6). Some of these registers have special usage as detailed below:
+• R13—Stack pointer (SP). It is used for accessing the stack memory (e.g., stack PUSH or POP operations). Physically there can be two or four stack pointers—the Secure stack pointers are available only when the TrustZone security extension is implemented. There is more information about the selection of stack pointers in Section 4.3.4.
+• R14—Link register (LR). This register is updated automatically to hold the return address when calling a function or subroutine. At the end of the function/subroutine, the value from LR is transferred into the program counter (PC) in order to resume its operation. In the case of nested function calls (i.e., a function call is made within a function which was called by another code), the value in LR must first be saved (e.g., using the stack PUSH operation to save the value into the stack memory) before the second level of function call is made. If it is not, the value in LR would be lost and would not be able to return to the original program. LR is also used to hold a special value called EXC_RETURN (Exception Return) during exception/interrupt handling. At the end of the interrupt service routine, the EXC_RETURN value is transferred into the PC to trigger the exception return. Further information on this is covered in Chapter 8, Sections 8.4.5 and 8.10.
+• R15—Program Counter (PC). The main advantage of having the PC in the register bank is that it makes accessing constant data in the program code easier (e.g., Obtaining a constant using a data read instruction with the “PC related addressing mode”, for accessing a branch offset in a table branch operation). It is also possible to read/write to the PC. When reading this register, the operation returns a value which is the current instruction address (an even number), plus an offset of 4 (this is due to the pipeline nature of the processor and compatibility requirements with legacy processors, e.g., the Arm7TDMI). Writing to this register causes a branch operation. However, it is recommended that normal branch instructions should be used for general branch operations.
+
+The rest of the registers (R0–R12) are general purpose. R0–R7 are also known as low registers. Because of the limited space available in a 16-bit instruction, many 16-bit Thumb instructions can only access low registers. The high registers (R8–R12) can be used with 32-bit instructions, and a few 16-bit instructions like MOV (move).
+
+The initial values of R0–R12 can be unpredictable at startup. The hardware startup sequence automatically initializes the value of the Secure Main Stack Pointer (MSP_S) if the TrustZone security extension is implemented, or Non-secure Main Stack Pointer (MSP_NS) if it is not. The hardware startup sequence also initializes  the program counter (R15/PC).
+
+( TABLE 4.1 )
+
+As illustrated in Fig. 4.6, the SP is banked between Secure and Non-secure states. When accessing the stack pointer with MSR/MRS instructions, it is possible to specify which stack pointer should be used:
+• MSP—Main Stack Pointer of the current security state (could be MSP_S or MSP_NS)
+• PSP—Process Stack Pointer of the current security state (could be PSP_S or PSP_NS)
+• MSP_NS—This enables Secure software to access the Non-secure Main Stack Pointer
+• PSP_NS—This enables Secure software to access the Non-secure Process Stack Pointer
+
+Special purpose registers can be accessed using special register access instructions such as MRS and MSR
+	MRS <reg>, <special_reg>; Read special register into register
+	MSR <special_reg>, <reg>; write to special register
+
+The Program Status Register is 32-bit and can be subdivided into:
+• Application PSR—contains various “ALU flags” which are required for conditional branches and instruction operations that need special flags (e.g., add with carry flag).
+• Execution PSR—contains execution state information.
+• Interrupt PSR—contains current interrupt/exception state information. These three registers can be accessed as one combined register, sometimes referred to as “xPSR”

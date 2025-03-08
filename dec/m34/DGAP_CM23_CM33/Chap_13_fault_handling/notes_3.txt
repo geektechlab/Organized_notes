@@ -1,0 +1,79 @@
+Stack pointer validation check
+
+In many instances, starting the fault handler in C might not be ideal as the fault could be
+caused by a stack issue (i.e., the stack pointer pointing to an invalid address space). If the
+HardFault handler is written in C and the Main Stack Pointer (MSP) being used is pointing
+to an invalid address when the HardFault is triggered, the execution of the HardFault could
+result in a LOCKUP situation (see Section 13.6).
+The LOCKUP occurs because the HardFault handler also uses memory space in the main
+stack. For example, when the HardFault handler is programmed as a standard C function, the
+C compiler could insert a PUSH operation at the beginning of the HardFault handler’s code
+(as a part of the C function’s prologue). This is illustrated by the following example code:
+HardFault_Handler
+PUSH {R4-R7,LR} ; <= This causes a LOCKUP if the MSP is invalid
+...
+As a result, for some applications, it is desirable to add an assembly wrapper to check that
+the value of the MSP is still in a valid range before calling the fault handler in C. In Armv8-M,
+the assembly wrapper might also be required because of the stack limit check feature (as described in Section 11.4.3). If the MSP is in an invalid range, the MSP should be moved to a
+valid range before branching into the C code (Fig. 13.2). Please note that the software operations would not be recoverable in this situation and would need to be reset in order to resume its operation. The use of the assembly wrapper to allow the HardFault handler to run
+correctly is particularly important for systems with functional safety requirements.
+
+Making sure the SVC is not accidentally used in the HardFault and NMI handlers
+
+Another consideration when creating a fault handler is to avoid the accidental use of SVC
+functions inside the HardFault and NMI handlers. In some software designs, high level message output functions (e.g., for error reporting) could be redirected to OS functions—such as semaphore calls, which manage shared hardware resources. Using those OS functions in the
+HardFault handler will result in a LOCKUP situation because the SVC exception is always of
+a lower priority level than the HardFault handler. Similarly, using OS functions in other fault
+exception handlers can have similar issues because the SVC exception may have the same or a
+lower priority level than the other fault exception handlers. As a result, care must be taken to
+ensure that the SVC is not being used in fault handlers, which have the same or a higher
+priority level than the SVC.
+
+Triggering self-reset or halting
+
+In many applications, triggering a self-reset in fault handler(s) is a good way to recover the
+system. However, during application development, triggering a self-reset can make it more
+difficult to debug the system as the system’s state is immediately lost. Therefore, while writing
+and debugging software, the best way forward is to halt the system when a fault exception
+occurs.
+There are several ways of halting the system at the beginning of a fault exception handler.
+These are:
+• By setting a breakpoint via the debugger/IDE
+• By placing a breakpoint instruction (BKPT) at the beginning of the fault handler
+• By using the vector catch feature (a debug feature, supported by some of the commercial
+IDEs). When this feature is enabled, the processor automatically halts when entering a fault
+handler. Further information on the vector catch feature is covered in Chapter 16,
+Section 16.2.5.
+
+Partitioning of fault handler
+
+If you are using the Cortex-M33 or other Armv8-M Mainline processors, the system might
+be able to recover and continue to run after a fault event has occurred. This is dependent upon
+the nature of the fault. In this situation, the fault handling process could be partitioned into
+two parts:
+• The first part of the fault handling process, which is handled by the fault handler that was
+triggered by the fault event, takes the immediate remedial action to address the fault event,
+and attempts to recover the system.
+• The remaining part of the fault handling process, such as error reporting, is carried out in a
+separate handler running at a low exception priority level (e.g., using the PendSV
+exception).
+By partitioning the fault handling process, the application shortens the time it takes to execute a high priority exception. If the application uses a high priority fault exception to handle
+the whole process, this will affect the responsiveness of the system.
+
+Using the Fault Mask in a configurable fault handler
+
+When using the Cortex-M33 or other Armv8-M Mainline processors, the configurable fault
+handlers (i.e., the BusFault, the MemManage Fault, the Usage Fault and the SecureFault handler), are able to utilize the FAULTMASK feature (see “Interrupt Masking Registers”
+section in Section 4.2.2.3) to:
+• Bypass the MPU (using the HFNMIENA bit in the MPU Control register, Chapter 12,
+Section 12.2.3)
+• Suppress stack limit checking (using the STKOFHFNMIGN bit in the Configuration and
+Control Register, Chapter 10, Section 10.5.5.2)
+• Suppress bus faults (using the BFHFNMIGN bit in the Configuration and Control Register,
+Chapter 10, Section 10.5.5.3)
+Setting FAULTMASK also disables all interrupts (this is essential because we do not want
+to allow other interrupt handlers to bypass the security checking mechanism), with the exception of the Nonmaskable interrupt (NMI).
+Potentially, FAULTMASK can also be used outside of fault handlers. For example, if you
+need to use a piece of software to detect the memory size in a processor system, you can set the
+FAULTMASK and the BFHFNMIGN bit in the Configuration and Control Register to suppress the BusFault. A memory read-write-test can then be carried out to detect the memory
+size without triggering the BusFault exception.

@@ -1,0 +1,74 @@
+Event communication interface We mention that the WFE instruction can be woken up by an input signal on the Cortex-M processor called RXEV (Receive Event). This signal is part of the event communication interface feature. The processor also has an output signal called TXEV (Transmit Event). The TXEV outputs a single cycle pulse when executing the SEV (Send Event) instruction.
+
+The primary goal of the event communication interface is to allow the processor to stay in sleep mode until a certain event has occurred. The event communication interface can be used in a number of ways. For example, it can:
+• Allow event communication between a peripheral and the processor
+• Allow event communication between multiple processors
+For example, in a single processor design with a DMA controller, the processor can set up a memory copy operation using the DMA controller for higher performance. However, if a polling loop is used on the processor to detect when the DMA is complete, it will waste energy and could reduce the performance because some of the bus bandwidth is used by the processor. If the DMA Controller has an output signal that generates a pulse when a DMA operation is done, we can put the processor into sleep mode using WFE instruction, and use the output signal pulse from the DMA controller to trigger a wake-up event when the DMA operation is completed.
+
+Of course, you can also connect the DMA_Done output signal from the DMA to the NVIC and use interrupt mechanism to wake up the processor. However, it would mean the next step after the polling loop would have to wait longer for the interrupt entrance and exit sequence to be completed. The polling loop in the example in Figure 9.9 is necessary because the processor could be woken up by other interrupts, or by debug events.
+
+Event communication is also important in multi-processor designs. For example, if processor A is waiting for processor B to finish a task by polling a variable in a shared memory space, then processor A might need to wait for a long time and this wastes energy (Figure 9.10). In order to reduce power, we connect the event communication interface of the two Cortex-M processors together as shown in Figure 9.11. The connection arrangement can be extended to support more processors.
+
+With this arrangement, we can use the SEV instruction to send an event to another processor to wake up the other processor from WFE sleep. As a result, the polling loop can be changed to include the sleep operation, as shown in Figure 9.12. Again, the polling loop is still required because the processor can be woken up by other interrupts or debug events. Using this method, the event communication interface feature can reduce the power consumption in various multiple processor communications such as task synchronizations, semaphores, and so on.
+
+In a task synchronization situation, an example flow might be like the one shown in Figure 9.13, where multiple processors all stay in sleep mode and wait for an event from a “master controller,” which generates the event pulse. When the event signal is triggered, the processors can start executing the next task together. Please note that such task synchronization does not guarantee the processors in the system will start the task at exactly the same time. Because the processor could be woken up by other events, a check of the task status is needed and this could cause variation in the timing in each processor.
+
+Another use for the event communication interface can be semaphores and MUTEX (mutual exclusive, which is one type of semaphore operation). For example, in semaphore operations which do not use the event communication feature, a processor might have to use a polling loop to detect when a locking variable is free, which can waste a lot of power. On the other hand, a process using the resource should unlock the resource when it is no longer required. The polling loop (sometimes also called spin lock) can result in high power consumption, and can reduce the system performance by occupying memory bus bandwidth. As a result, we can add the WFE and SEV instructions into the semaphore operations so that the processor waiting for the lock can enter sleep and wake up when the lock is released. ( look related code snippet ).
+
+These examples are just illustrations of how event communication can help reduce power in simple semaphore operations. In systems with an embedded OS, the semaphore operations can be very different, because the OS can suspend a task while waiting for a semaphore and execute some other tasks instead.
+
+When to use WFI
+	The WFI instruction triggers sleep mode unconditionally. This is typically used in interrupt-driven applications. For example, an interrupt-driven application might have a program flow ( look related code snippet ). In other cases, WFI may or may not be suitable, depending on if the expected timing of the interrupt events, which can wake up the processor. The associated code demonstrates one such scenario.
+
+If the timer interrupt takes a long time to trigger, we can be sure that the processor will enter sleep mode well before the timer interrupt fires, then this code will toggle an LED after a bit of a time delay. However, if the timer is set to fire within a few cycles, or if another interrupt occurs after the timer is configured, and the execution time of the other interrupt handler is long enough, then the timer interrupt will fire before the WFI is executed. So we could end up executing the WFI after the timer interrupt handler is completed and the processor will possibly wait forever and be stuck.
+
+( look related code snippet ) Associated code is still not safe. this is still not 100% safe. If the timer 0 interrupt takes place just after the compare of the software flag and before the WFI, the processor will still enter sleep mode and wait for a timer interrupt event that it has missed. If we are not certainly about the timing, then we need to make the sleep operation conditional by using WFE.
+
+Using WFE
+	WFE instruction is commonly used in idle loops, including idle task in RTOS design. Since the WFE is conditional, it might not enter sleep so you cannot change the code simply by replacing WFI with WFE. ( look related code snippet ).
+
+	Here we change the sleep operation to an idle loop. If the WFE didn’t enter sleep the first time due to previous events such as interrupts, the loop will execute again with the event latch cleared after the first WFE. So it will enter sleep mode only if the timer0 interrupt has not been triggered.
+
+	If the timer0 interrupt has been triggered before entering the while loop, the while loop will be skipped because the software flag is set. If the timer0 interrupt is triggered just between the compare and the WFE, the interrupt sets the internal event register, and the WFE will be skipped. As a result the loop is repeated and the condition is checked again causing the loop to exit and toggle the LED.
+
+	The status of the internal event register cannot be read directly in software code. However, you can set it to 1 by executing the SEV instruction. If you want to clear the event register, you can execute SEV, then WFE:
+		__SEV(); // Set the internal event register
+		__WFE(); // Since the event register was set, this WFE does not trigger sleep and just clear the event register.
+	In most cases, you could get the processor to enter sleep mode using WFE using a sequence of:
+		__SEV(); // Set the internal event register
+		__WFE(); // Clear event register
+		__WFE(); // Enter sleep
+	However, if an interrupt occurs just after the first WFE instruction, the second WFE will not enter sleep because the event register is set by the interrupt event. The WFE instruction should also be used if the SEVONPEND feature is needed.
+
+It is impossible to cover all low power design methods for all the different microcontroller types. Here we will only cover some general considerations in designing low power embedded systems:
+	Reducing the active power
+		you should also consider the size of memory required for your projects. If the microcontroller you use has much larger flash or SRAM than you need, you could be wasting power because of the power consumed by the memory.
+
+	Run at the right clock frequency
+		Most applications do not need a high clock frequency, so you could potentially reduce the power consumption of the system by reducing the clock frequency. However, pushing the clock frequency too low risks reducing the system responsiveness or even failing timing requirements of the application tasks.
+
+	Select the right clock source
+		Some microcontrollers provide multiple clock sources with different capabilities in terms of frequency as well as accuracy. Depending on your application, you might be better off using an internal clock source to save power, as an oscillator for external crystal could consume a fair amount of power.
+
+	Turn off unused clock signals
+
+	Utilize clock system features
+		Some microcontrollers provide various clock dividers for different parts of the system. 
+
+	Power supply design
+		A good power supply design is another key factor of getting high energy efficiency. For example, if you use a voltage source with higher voltage than required, you need to reduce the voltage and the conversion often wastes power.
+
+	Running the program from SRAM
+		It sounds a bit strange, but in some microcontrollers you can run the application entirely from SRAM, and you can turn off the power to the internal flash memory.
+
+	Using the right I/O port configurations
+		Some microcontrollers have configurable I/O port configurations for different drive currents and slew rates.
+
+	Utilizing sleep modes
+		The most obvious point is to utilize the sleep mode features of the microcontroller as much as possible, even if the idle time only lasts for a short period.
+
+	Reducing run-time
+		If you have spare space in the flash memory, you can optimize the program (or some parts of it) for execution speed.
+
+	Power off flash memory during sleep
+		In many Cortex-M microcontrollers, the flash memory can be switched off automatically during some of the sleep modes, as well as being able to be switched off manually. and the SRAM size is not big enough to hold the entire application, you could just copy a function that handles sleep entry and sleep exit into the SRAM and execute the function from there. In this way the flash memory can be turned off manually during sleep. In section 9.2.4 we mentioned that by setting PRIMASK before executing WFI, the processor can wake up from interrupts but not execute them. We can utilize this characteristic as shown in Figure 9.14.

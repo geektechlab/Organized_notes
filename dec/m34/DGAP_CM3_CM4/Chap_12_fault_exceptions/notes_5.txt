@@ -1,0 +1,18 @@
+One of the common causes for software failure is stack overflow. To prevent this,
+traditionally, it is common for software developers to fill the SRAM with a predefined pattern (e.g., 0xDEADBEEF), then execute the program for a while, stop
+the target, and see how much stack has been used. This method works to an extent,
+but might not be accurate because the conditions for maximum stack usage might
+not have been triggered.
+
+In some tool chains, you can get an estimation of the required stack size from
+report files after project compilation. However, if
+there is a stack issue such as stack leak in the software, the compilation report file
+cannot help you.
+
+One method is to locate the stack near to the bottom of the SRAM space. When the stack is fully used, the processor gets a bus error in the next stack push because the transfer is no longer in a valid memory region, so the fault handler is executed. If the fault handler is not using the two-stacks arrangement, we need to reset the stack point to a valid memory location in the beginning of the fault handler, so that the remaining parts of the fault handler can run correctly.
+
+Another method is to use the MPU to define a small, inaccessible or read-only memory region at the end of the stack space. If the stack overflows, the MemManage fault exception is triggered and the MPU can be turned off temporarily to allow additional stack space for the fault handler to execute.
+
+If the system is connected to a debugger, you could set a data watch point (a debug feature) at the end of the stack memory so that the processor halts when all the stack space is used. For a standalone test environment, the data watchpoint feature can also potentially be used to trigger a debug monitor exception if no debugger is connected (if a debugger is connected, the debugger might overwrite the data watchpoint setting programmed by the application code).
+
+For applications with an OS, the OS kernel can also carry out checking of the PSP value during each context switching to ensure that the application tasks only used the allocated stack space. While this is not as reliable as using the MPU, it is still a useful method and is easy to implement in many RTOS designs.

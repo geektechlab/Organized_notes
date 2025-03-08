@@ -1,0 +1,99 @@
+The optional TrustZone security extension classified memory types into Table 7.1 lists these memory types. The Secure NSC region and the SG instruction provides a mechanism to prevent Nonsecure software from bypassing security checks by branching into the middle of Secure APIs or into other Secure codes. If the Non-secure software does branch into a Secure executable region where either:
+• The first instruction is not an SG instruction, or
+• The address does not have a Secure NSC attribute then a security violation fault exception is triggered and the result would be either a SecureFault (Armv8-M Mainline only) or a HardFault.
+
+( important: TABLE 7.2 Relationship between memory security attributes and memory types. )
+
+The security attributes of memory ranges are defined by the Security Attribution Unit (SAU). The SAU can work with additional single or multiple custom-defined address lookup hardware units called Implementation Defined Attribution Units (IDAUs). For each memory access (including data read/write, instruction fetches, and debug access), the address is simultaneously looked up in the SAU and the IDAU(s), and the results are then combined. The SAU and the IDAU divide the 4GB address space into regions as described below:
+• SAU––The SAU is a part of the Armv8-M processor when the TrustZone security extension is implemented and is programmable by Secure privileged software. In the Cortex-M23 and Cortex-M33 processors, the SAU supports 0, 4, or 8 SAU regions. Each region is defined using a pair of address comparators that compare bus transaction addresses against the starting and ending addresses of an SAU region. If the TrustZone security extension is implemented without an SAU region (i.e., the number of SAU regions is zero), the SAU is still present but with only a control register and an IDAU interface(s) to support the address lookup.
+• IDAU––IDAU(s) are designed by chip vendors and vary between different devices. Similar to the SAU, they provide address lookups and generate security attributes of the address being accessed. If they are not designed as programmable, they can be less complex than an SAU. IDAU interfaces on the Cortex-M23 and the Cortex-M33 processors support up to 256 regions. A typical IDAU can be a fixed address lookup table, but can, in some designs also be programmable. If the processor is designed to handle multiple concurrent transfers (as in the Harvard bus architecture), it must have multiple IDAUs and these IDAUs must have consistent security attribute mapping. After the SAU and the IDAU lookup an address, the results are then combined as shown in Fig. 7.1.
+
+Please note:
+• An SAU can only define a region as Non-secure or as Secure NSC. If an address is not covered by an SAU region, it is Secure.
+• An IDAU can define a region as Secure, Non-secure, Secure NSC, or Exempted.
+• Apart from the exempted region type, the merging of Security levels from the SAU and the IDAU will always result in the higher security level being selected. This prevents Secure software from overriding an IDAU setting and exposing critical security information to the Non-secure world.
+• Because the SAU is disabled after reset, all address ranges, apart from the exempted regions defined by the IDAU, are, by default, Secure.
+• An exempt region setting is always effective: this enables Non-secure debuggers to access debug components and establish a debug connection to the processor before the SAU is setup.
+
+If the TrustZone security extension is implemented, a number of hardware units, including some of the system components inside the processor, such as the NVIC, will contain both Secure and Non-secure information. banking of registers is sometimes used. There are a number of arrangements for handling security in registers in the System Control Space. They are as follows:
+
+(1) The register is banked (e.g., Vector Table Offset Register, VTOR, Fig. 7.2) Physically, there are two versions of the same register, for example, VTOR_S and VTOR_NS. When in Secure state, Secure software accessing SCB->VTOR (SCB is the System Control Block) sees the Secure VTOR (VTOR_S). When in Non-secure state, Non-secure software accessing SCB->VTOR sees the Non-secure VTOR (VTOR_NS).
+(2) The register is not banked (e.g., Software Trigger Interrupt Register, STIR, Fig. 7.3) Physically, there is only one version of the register and the register does not have any banked contents. However, the behavior of the register can either be identical or different between the Secure and Non-secure states. For SCB->STIR, only Secure software can use this register to trigger Secure interrupts (IRQs).
+(3) Some bit fields of the register are banked (e.g., System Control Register, SCR, Fig. 7.4) Some bit fields of the registers are banked but some bit fields are not. Secure software sees the Secure version of the banked bit fields and Non-secure software sees the Nonsecure version.
+
+In Chapter 6, the memory map diagram (Fig. 6.1) showed a System Control Space (SCS) at address 0xE000E000 and a SCS Non-secure alias at address 0xE002E000. The SCS Non-secure alias allows Secure software to access the SCS using the behavior of Non-secure software:
+- It is able to access the Non-secure version of banked registers or banked bit fields in the register, and
+- It is able to mimic the action of Non-secure software
+
+One of the key functions of TrustZone for Armv8-M is to allow Secure software to provide APIs that can service Non-secure software (an  example of this is shown in Fig. 7.5). Since the Secure APIs can process and transfer data on behalf of Non-secure applications, and can themselves access the Secure memory, these Secure APIs have to verify the pointers to ensure that the pointers they have received from the Non-secure applications are indeed pointing to the Non-secure addresses. If that was not the case, it would be essential to stop Non-secure software from erroneously using those APIs to access or modify Secure data.
+
+( FIG. 7.5 Pointer checking is needed to enable the Secure API to process data on behalf of Non-secure software. )
+
+The pointer check functions for the Secure APIs must:
+(1) Ensure that the whole data structure/array to be accessed on behalf of Non-secure software is in a Non-secure space––just checking the starting address is not enough.
+(2) Ensure that the Non-secure software does have access permission for the data.
+For example, Non-secure software calling the API can be unprivileged and should not, therefore, be allowed to access memory ranges that are privileged access only. Accordingly, the security check must look up the MPU permissions to prevent the Nonsecure unprivileged software using these APIs to attack the Non-secure privileged software.
+
+Traditionally, Arm architecture offers memory access instructions which are unprivileged. Using these instructions (Table 7.4), privileged software, such as the APIs inside an OS, can access memory as unprivileged. However, there are some limitations with this solution:
+• These instructions only cover unprivileged access, but there is no TrustZone variant (there are no instructions for Non-secure access).
+• It cannot be used in the application scenario where the actual memory access is not carried out by the processor (e.g., where the API is a DMA memory copy service and where the transfers are handled by the DMA controller).
+• If an access violation takes place, the APIs need to deal with the fault exceptions, which can be complicated.
+
+In Armv8-M, the TT instructions provide a new mechanism to handle the pointer check by allowing software to determine the security attribute and access permission of a memory location (i.e., the pointer that is passed to a Secure API). This allows security checking to be checked at the beginning of the API service (instead of during the operation when the data is being accessed), thus enabling the APIs to use other hardware resources (e.g., DMA controllers) to access the memory. By moving the pointer checking to the beginning of the API service makes for easier error handling. 
+
+A TT instruction has one input and one output (Fig. 7.6):
+• 32-bit input––an address
+• 32-bit output––a 32-bit value which contains multiple bit fields TT and TTT instructions are available in both Secure and Non-secure states. If these two instructions are executed in the Non-secure state, only MREGION, MRVALID, R and RW fields are available (Fig. 7.7).
+
+The TT instructions return MPU, SAU, and IDAU region numbers. These bit fields enable us to quickly determine whether a whole data structure or a data array is within the Nonsecure address range. Since the granularity of address partitioning is 32 bytes, in theory, a simple way to determine whether a data structure/array is entirely within the Non-secure address range is to use a TT instruction to test the address at every 32 bytes interval. This method works, but could be a lengthy process as the data structure pointed to by the pointer can be quite large. To overcome this and achieve a faster address checking method, the architecture defines the region ID numbering feature for the SAU, the IDAU, and the MPU.
+• For each region in the SAU region definition, the SAU region comparator number is used as the SAU region ID.
+• For each Non-secure region/Secure NSC region in the IDAU region definition, the design of the IDAU must assign a unique region number, which is provided to the processor using the IDAU interface.
+
+The region numbers are 8 bit in size, but there is an additional bit to indicate whether the region number is valid or not (e.g., in the SAU, an SAU region might be disabled and thus the region number would be invalid). To check whether a data structure/array is entirely in a Non-secure region, we only need to use the TT instruction to lookup the starting and ending addresses (both of which are inclusive). Thedata structure/array is in the Non-secure range if:
+• Both the starting and the ending addresses are Non-secure
+• The IDAU region numbers of the starting and the ending addresses are identical and are both valid
+• The SAU region numbers of the starting and the ending addresses are identical and are both valid
+
+An illustration of how the region numbers in the SAU and the IDAU work is shown in Fig. 7.8.
+
+To get this mechanism to work correctly, chip designers need to make sure that for each Non-secure region defined in the IDAU, each of them has a unique valid region number. Using the same technique, software can also use the MPU region number to detect whether the data structure/array is in a continuous MPU region. If that is the case, the data structure/array has the same access permission from the starting to the ending addresses.This technique can be used to prevent unprivileged software from using an API to access privileged information. Additional information on this topic is covered in Chapter 18.
+
+( very IMP: FIG. 7.8 Using region ID numbers, data pointer checking can be carried out by looking up just the starting and ending addresses. )
+
+Please note, this technique will not work if the data structure/array being checked goes across two adjacent Non-secure regions (Fig. 7.9). To avoid the problem shown in Fig. 7.9, chip designers and Secure firmware developers should avoid having adjacent Non-secure regions for continuous memories such as SRAM and ROM. On the other hand, having adjacent Non-secure regions for multiple Non-secure peripherals is not a problem because a data structure or array is unlikely to go across peripheral address boundaries. Please note, the pointer check feature is used to test whether a data structure/array is entirely in the Non-secure address range but cannot be used to determine whether a data structure/array is entirely in the Secure address range. Since the SAU can only setup Non-secure and Secure NSC regions, Secure address ranges do not have region numbers in the SAU. Fortunately, in normal application scenarios, because Secure APIs only need to determine whether a data structure/array is Non-secure so that it can process the information on behalf of a Non-secure application, it does not need to determine whether the data is entirely in a Secure address range.
+
+You might wonder whether there is enough region ID space for complex designs. Well, since the SAU is limited to 8 regions (certainly in the current Armv8-M processors) and the IDAU to 256, and because the two pieces of hardware work together in an overlapping region arrangement, it is certainly true that there is a limit on the number of regions that can be created. Although presently most microcontrollers have less than 50 peripherals, it should, in theory in the future, be possible to create microcontroller devices which have hundreds of peripherals.
+
+The limit of the region ID ranges is a big problem for advanced memory partitioning. For example, an embedded flash with several MBs could be divided into thousands of flash pages (a flash page ranges from 256 bytes to 1KB). If part of the flash memory is being used as a file system, it is quite possible that we would need to handle the flash memory partitioning on a page by page basis. In such an example, the IDAU region numbers could easily run out. Fortunately, there is another way to handle address partitioning without having to utilize a large number of region ID values. This method is based on a memory alias technique and uses a protection controller to divide the memory device––or a group of peripherals––into sections and provides a hardware control to define the accessibility of each section in the Secure and Non-secure alias.
+
+By way of an example, consider a microcontroller with 256KB of embedded flash memory which is connected via a Memory Protection Controller (MPC, Fig. 7.10), with a page size of 512 bytes (256KB/512 bytes=512 pages). The embedded flash is accessible via a Non-secure alias (0x00000000) and a Secure alias (0x10000000). The MPC is then used to decide which flash pages are visible in the Secure address range and which other pages are visible in the Non-secure address range. The MPC contains a lookup table that defines the security attribute of each flash memory page and uses this attribute for each access to decide whether a transfer is to be allowed or is to be blocked. In the following diagram (Fig. 7.11), the MPC partitions the embedded flash memory into four parts. Using this method,we only need one region ID value for the Non-secure address rangein the embedded flash, despite the address range containing multiple holes (i.e., flash pages that are  blocked). It also prevents a race-condition problem from occurringinmulticore systems where:
+• One processor changes a memory page from Non-secure to Secure, while
+• Another processor running a Secure API treats that memory page as Non-secure (A pointer check would have been carried out when the page was Non-secure).
+
+( very very very IMP: FIG. 7.11 The MPC defines whether each flash page is accessible from either the Secure or the Non-secure alias. )
+
+MPC operations are often based on one of the following partitioning methods:
+• Partitioning on a page-by-page basis, which needs one configuration bit per page. Or
+• If there is only a need to partition the memory device into one Secure and one Non-secure range (i.e., only one boundary), an MPC can be designed to use a watermark level scheme that defines the page number of the boundary. Such a design would require fewer configuration bits in the hardware.
+
+Using the same technique as that used for the MPC operations, a Peripheral Protection Controller (PPC, Fig. 7.12) can be designed to assign a large number of peripherals into the Secure and the Non-secure domains. This is achieved by not having to use a large number of SAU and IDAU region ID values. In addition to the access control feature based on the security attribute of the transfers, the PPC can also be designed to determine access permissions based on the privileged level. In this way, privileged software is able to control whether a peripheral is accessible by an unprivileged software component. In short,
+• the SAU and the IDAU define the security attributes of the address regions, whereas
+• the MPC and the PPC define the effective address for each memory page or for each peripheral. The operation of the MPC and the PPC is handled by masking the memory page or peripheral from one of the Secure or Non-secure alias addresses.
+
+( FIG. 7.12 The PPC defines whether each of the peripherals is accessible from either the Secure or the Non-secure alias. )
+
+Please note, when using this method, the base address of a peripheral when it is being used as Secure and when it is being used as Non-secure is different. So, TT instriction will still work because it will look only at the secure/non-secure/NSC and determine and will not look into granularity of MPC/PPC ? ( just based on my theory, but suits ? )
+
+Normally, a peripheral’s security state is set up at the bootup of the device and is, as a result, unlikely to be dynamically changed. Thus, it is unlikely to cause an issue with the peripheral control codes. However, in the situation where a peripheral’s security state can be changed dynamically, the peripheral control codes might need to detect the security state of the peripheral before accessing it. When software access to a peripheral is blocked by the PPC, there are two possible responses:
+• Bus error (this will trigger a fault exception)
+• Read as Zero/write ignored (RAZ/WI)
+
+Both are valid arrangements for Armv8-M systems. Some might argue that the bus error response is more secure as it gives the Secure software a chance to intercept the fault exception and detect whether the Non-secure software that is running is trying to attack the security of the system. But, in many microcontroller device families, which have a range of chip products, with each having a different set of peripherals, it is common practice to allow the software to detect the availability of the peripherals (e.g., by reading the peripheral’s ID registers in those peripheral address ranges). In this way, the software is able to ascertain whether a certain peripheral is available.
+
+Security aware peripherals are accessible by both Secure and Non-secure software. With such peripherals, the device is able to handle Secure and Non-secure transfers with different behaviors. For example, a security-aware peripheral can restrict some of its functional features to Secure software only. There are a couple of ways that chip designers can create security-aware peripherals.
+
+The first solution is to use a memory alias arrangement so that the peripheral is visible in a Secure as well as a Non-secure address (Fig. 7.13). With this solution, the security attribute of the bus transaction depends on which address alias is used. The security attribute of the bus transfer is then used by the peripheral’s design to define the peripheral’s behavior.
+
+The second way to create a security-aware peripheral is to define the address range of that peripheral as an “exempted” region using the IDAU. By doing so, both the Secure and Nonsecure software are able to access the peripheral using the same address range. With this arrangement, the security attribute of the transfer will be based on the security state of the processor.
+
+The disadvantage of using an exempted region for peripherals is that you cannot use the intrinsic functions, provided in the Arm C Language Extensions (ACLE), for pointer checks on an exempted address (The pointer check will return a fail status). But an advantage is that both the Secure and Non-secure software are able to use the same base address for the peripheral.

@@ -1,0 +1,60 @@
+One important step of the exception entry sequence is to determine the starting address of the exception handler. In Cortex-M processors, this is automatically handled in the processor hardware by means of reading it from a Vector table––which contains exception vectors (the starting addresses of each handler) arranged in the order of the exception number (Fig. 8.7). When an exception is accepted by the processor, the starting address of the handler is read from a vector table and the address being read is calculated as:
+	Vector address = exception_number 4 + Vector_Table_Offset
+In a typical software project, the vector table(s) is usually be found in a device specific file for start-up code. Please note, the LSB of the vectors should be set to 1 to indicate Thumb state. The setting of LSB in the vectors is automatically handled by the development toolchain.
+
+The first word in the vector table stores the initial value for the Main Stack Pointer (MSP). This value is copied into the MSP register during the reset sequence. This is needed because some exceptions, such as NMI, could occur just as the processor comes out of reset and before any other initialization steps have been carried out. The vector table offset is defined by a Vector Table Offset Register (VTOR). In Armv8-M processors which have TrustZone support, there are two vector tables:
+• The Secure vector table is for Secure exceptions and is placed in the Secure memory. The address of the Secure vector table is defined by VTOR_S (Secure VTOR).
+• The Non-secure vector table is for Non-secure exceptions and is placed in the Non-secure memory. The address of the Non-secure vector table is defined by VTOR_NS (Non-secure VTOR).
+
+When TrustZone is not implemented, then only the Non-secure VTOR is present. In the Cortex-M33 processor, the lowest 7 bits of the VTOR registers are tied to 0, which means the vector table starting address must be multiples of 128 bytes. In the Cortex-M33 processor, VTOR(s) are implemented as 25 bits wide (bit 31 down to 7 are implemented).
+
+The VTOR registers are programmable in the privileged state only. The address of the VTOR for a current security state is 0xE000ED08. Secure privileged software can access the Non-secure VTOR (VTOR_NS) using the Non-secure SCB alias 0xE002ED08 (this alias address is not available to a debugger or to Non-secure software).
+
+In some applications, there is a need to relocate the vector table(s) to other addresses. For example, an application might relocate the vector table(s) from Non-volatile memory to SRAM to allow exception vectors to be configurable during the run time.
+This is achieved by:
+(1) Copying the original vector table to the new allocated location in SRAM,
+(2) Modifying, if needed, some of the exception vectors, then
+(3) Programing the VTOR to select the new vector table, and
+(4) Executing a DSB (Data Synchronization Barrier) instruction to ensure the change immediately takes place.
+
+Unlike previous Cortex-M processors (Cortex-M0/M0+/M1/M3/M4), the initial addresses of the vector tables in the Cortex-M23 and the Cortex-M33 processors are defined by silicon designers, whereas in the older Cortex-M processors the initial vector table address was fixed to address 0. Another difference between the vector table of Armv8-M Mainline and Armv7-M is the addition of a SecureFault vector. This exception was not available in the Armv7-M architecture.
+
+( FIG. 8.9 Simplified flow: From interrupt input event, to pending, to interrupt being serviced. )
+
+When the interrupt is being served it is in an active state. Please note, during the interrupt entry sequence a number of registers are automatically pushed into the stack. This is called stacking. In parallel to the stacking operation, the Cortex-M33 processor (and other Armv8-M processors with Harvard bus architecture) fetches the ISR’s starting address from the vector table.
+
+In many microcontroller designs, the peripherals are operating with level triggered interrupts and the ISR will, therefore, have to manually clear the interrupt request by, for example,
+writing to a register in the peripheral. After the interrupt service has completed, the processor
+carries out an Exception Return (covered in Section 8.4.5). The registers which were automatically stacked are restored and the interrupted program is resumed. The active status of the
+interrupt is also cleared automatically.
+When an interrupt is active you cannot accept the same interrupt request again, unless and
+until it is completed and terminated with an exception return (also called an exception exit).
+
+Since the pending status of an interrupt is accessible by software via a number of memory
+mapped registers, it is possible to manually set or clear the pending status of an interrupt. If an
+interrupt request arrives when the processor is serving another higher priority interrupt, and
+the pending status is cleared before the processor starts responding to the pending request,
+the request is cancelled and will not be served (Fig. 8.11).
+
+If the peripheral continues to assert the interrupt request, and the software attempts to
+clear the pending status, the pending status will be set again (Fig. 8.12).
+
+If the interrupt request is not blocked (i.e., it is accepted and serviced by the processor), and
+if the interrupt source continues to assert its interrupt request at the end of the interrupt service routine, the interrupt will again enter pending state and will again be serviced the by the
+processor. This situation occurs unless the interrupt is blocked (e.g., by another interrupt service). This is shown in Fig 8.13.
+
+For pulsed interrupt requests, if an interrupt request signal is pulsed several times before
+the processor starts processing, the request will be treated as one single interrupt request. This
+is illustrated in Fig. 8.14.
+The pending status of an interrupt can be set again when it is being served. For example, in
+Fig. 8.15, a new interrupt request arrives when the previous request is still being served. This
+results in a new pending status and causes the processor to serve the interrupt again after the
+first ISR has been completed.
+
+Please note, the pending status of an interrupt can be set even when the interrupt is disabled. In this case, when the interrupt is enabled later, it can be triggered and then served. In
+some circumstances, this might not be a desirable outcome and, when it is not, you would
+need to manually clear the pending status before enabling the interrupt in the NVIC.
+
+In general, the NMI request behavior is the same as that for interrupts. Unless an NMI or a
+Secure HardFault handler is already running, or the processor has been halted or is in a locked-up state, a NMI request will, because it has the second highest priority (the Secure
+HardFault has the highest) and cannot be disabled, be executed almost immediately.

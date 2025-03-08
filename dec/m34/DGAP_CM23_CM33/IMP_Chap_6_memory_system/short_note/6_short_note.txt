@@ -1,0 +1,87 @@
+• The initial boot vector table is no longer limited to address 0x0. And, if the TrustZone security extension is implemented, the system has separate Secure and Non-secure initial vector table addresses.
+
+( very very important: FIG. 6.1 Default memory map of the Cortex-M23 and Cortex-M33 processors. )
+
+The memory space for the NVIC, the MPU, the SCB, and various system peripherals is called the System Control Space (SCS).
+
+( very very important: TABLE 6.2 Various built-in components in the Cortex-M23 and Cortex-M33 processors. )
+
+Bufferable: A write to the memory can be carried out by a write buffer while the processor continues to execute the next instruction.
+Cacheable: Data obtained from memory read can be copied to a memory cache so that the next time it is accessed the value can be obtained from the cache to speed up the program’s execution.
+Executable: The processor is allowed to fetch and execute program code from this memory region. If a memory region (e.g., the peripheral region) does not allow the execution ofprogram codes, it is marked with an XN (eXecute Never) attribute.
+Sharable: Data in this memory region could be shared by multiple bus masters. If a memory region is configured with a shareable attribute, then the memory system needs to ensure the coherency of data between the different bus masters.
+Transient: When a memory region is marked with this attribute it suggests that the data in this memory region might not be needed to be accessed shortly.
+
+The bufferable attribute can be applied to “Normal memory” and “Device”. For example, a cache memory controller can use this attribute to select between Write-Back and WriteThrough cache policies. If a write is bufferable, and if the cache controller supports the Write-Back cache policy, then the writes are held in the cache unit as dirty data. The bufferable attribute is used to improve performance when the memory system contains wait states. For example, if a write buffer is present, a data write to a bufferable memory region can be carried out in a single clock cycle and, even if the actual transfer needs several clock cycles to be completed on the bus interface (Fig. 6.3), it can still immediately execute the next instruction. Unlike the previous Cortex-M3/M4 processors, there is no internal write buffer in the Cortex-M33 processor. However, write buffers might still be present in system-level components, such as a bus bridge and an external  memory interface.
+These cacheability attributes are configurable if the MPU has been implemented. The separation of inner and outer attributes allows a processor to use the inner attributes for built-in cache and the outer attributes for system/L2 cache.
+
+Another new memory attribute feature in the Armv8-M architecture is that Normal memory has a new Transient attribute. If an address region is marked as Transient it means the data within is unlikely to be frequently used. A cache design could, therefore, utilize this information to prioritize transient data for cacheline evictions. A cacheline eviction operation is needed when the processor needs to store a new piece of data into the cache but all of the cache-ways of the corresponding cache index have already been used by older valid data.  In the case of the Cortex-M23 and Cortex-M33 processors, this attribute is not used as (a) there is no data cache support, and (b) the AHB interface does not have any signal for transient indication.
+
+The Sharable memory attribute is required in systems with multiple processors and multiple cache units with cache coherency control support (Fig. 6.4). When data access is indicated as Sharable, the cache controller needs to ensure that the value is coherent with the other cache units. This is necessary because the value could have been cached and modified by another processor.
+
+The default memory access attributes for each memory region are shown in Table 6.4.
+
+When software attempts to access a memory location the transfer needs to go through several security checking processes, as shown in Fig. 6.5.
+
+As shown in Fig. 6.5, inside an Armv8-M processor, the following security mechanisms are present:
+• The definition of the address partitioning is defined by the:
+	Security Attribution Unit (SAU)—this is programmable and is controlled by Secure firmware
+	Implementation Defined Attribution Unit (IDAU)—this is defined by chip designers, and may or may not be programmable.
+• The optional Memory Protection Unit(s) (MPU). This hardware:
+	prevents unprivileged software from accessing privileged only memory
+	prevents software from accessing address ranges not defined by any valid MPU regions
+	prevents writing to address regions defined as read-only by the MPU
+
+At the system level, security management blocks can include the following features (all of which are device-specific):
+• TrustZone bus filters that define whether certain address ranges can be accessed by Nonsecure transfers. These can include:
+	TrustZone Memory Protection Controller(s)—this unit partitions a memory device into Secure and Non-secure address ranges, either using memory pages or by using a watermark level mechanism.
+	TrustZone Peripheral Protection Controller(s)—this unit defines a group of peripherals into Secure and Non-secure peripherals.
+
+Differences between the SAU/IDAU and the MPU
+
+Fig. 6.6. It allows the RTOS to be decoupled from the security management firmware, which has the following advantages:
+• Microcontroller users can either use their own choice of RTOS or use the device as bare metal (no RTOS). In either scenario, applications running on the device are still able to take advantage of the security features provided in the Secure firmware.
+• If bugs are present inside the RTOS or in other Non-secure privileged codes, this would not impact the security integrity of the Secure software.
+• The OS can be updated using a standard firmware update mechanism for the regular update of the Non-secure program image. This makes product maintenance easier.
+
+Cortex-M processors are used in either Little-Endian or Big-Endian memory systems. With Little Endian memory systems, the first byte of word size data is stored in the least significant byte of the 32-bit memory location (Table 6.6).
+
+In Big Endian memory systems, the first byte of word size data is stored in the most significant byte of the 32-bit address memory location (Table 6.7).
+
+An aligned transfer means the address value is a multiple of the transfer size (in number of bytes). For example, a word size aligned transfer can be carried out to  ddress 0x00000000, 0x00000004 … 0x00001000, 0x00001004, …, and so on. Similarly, a halfword size aligned transfer can be carried out to  0x00000000, 0x00000002 … 0x00001000, 0x00001002, …, and so on.
+
+This meant that to access memory, a word transfer would have to have both bit[1] and bit[0] of the address equal to 0. Similarly, a half word transfer would have to have an address bit[0] equal to 0. For example, word data can be located at 0x1000 or 0x1004, but it cannot be located in 0x1001, 0x1002, or 0x1003. For half word data, the address can be 0x1000 or 0x1002, but it cannot be 0x1001. All byte size transfers are aligned. Cortex-M33 support unaligned data transfers.
+
+There are several limitations to the unaligned transfer support and these are:
+• Unaligned transfers are not supported in Load/Store multiple instructions.
+• Unaligned transfers cannot be used on the Private Peripheral Bus (PPB) address range.
+• Stack operations (PUSH/POP) must be aligned.
+• Exclusive access (such as LDREX or STREX) must be aligned; otherwise, a fault exception (UsageFault) will be triggered.
+
+unaligned transfers are converted into multiple aligned transfers by the processor’s bus interface unit. Because this conversion is carried out by hardware, application programmers do not have to manually divide the access into multiple software steps. However, the conversion of an unaligned transfer to multiple aligned transfers takes multiple clock cycles. As a result, unaligned data access will take longer than aligned access.
+
+It is possible to set up an Armv8-M Mainline or Armv7-M processor so that an exception is triggered when an unaligned transfer takes place. This is achieved by setting the Unaligned Trap bit in the Configuration Control Register in the System Control Block (SCB). By doing this, the Cortex-M processor generates UsageFault exceptions when unaligned transfers take place.
+
+To support exclusive access, the following hardware features are required:
+• Local exclusive access monitor—this is inside the processor and contains a single exclusive status bit that is moved to an exclusive state by an exclusive load.
+• Global exclusive access monitor—this is either in the interconnect or the memory controller and monitors access from different bus masters to detect whether any of the exclusive access sequences conflict with other accesses.
+
+The exclusive write (e.g., STREX) can be used.
+
+If the exclusive store receives a failed status the actual write will not take place in the memory. It is either blocked by the processor or by the global exclusive access monitor.
+
+The pipeline in a processor that supports an out-of-order execution can start executing some of the later instructions and even complete them while an earlier instruction is still in progress. For example, a memory load operation can take over 100 clock cycles to complete in a high-end processor. This is because it is running at over 1 GHz and because DDR memory has a high latency. An out-of-order processor can start executing subsequent instructions if the data processing is not dependent on the result from the load. The opposite of out-of-order is in-order execution.
+
+memory barrier instructions (ISB, DSB, DMB) and load acquire and store release instructions. These instructions help guarantee that memory access from different steps of a software procedure are in the correct order when reaching the memories and the peripherals inside the chip. This is particularly important for multiprocessor systems where the memory access of one processor is observable by another and the ordering between them could be crucial for the interactions. In Cortex-M processors, memory barrier instructions are also used in the following scenarios, as defined by the requirements of the architecture:
+• DSB is used to enforce the ordering between memory access and another processor operation (it does not have to be another memory access).
+• DSB and ISB are used to ensure that the effect of a system configuration change takes place before subsequent operations.
+
+When the TrustZone security feature is implemented, memories for both program storage and data and memories for the Secure and the  Non-secure worlds are needed. If separate memory blocks for Secure and Non-secure memory are used, there is likely to be an increase in cost and power consumption. Because many microcontrollers are designed to be low cost, it is preferable to use a single memory block and partition that into Secure and Non-secure address ranges. The hardware units that deal with the memory address partitioning are referred  to as memory protection controllers (MPC).
+
+In the same way, peripherals need to be partitioned too. Many TrustZone system designs implement peripheral protection controllers (PPC)—a controller that helps Secure software assign some of the peripherals to a Secure or Non-secure state. In theory, if the security domain assignment for peripherals is known in advance, PPCs are not needed because access permissions can be hardwired into the interconnect. However, for many projects, using a fixed security domain assignment for peripherals is unacceptable. For example, with many projects, the design of the software starts after the chips are produced. As a result, the peripheral’s security domain requirement is often unknown when the chip is designed. Therefore, the use of PPCs is needed to provide flexibility. Besides, many chip designs are targeted at multiple applications and, therefore, have very diverse requirements. As a result, PPCs are needed as they provide the required flexibility.
+
+Many microcontrollers have integrated legacy bus master components which are designed for non-TrustZone systems. Chip designers might, therefore, need to place additional components, called Master Security Controllers (MSC), in the system to allow legacy bus master components to connect the bus master units to a TrustZone-based system. When we add MPCs, PPCs, and MSCs to the system design that was  shown in Fig. 6.13, this creates the system design as shown in Fig. 6.14.
+
+( important: FIG. 6.14 TrustZone security components added to the bus system of a high-performance Cortex-M33 system. )
+
+When the TrustZone security extension is implemented and used, security firmware developers will need to include several initialization steps in the Secure firmware (e.g., setting up various units to define memory and peripheral partitioning). These initialization steps should include the programming of the SAU (potentially the IDAU too, if that is designed to be programmable) and system-level security management hardware such as memory protection and peripheral protection controllers. In addition to memory partitioning, there are other configurations require setting up by the Secure firmware. This includes interrupt’s target states and stack limit checking.

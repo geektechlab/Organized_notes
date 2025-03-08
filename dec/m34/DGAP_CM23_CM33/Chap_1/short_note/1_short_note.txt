@@ -1,0 +1,13 @@
+Cortex-M33 processors:
+• are 32-bit processors,with 32-bit businterfaces and have a 32-bit arithmeticlogic unit (ALU).
+• have a 32-bit linear address space, which supports up to 4GB of memories and peripherals.
+• Nested Vectored Interrupt Controller (NVIC) for interrupt management (includes peripheral interrupts and internal system exceptions).
+• include various features for operating system (OS) support such as system tick timer, shadowed stack pointers.
+• support separation of privileged and unprivileged execution levels, which allows the OS (or other privileged software) to restrict unprivileged application tasks from accessing critical system control resources.
+• support the optional Memory Protection Unit (MPU), which allows the OS (or other privileged software) to define memory spaces, which are accessible by each unprivileged application tasks.
+• is a three-stage pipeline design with Harvard bus architecture support. It has two main bus interfaces (based on AMBA 5 AHB) which allow instruction and data accesses to be carried out at the same time. There is also a separate AMBA Advanced Peripheral Bus (APB) interface for extending the debug subsystem.
+• supports an optional coprocessor interface. This interface allows chip designers to add hardware accelerators that are tightly coupled to the processor for the acceleration of specialized processing operations.
+• supports instructions defined in the Armv8-M Mainline subprofile, including optional DSP instructions and optional single-precision floating-point instructions.Arm Custom Instructions enables chip designers to optimize their products for a range of specialized data processing operations. Traditionally, Arm processors are defined as Reduced Instruction Set Computing (RISC) architecture. However, with the instruction set in Arm processors having evolved over a number of years, the number of instructions supported by the Cortex-M33 processor is quite high compared to classic RISC processors. At the same time, some of the Complex Instruction Set Computing (CISC) processors are designed with pipeline structures similar to RISC processors. As a result, the boundary between RISC and CISC has become blurred and somewhat nonapplicable.
+
+Interrupt latency is 12 cycles in the Cortex-M33 processor. In order to reduce the overhead of software executions, the reading of exception vectors (the starting addresses of interrupt service routines), the stacking of essential registers, and the nesting of interrupt services are automatically handled by the hardware.
+
