@@ -13,6 +13,7 @@ arm arch -> https://blog.feabhas.com/2010/10/embedded-programmers-guide-to-the-a
 task sync -> https://blog.feabhas.com/2009/10/task-synchronisation/ https://blog.feabhas.com/2009/11/task-synchronisation-part-2-multiple-tasks-and-rtos-apis/ https://blog.feabhas.com/2009/09/getting-started-is-always-the-hardest-thing/
 lnx boot -> https://blog.feabhas.com/2016/04/boot-times-in-linuxandroid/
 sec -> https://blog.feabhas.com/2015/09/security-and-connected-devices/
+    -> https://embeddedsecurity.io/
 
 virginia
 https://www.cs.virginia.edu/luther/COA2/S2020/index.html

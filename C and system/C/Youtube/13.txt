@@ -10,7 +10,7 @@ allocated memory will have garbage data.
 void* calloc(size_t num, size_t size);
 int *p=(int *)calloc(3,sizeof(int));
 
-allocated memory will be initialized with 0, so no garbage data.
+allocated memory will be initialized with 0, so no garbage data. Also, since it accesses memeory to write 0, it guarantees that pages are allocated physically, not just lazy allocation.
 
 --------------
 

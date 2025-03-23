@@ -14,3 +14,8 @@ int (*p)[5]; /* it is pointer to array of five integers */ /* *(p+1) will give s
 int *p[5] and int *(p[5]) are same /* it is array of five pointers having int type */ /* *p[1] will give element value pointed by second element from array ? */
 
 above can be understood from deep C book.
+
+int arr[3][4] = { {10, 11, 12, 13}, {20, 21, 22, 23}, {30, 31, 32, 33} };
+int (*ptr)[4] = arr;
+
+printf("%d %d %d\n", **ptr, *(*(ptr+1)+2), *(*(ptr+2)+3));

@@ -69,3 +69,18 @@ cp = ccp; /* results in a compilation warning */
 let's say,
 arr[5]={1,2,3,4,5}
 what is difference between arr and &arr ? will arr+1 and &arr+1 will be diffrent ? is one pointer to first element in array and other pointer to whole array size ?
+
+int main()
+{
+    int arr[5]={1,2,3,4,5};
+    printf("%d %d %d %d\r\n", arr, &arr, *arr, *(&arr));
+    printf("%d %d %d %d\r\n", arr+1, (&arr)+1, *(arr+1), *((&arr)+1));
+    //printf("%d\r\n", (*(((int [5] *)arr)+1)+0));
+
+    return 0;
+}
+
+int arr[3][4] = { {10, 11, 12, 13}, {20, 21, 22, 23}, {30, 31, 32, 33} };
+int (*ptr)[4] = arr;
+
+printf("%d %d %d\n", **ptr, *(*(ptr+1)+2), *(*(ptr+2)+3));
