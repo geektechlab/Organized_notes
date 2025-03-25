@@ -5,4 +5,4 @@
 
 	https://askubuntu.com/a/27429
 
-	
+	Look at https://github.com/shreyatpandey/C-Basics and https://github.com/Shivanimundra/C-programming/tree/master/my_string.h

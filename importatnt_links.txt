@@ -3,4 +3,13 @@ https://elinux.org/images/3/32/Pinchart--mastering_the_dma_and_iommu_apis.pdf
 https://neoverse-reference-design.docs.arm.com/en/latest/virtualization/io-virtualization.html#what-is-i-o-virtualization
 https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/5/html/virtualization/chap-virtualization-pci_passthrough
 https://pages.cs.wisc.edu/~remzi/OSTEP/vmm-intro.pdf
+
 https://github.com/prnjl99/Bare_metal_embedded_development
+https://github.com/shreyatpandey/Software-Define-Networking
+https://github.com/shreyatpandey/Socket-Programming/tree/master/socket-programming
+https://github.com/shreyatpandey/system_programming
+https://github.com/shreyatpandey/Networking-Codes
+https://github.com/shreyatpandey/StsQueue
+https://github.com/shreyatpandey/SDN-Network
+
+https://github.com/shreyatpandey/SRE-Interviews
