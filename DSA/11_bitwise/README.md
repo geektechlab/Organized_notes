@@ -22,4 +22,4 @@ bitwise operators articles
         }
         ```
         - To integers have ooposite sign: XOR of both and check MSB set by ( (~((~0)>>1)) & (~0))
-        
+        - Set bits in range. ( https://stackoverflow.com/a/22663187 )
