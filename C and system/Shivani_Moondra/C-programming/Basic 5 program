@@ -1,0 +1,15 @@
+
+#include <stdio.h>
+int n,a=5,b=6;
+float x=2.3,y=1.0;
+char c='a';
+int main()
+{
+    scanf("%d",&n);
+    printf("An integer Entered by user= %d\n",n);
+    printf("addition of a and b is= %d\n",a+b);
+    printf("multiplication of two floating point number is = %f\n",x*y);
+    printf("Ascii value of %c character is = %d\n",c,c);
+    printf("quotient is = %d and remainder is = %d\n",a/b,a%b);
+    return 0;
+}

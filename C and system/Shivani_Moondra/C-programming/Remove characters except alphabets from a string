@@ -1,0 +1,29 @@
+/******************************************************************************
+
+ Write a C Program with a function "void remove_non_characters (char *str)"
+ to remove all characters in a string except alphabetical characters. For example,
+ if the input string is "p2'r"o@gram84iZ./", the output string would be "programiZ"
+
+*******************************************************************************/
+
+#include <stdio.h> 
+char str[]="p2ro@gram84iZ./";
+char str1[10];
+int x=0;
+int main() 
+{ 
+   for(int i=0;i<16;i++)
+   {
+       if(((64<str[i])&&(str[i]<91))||((96<str[i])&&(str[i]<122)))                // check if character is alphabet or not
+       {
+         str1[x]=str[i];                                                          // store all alphabets and remove other characters
+          x++;
+       }
+   }
+   for(int j=0;j<x;j++)
+   {
+     str[j]=str1[j]; 
+     printf("%c",str[j]);
+   }
+     return 0; 
+} 
