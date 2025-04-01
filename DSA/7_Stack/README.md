@@ -1,6 +1,8 @@
+- Stack using array: https://takeuforward.org/data-structure/implement-stack-using-array/
+
 - Applications of stack: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Stack/video/MTQxMzI%3D
 - Stack in C++ STL: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Stack/video/ODk1
-- Balanced paranthese: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Stack/video/ODk4
+- Balanced paranthese: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Stack/video/ODk4, https://takeuforward.org/data-structure/check-for-balanced-parentheses/
 - IMP: may be because I have implemented RTOS.: Implement two stacks in an array: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Stack/video/NzAyNQ%3D%3D
 - Implement K stacks in an array  ( didn't understand ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Stack/video/NzAzMw%3D%3D
 - Stack span problem ( visualize each element as height of hills and at each element we have to pop out less height hills left of this element. ) ( need deep thinking ): https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Stack/video/OTAx
