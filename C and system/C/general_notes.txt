@@ -1,8 +1,0 @@
-	how to declare string ?
-		static const char[7]="abcdef" /* by declaring variable */
-			or
-		static const char *pcTextForTask1 = "Task 1 is running\r\n"; /* by pointer, Listing 19. The main() function for Example 2. where will it get stored ? rodata section ? */
-
-	https://askubuntu.com/a/27429
-
-	Look at https://github.com/shreyatpandey/C-Basics and https://github.com/Shivanimundra/C-programming/tree/master/my_string.h

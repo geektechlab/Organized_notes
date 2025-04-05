@@ -1,0 +1,81 @@
+From a different point of view, the debug and trace features can be divided into
+two types:
+Invasive debugging e features that need to stop the processor or change the
+program execution flow significantly.
+• Core debug features e Program halting, single-stepping, reset, resume
+• Breakpoints
+• Data watchpoints configured to halt the processor
+• Processor internal register access (both read or write; this can only be carried out
+when the processor is halted)
+• Debug monitor exception
+• ROM base debugging using flash patch logic
+Non-invasive debugging e features that have no or very little effect on the
+program flow.
+• On the fly memory/peripheral accesses
+• Instruction trace (through the Cortex-M3/M4 ETM or Cortex-M0þ MTB)
+• Data trace (it use the same comparators for data watchpoint, but is configured
+for data trace)
+• Software-generated trace (or called Instrumentation Trace, it needs some software
+code execution but the timing impact is relatively small)
+• Profiling (using profiling counters, or PC sampling features)
+
+In order to allow the debugger to access various debug features, a debug interface
+is needed. Many microcontrollers support a serial protocol called JTAG e Joint Test
+Action Group. The JTAG protocol is an industry standard protocol (IEEE 1149.1)
+and can be used for various functions such as chip-level or PCB-level testing, as
+well as giving access to debug features inside microcontrollers.
+While JTAG is sufficient for many debug usage scenarios, it needs at least four
+pins: TCK, TDI, TMS, and TDO; the reset signal nTRST is optional. For some
+microcontroller devices with low pin counts, such as 28-pin packages, using four
+pins for debugging is too many. As a result, ARM developed the Serial Wire debug
+protocol, which only needs two pins: SWCLK and SWDIO. The Serial Wire debug
+protocol provides the same debug access features and also supports parity error detection, which enables better reliability in systems with higher electrical noise.
+Therefore the Serial Wire debug protocol is very attractive for many microcontroller
+vendors and users.
+Typically, Serial Wire debug and JTAG debug protocols share the same connections: TCK and SWCLK use the same pin, and TMS and SWDIO use the same pin
+(Figure 14.4).
+Many Cortex-M3 and Cortex-M4 microcontrollers support both JTAG and Serial Wire debug protocols. You can dynamically switch between the two modes using special bit patterns on the TMS/SWDIO pin. In order to achieve lower power
+consumption, some microcontrollers omit the JTAG debug protocol capability and
+support only the Serial Wire debug protocol.
+Typically Cortex-M0 and Cortex-M0þ microcontrollers only support one of
+these debug protocols to reduce power: mostly the Serial Wire debug protocol
+because fewer pins are needed.
+
+When using the Serial Wire debug protocol, the TDO pin can be used for trace
+operation with SWO (Serial Wire Output), as outlined in section 14.1.2. Many lowcost debug adaptors support trace capture via SWO.
+
+Inside the chip, the Serial Wire/JTAG signals are connected to the debug system via
+a number of stages, as shown in Figure 14.5.
+The first stage is a Debug Port (DP) component. This converts the debug interface
+protocol into a generic bus protocol for the internal debug bus. For Cortex-M3 and
+Cortex-M4 designs, this is usually a module called SWJ-DP (Serial Wire JTAG DP),
+which supports both Serial Wire and JTAG protocols. In some cases, the design might
+use a SW-DP, which only supports Serial Wire protocol. Some older generations of
+ARM microcontrollers might have a JTAG-DP module that only supports the
+JTAG protocol. Chip manufacturers can use the DP module that fits their needs.
+
+The other side of the DP module is the internal debug bus, which is a 32-bit bus and
+has a bus protocol very similar to the Advanced Peripheral Bus (APB) in the AMBA
+3.0 specification. The internal debug bus supports up to 256 Access Ports (AP)
+devices, and the highest 8-bit of the address bus is used to determine which AP is
+accessed. Each Cortex-M3 or Cortex-M4 processor has a DAP interface that contains
+only one AP device, so theoretically you can have hundreds of processors sharing
+one debug connection. In typical single processor systems, the AP module for the
+Cortex-M3 or Cortex-M4 processor is the first AP device on the internal debug bus
+(i.e., the AP is selected when highest 8-bit of the address is zero).
+
+The middle 16-bit of the address in the debug bus is not used, and each AP has
+only 64 words of address space. So in order to allow the whole 4GB address space
+to be accessed by the debugger, another level of address remapping is needed. The
+AHB-AP module is one type of memory Access Port module that converts
+commands from the debugger to memory accesses based on the Advanced High-performance Bus (AHB) protocol. The AHB-AP module is connected to the
+internal bus system of the Cortex-M3 or Cortex-M4 processor and has full visibility
+of the memory map. This allows the debugger to access all the memories, peripherals, debug components, and debug registers of the processor.
+
+Besides AHB-AP, other forms of AP module are also available in the CoreSight
+product range. For example, an APB-AP module can be used to convert debugger
+accesses to APB accesses for CoreSight debug components, and a JTAG-AP module
+can be used to control traditional JTAG-based test interfaces such as the debug interface on ARM7TDMI.
+
+( important: Figure 14.5 )
+

@@ -1,0 +1,120 @@
+Non-secure software calling a Secure API
+
+	One of the key features of “TrustZone for Armv8-M” is its ability to allow direct function
+	calls between Secure and Non-secure software. This allows Secure firmware to provide a
+	range of services, e.g., APIs for cryptography operations, secure storage, and APIs for
+	establishing a secure IoT connection to cloud services.
+	To make the design secure, a range of hardware features have been introduced to prevent
+	illegal state transitions. In the case of Non-secure software calling a Secure API/function, this
+	function call can only take place if both of the following conditions are met (Fig. 18.6):
+	(1) The first instruction in the Secure API is an SG (Secure Gateway) instruction, and
+	(2) The SG instruction is in a memory region marked as Non-secure Callable.
+	If neither of these conditions is met, a security violation is detected and either a SecureFault
+	or HardFault exception is triggered to deal with the error. Because of this, it is impossible to
+	branch into the middle of a Secure function and bypass the security checks.
+
+	When a Non-secure code is calling a Secure API, the Secure address location where the
+	Non-secure code branches into the Secure API is called an entry point. There is no limit on
+	how many entry points can exist in the Secure firmware: each NSC region can have multiple
+	entry points, and there can be multiple NSC regions in the memory map. Please note, because
+	an ordinary branch and link instruction (i.e., either a BL or BLX instruction) is used when
+	Non-secure software calls a Secure API, the Non-secure software project does not require
+	any special compilation support from the toolchain to enable it to work with Secure software.
+	Please also note, at the execution of an SG instruction, the processor is still in Non-secure
+	state. Only after the SG instruction has successfully executed is the processor then in Secure
+	state. If a software developer has only Non-secure debug access, they will still, during a debug
+	session, see the execution of the branch to the entry point. Although the address of the Secure
+	entry point is visible to the Non-secure software developer, it is not a problem because memory contents in the Secure memory are not accessible unless Secure debug permission is
+	granted. The only Secure firmware information that would be seen by the Non-secure software developer is the address of the entry points, which are available inside the export library
+	provided by the developers of the Secure software.
+
+	( FIG. 18.6 Non-secure code calling a Secure API. )
+
+	The reason why the Non-secure callable (NSC) memory attribute is needed is to prevent
+	binary data within the Secure software, which contains a pattern that matches the opcode of the SG instruction, being abused by a hacker who branches into it. By making sure that only
+	the entry points are placed in memories marked as NSC, the risk of having inadvertent entry
+	points is eliminated.
+
+	Another part of the protection mechanism is the function return at the end of a Secure API.
+	Instead of using the usual “BX LR” instruction to return to the calling code, the “BXNS LR” instruction should be used. Armv8-M introduced “BXNS <reg>” and “BLXNS <reg>” instructions
+	so that the processor can switch from the Secure to the Non-secure state when bit 0 of the
+	address register (specified by <reg>) is zero. When the SG instruction is executed, the processor automatically:
+	• Clears bit 0 of the Link Register (LR) to zero if the processor was, before the SG instruction
+	is executed, in Non-secure state.
+	• Sets bit 0 of the LR to 1 if the processor was, before the SG instruction is executed, in Secure
+	state.
+
+	When the function-return takes place at the end of the Secure API, with bit 0 of the LR being
+	zero (it would have been cleared by SG at the function entry), the processor knows it must
+	return to the Non-secure world. In this scenario, a fault exception would be triggered if
+	the processor returned to a Secure address. This mechanism detects and prevents a hacker
+	from calling a Secure API with a fake return address pointing to a Secure program location.
+	If the same Secure API is called by another Secure function, the execution of the SG instruction at the function entry will set bit 0 of the LR to 1. At the end of the Secure API, the LR value,
+	which has a bit 0 value of 1, is used for the function-return. Using bit 0 of the LR, the processor
+	knows that it will be returning to a Secure program location. This arrangement allows a Secure API to be used by either Non-secure or Secure code.
+
+Secure code calling a Non-secure function
+
+	TrustZone for Armv8-M allows Secure software to call a Non-secure function. This is useful when:
+	• A middleware software component in the Secure world needs to access a peripheral driver
+	in the Non-secure world to access a certain peripheral function.
+	• Secure firmware needs to access an error handling function (i.e., a call-back function) in the
+	Non-secure world. The call-back mechanism allows Secure software to notify Non-secure
+	software when an error has occurred. For example, a Secure API, which handles a
+	background memory copying service on behalf of a Non-secure software component,
+	could carry out the operation using a Secure DMA controller. Secure software is then able
+	to use the call-back mechanism to notify the Non-secure software when a DMA operation
+	error occurs.
+	When Secure software needs to call a Non-secure function, the BLXNS instruction should
+	be used (Fig. 18.7). Similar to using the BXNS instruction, bit 0 of the register holding the
+	branch target address is used to indicate the security state of the function being called. If that
+	bit is 0, the processor must switch to the Non-secure state at this branch. If the bit is 1, the
+	branch targets a Secure function.
+	When branching to a Non-secure function, the BLXNS instruction saves the return address
+	and the partial xPSR to the Secure stack and updates the LR to a special value, which is called
+	FNC_RETURN (i.e., Function Return). Partial information in the PSR (Program Status Register) is also saved in the Secure stack and is used later when returning to Secure state.
+	The value of the FNC_RETURN (Table 18.7) is either 0xFEFFFFFF or 0xFEFFFFFE.
+	At the end of the Non-secure function, the return operation (e.g., “BX LR”) loads the
+	FNC_RETURN value into the Program Counter (PC), triggering the unstacking of the real
+	return address from the Secure stack. An integrity check is also carried out using the partial
+	PSR, which was previously pushed to the Secure stack.
+	The use of FNC_RETURN hides the Secure program address from the Non-secure world to
+	avoid the leakage of any secret information. It also stops Non-secure software from modifying
+	the Secure return address which is stored in the Secure stack.
+	If the processor is in Secure handler mode when calling a Non-secure API, part of the Program Status Register (the value of IPSR) is saved in the Secure Main Stack and the value in the
+	IPSR is switched to 1 to mask the identity of the calling Secure handler. When the Non-secure
+	API finishes and returns to the Secure world, an integrity check is carried out to ensure that
+	the processor’s mode has not been changed. The IPSR, which was changed to 1 when calling
+	the Non-secure API, is then returned to the previous value.
+
+( TABLE 18.7 FNC_RETURN code. )
+
+The BXNS and BLXNS instructions are available on Armv8-M processors when TrustZone is
+implemented and can only be used by Secure software.When the processor is in the Non-secure
+state, any attempt to execute these instructions would be handled as an error of an undefined
+instruction and would trigger either a HardFault or a UsageFault exception (Table 18.8).
+In C/C++ programming, when using CMSE features to create Secure APIs, or for calling
+Non-secure functions, there is no need to use an inline assembler to manually insert these instructions. This is because the BXNS and BLXNS instructions are generated by the C compiler.
+
+Security state transition—Privileged level change
+
+Security state transitions that are caused by function calls or function returns can result in
+the processor’s privileged level being changed. This is because the nPRIV bit in the processor’s CONTROL register is banked between Security states (Fig. 18.8).
+A privilege level change caused by function calls or function returns only occurs when the
+processor is in thread mode.
+If the processor is in handler mode, the processor is kept at a privileged level at the crossdomain function call/return. This is because:
+(1) The Interrupt Program Status Register (IPSR)—see “Program Status Register (PSR)”
+section in Section 4.2.2.3—is shared between the Secure and the Non-secure world, and
+(2) The architecture definition specifies that the processor has to be in a privileged state while
+in Handler mode.
+Because of the way the Armv8-M architecture is defined, a Secure API in a Secure software
+library is executed at a privileged access level when it is being called by a Non-secure exception handler. If there is a need to restrict the access permission of a Secure API to an
+unprivileged level, the Secure API’s entry point must:
+(1) First, redirect the function call to the Secure firmware codes that check the privileged
+level, then
+(2) If required, switch the processor to unprivileged state, then
+(3) Execute the function body of the Secure API.
+By running the Secure API in an unprivileged state, the operation of the API can be
+restricted to a selection of memory regions using the Secure Memory Protection Unit (MPU).
+
+( FIG. 18.8 Security state transition can change the processor’s privileged level. )

@@ -1,0 +1,31 @@
+In Armv8-M, the key enhancement is the TrustZone security extension. A major part of security management is access permission control. This objective is achieved by access permission features inside the processor, at the system level, or both. When software attempts to access a memory location the transfer needs to go through several security checking processes, as shown in Fig. 6.5.
+
+As shown in Fig. 6.5, many security checking mechanisms could be involved when checking each memory access. Inside an Armv8-M processor, the following security mechanisms are present:
+• The optional TrustZone security extension to prevent Non-secure software from accessing the Secure memory address ranges. The definition  of the address partitioning is defined by the:
+	Security Attribution Unit (SAU)—this is programmable and is controlled by Secure firmware
+	Implementation Defined Attribution Unit (IDAU)—this is defined by chip designers, and may or may not be programmable.
+• The optional Memory Protection Unit(s) (MPU). This hardware:
+	prevents unprivileged software from accessing privileged only memory
+	prevents software from accessing address ranges not defined by any valid MPU regions
+	prevents writing to address regions defined as read-only by the MPU
+• Privilege level management. This is used to prevent unprivileged software from accessing critical processor resources (e.g., the interrupt control). This feature is always present, even without an MPU or when TrustZone is not implemented.
+• Mechanisms to detectillegal software operations. Thisis not exactly a security feature but could be used for detecting abnormal behaviors (which could be the result of a security incident).
+
+The privilege level and TrustZone attributes of transfers are exported to the processor’s bus interfaces so that when the transfer reaches the bus level, system-level security management can permit/deny system-level access permissions. At the system level, security management blocks can include the following features (all of which are device-specific):
+• TrustZone bus filters that define whether certain address ranges can be accessed by Nonsecure transfers. These can include:
+	TrustZone Memory Protection Controller(s)—this unit partitions a memory device into Secure and Non-secure address ranges, either using memory pages or by using a watermark level mechanism.
+	TrustZone Peripheral Protection Controller(s)—this unit defines a group of peripherals into Secure and Non-secure peripherals.
+• System-level Memory Protection Unit(s). This provides privilege access management for peripherals and could be combined with the TrustZone Peripheral Protection Controller. Although it is achievable, it is unlikely that a system-level MPU would be used for access permission control for normal memories (e.g., RAM, ROM). This is because the processor in modern microcontrollers is likely to have an architecturally defined MPU. However, because the MPU inside the processor has a limited number of MPU regions, and because a chip can have a large number of peripherals, the processor’s MPU would not be sufficient for peripheral access management. To overcome this issue, some microcontroller vendors add systemlevel MPU(s) to their products.
+
+Differences between the SAU/IDAU and the MPU
+
+Although the SAU and MPU are both used for access permission control, and both have a similar programmer’s model that defines regions using starting and ending addresses, they have different purposes. This is illustrated in Fig. 6.6. The separation of the SAU/IDAU and the MPU is an important characteristic of TrustZone. It allows the RTOS to be decoupled from the security management firmware, which has the following advantages:
+• Microcontroller users can either use their own choice of RTOS or use the device as bare metal (no RTOS). In either scenario, applications running on the device are still able to take advantage of the security features provided in the Secure firmware.
+• If bugs are present inside the RTOS or in other Non-secure privileged codes, this would not impact the security integrity of the Secure software.
+• The OS can be updated using a standard firmware update mechanism for the regular update of the Non-secure program image. This makes product maintenance easier.
+
+( very important: FIG. 6.6 Comparison of the SAU/IDAU and the MPU. )
+
+Fig. 6.6 references Trusted Firmware-M (TF-M). This is an open-source project and, as such, the software can be accessed from https://www.trustedfirmware.org/. The TF-M is a part of an initiative called the Platform Security Architecture (PSA), which Arm announced in 2017. It aims to improve security in IoT products and embedded systems.
+
+( TABLE 6.5 Default memory access permissions. )

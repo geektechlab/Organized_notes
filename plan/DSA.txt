@@ -1,0 +1,30 @@
+Linear -> first 3 days learn concepts using gfg/takeuforward, rest days do leetcode, in last 5 days try to do mix of previous concepts
+    05-Apr-2025 start
+    20-Apr-2025     Linked List
+    15-May-2025     Recursion
+    30-Jun-2025     Arrays
+    30-Jul-2025     Searching
+    30-Aug-2025     Sorting
+    30-Sep-2025     Stack
+    30-Oct-2025     Queue
+    30-Nov-2025     Deque
+    30-Dec-2025     Hashing
++   30-Jan-2026     Matrix
+    28-Feb-2026     Strings
+    30-Mar-2026     Bit Magic
+    05-Apr-2026     DSA - What, Why and How ?
+    10-Apr-2026     Analysis of Algorithms
+    20-Apr-2026     Mathematics
+
+Non-linear -> first 10 days learn concepts using gfg/takeuforward, rest days do leetcode, in last 3 days try to do mix of previous concepts
+    05-Apr-2025 start
+    15-May-2025     Tree
+    15-Jun-2025     Binary Search Tree
+    15-Jul-2025     Heap
+    15-Aug-2025     Graph
+    15-Sep-2025     Greedy
+    15-Oct-2025     Backtracking
+    15-Nov-2025     Dynamic Programming
+    15-Dec-2025     Trie
++   15-Jan-2026     Segment and Binary Indexed Trees
+    15-Feb-2026     Disjoint Set

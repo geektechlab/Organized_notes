@@ -1,4 +1,0 @@
-we can use pointers to store function addresses apart from variables. by dereferencing it, we can execute function.
-
-watch video or same or more info is available at https://www.geeksforgeeks.org/function-pointer-in-c/
-video has many practical examples at end so it may strengthen understanding.

@@ -1,0 +1,17 @@
+int a;
+
+int *p =&a;
+
+int **d =&p;
+
+we can't assign d = &a, it should take only &p, because it is double pointer.
+
+d will hold address of p. p will hold address of a.
+
+p+1 will be incremented by 4 because it hold int type value of a irrespective of machine size.
+
+d+1 will be incremented by 4 on 32-bit machine because it holds reference of p pointer which is keeping address of a. To maintain address of a we need 4 bytes in 32-bit machine.
+
+d+1 will be incremented by 8 on 64-bit machine because it holds reference of p pointer which is keeping address of a. To maintain address of a we need 8 bytes in 64-bit machine.
+
+Sizeof pointer is dependent on machine types. sizeof(p) = &p+1 -&p

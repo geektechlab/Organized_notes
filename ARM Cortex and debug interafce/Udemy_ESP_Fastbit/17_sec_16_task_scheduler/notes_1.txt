@@ -1,5 +1,0 @@
-A task has its own stack. What we call as task private stack. As you can see here, a T1 has its own stack memory, T2 has its own stack, like that. A task has its own stack to create it's local variable when it runs on the CPU. Also when scheduler decides to remove a task from CPU, the scheduler first saves the context or state of the task in task's private stack.
-
-Task's private stack is used to create the local variable of that task when it is executing on the CPU, and also it is used to store the state or context of that task whenever it is switched out from the CPU.
-
-they are never returning C functions.

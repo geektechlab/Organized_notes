@@ -1,0 +1,92 @@
+Normally, function names are global, visible to any part of the entire 
+program. If a function is declared static, however, its name is invisible outside of the file in 
+which it is declared. 
+
+The static declaration can also be applied to internal variables. Internal static variables are 
+local to a particular function just as automatic variables are, but unlike automatics, they 
+remain in existence rather than coming and going each time the function is activated. This 
+means that internal static variables provide private, permanent storage within a single 
+function. 
+
+Automatic variables, including formal parameters, also hide external variables and functions 
+of the same name. Given the declarations 
+ int x; 
+ int y; 
+ f(double x) 
+ { 
+ double y; 
+ } 
+then within the function f, occurrences of x refer to the parameter, which is a double; outside 
+f, they refer to the external int. The same is true of the variable y. 
+
+In the absence of explicit initialization, external and static variables are guaranteed to be 
+initialized to zero; automatic and register variables have undefined (i.e., garbage) initial 
+values. 
+
+For external and static variables, the initializer must be a constant expression; the 
+initialization is done once, conceptionally before the program begins execution. For automatic 
+and register variables, the initializer is not restricted to being a constant: it may be any 
+expression involving previously defined values, even function calls.
+
+int days[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 } 
+When the size of the array is omitted, the compiler will compute the length by counting the 
+initializers, of which there are 12 in this case. 
+
+If there are fewer initializers for an array than the specified size, the others will be zero for 
+external, static and automatic variables.
+
+Character arrays are a special case of initialization; a string may be used instead of the braces 
+and commas notation: 
+ char pattern = "ould"; 
+is a shorthand for the longer but equivalent 
+ char pattern[] = { 'o', 'u', 'l', 'd', '\0' }; 
+In this case, the array size is five (four characters plus the terminating '\0'). 
+
+When a function calls itself recursively, each invocation gets a fresh set of all the automatic 
+variables, independent of the previous set. 
+
+in #define the replacement text is the rest of 
+the line, but a long definition may be continued onto several lines by placing a \ at the end of 
+each line to be continued.
+
+The scope of a name defined with #define is from its point of 
+definition to the end of the source file being compiled. A definition may use previous 
+definitions. Substitutions are made only for tokens, and do not take place within quoted 
+strings. For example, if YES is a defined name, there would be no substitution in 
+printf("YES") or in YESMAN. 
+
+Any name may be defined with any replacement text. For example 
+ #define forever for (;;) /* infinite loop */ 
+defines a new word, forever, for an infinite loop. 
+It is also possible to define macros with arguments, so the replacement text can be different 
+for different calls of the macro. As an example, define a macro called max: 
+ #define max(A, B) ((A) > (B) ? (A) : (B)) 
+
+If you examine the expansion of max, you will notice some pitfalls. The expressions are 
+evaluated twice; this is bad if they involve side effects like increment operators or input and 
+output. For instance 
+ max(i++, j++) /* WRONG */ 
+will increment the larger twice. Some care also has to be taken with parentheses to make sure 
+the order of evaluation is preserved; consider what happens when the macro 
+ #define square(x) x * x /* WRONG */ 
+is invoked as square(z+1)
+
+Names may be undefined with #undef, usually to ensure that a routine is really a function, not 
+a macro: 
+ #undef getchar 
+
+Formal parameters are not replaced within quoted strings. If, however, a parameter name is 
+preceded by a # in the replacement text, the combination will be expanded into a quoted string 
+with the parameter replaced by the actual argument. This can be combined with string 
+concatenation to make, for example, a debugging print macro: 
+ #define dprint(expr) printf(#expr " = %g\n", expr) 
+When this is invoked, as in 
+ dprint(x/y) 
+the macro is expanded into 
+ printf("x/y" " = &g\n", x/y); 
+
+The preprocessor operator ## provides a way to concatenate actual arguments during macro 
+expansion. If a parameter in the replacement text is adjacent to a ##, the parameter is replaced 
+by the actual argument, the ## and surrounding white space are removed, and the result is rescanned. For example, the macro paste concatenates its two arguments: 
+ #define paste(front, back) front ## back 
+so paste(name, 1) creates the token name1.

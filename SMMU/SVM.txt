@@ -1,0 +1,2 @@
+- https://lwn.net/Articles/747230/
+- https://patches.linaro.org/project/linux-acpi/patch/20191219163033.2608177-8-jean-philippe@linaro.org/

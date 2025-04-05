@@ -1,0 +1,48 @@
+The pipeline in a processor that supports an out-of-order execution can start executing some of the later instructions and even complete them while an earlier instruction is still in progress. For example, a memory load operation can take over 100 clock cycles to complete in a high-end processor. This is because it is running at over 1 GHz and because DDR memory has a high latency. An out-of-order processor can start executing subsequent instructions if the data processing is not dependent on the result from the load. The opposite of out-of-order is in-order execution.
+
+While the Cortex-M23 and Cortex-M33 are small processors that do not have out-of-ordera execution support and do not reorder memory access on the bus interface, itis possible to implement a high-end Armv8-M processor that does. When developing portable software that can run on a wide range of processors, software developers would find it useful to:
+• have a good understanding of memory ordering concepts, and
+• know how to use memory barriers to solve memory ordering issues in high-end processors.
+
+memory barrier instructions (ISB, DSB, DMB) and load acquire and store release instructions. These instructions help guarantee that memory access from different steps of a software procedure are in the correct order when reaching the memories and the peripherals inside the chip. This is particularly important for multiprocessor systems where the memory access of one processor is observable by another and the ordering between them could be crucial for the interactions. In Cortex-M processors, memory barrier instructions are also used in the following scenarios, as defined by the requirements of the architecture:
+• DSB is used to enforce the ordering between memory access and another processor operation (it does not have to be another memory access).
+• DSB and ISB are used to ensure that the effect of a system configuration change takes place before subsequent operations.
+
+Even if the memory barrier instructions are omitted, most applications running on the Cortex®-M23 and the Cortex-M33-based microcontrollers do not suffer from memory ordering issues. This is because:
+- These processors do not reorder any memory transfers (this can happen in many highperformance processors).
+- These processors do not reorder the execution of instructions (this can happen in many high-performance processors).
+- The simple nature of the AHB and APB protocols does not allow a transfer to begin befor the previous transfer has finished.
+- There is no write buffer in these processors
+
+However, for best practice, these memory barrier instructions should, for software portability reasons, be used. Please note, the use of memory barrier instructions might not be sufficient to prevent some of the system level race conditions. For example, after enabling the clock for a peripheral, the software might need to wait for a few clock cycles before accessing the peripheral. This is because the clockcontrol circuit in the microcontroller might need a few clock cycles to enable the peripheral’s clock.
+
+Cortex-M33 processors use AMBA® bus protocols for their bus interfaces. These protocols include:
+• AMBA 5 AHB (Advanced High-performance Bus, also known as AHB5) provides a memory system interface(s).
+• AMBA 4 APB (Advanced Peripheral Bus, also known as APBv2) provides bus connections for debug component and peripheral interfaces via the “AHB to APB” bridge(s). In some systems, an earlier version of the APB protocol could be used for peripheral connections.
+• AMBA 4 ATB (Advanced Trace Bus) for trace packet transfers (this is for debug operations and is not for use by the application).
+
+These interfaces provide support for:
+• Bus wait states and OKAY/ERROR response types for AHB (all versions) and APB (this is available following the release of AMBA version 3).
+• An exclusive OKAY/FAIL response for AHB5 (see Section 6.7, Exclusive access support) Wait states are needed when the memories or peripherals are slower than the processors and when latency cycles are added to the bus interconnect infrastructure. Some of the memory access might take several clock cycles to complete. For example, the flash memory used in a low power microcontroller might have a maximum access speed of around 20MHz, even though the microcontroller can run at over 40MHz or even 100MHz. In this situation, the flash memoryinterface needs to insert wait states to the bus system so that the processor waits for the transfer to complete.
+The wait states affect the system in several ways:
+• They reduce the performance of the system.
+• They can reduce the energy efficiency of the system because of the reduction in performance.
+• They increase the interrupt latency of the system.
+• They can make the system’s behavior less deterministic in terms of the program’s execution timing.
+Many modern microcontrollers include various types of cache memories to reduce average memory access latency. While the Cortex-M23 and the Cortex-M33 processors do not have internal cache support, many microcontrollers with embedded flash memories do have a cache unit closely integrated with the flash memory controller to:
+• Enable the processor to run at a high clock speed with slower embedded flash memory.
+• Enable better energy efficiency by reducing memory access in the embedded flash memory (This is because flash memories are usually power-hungry). Instead of using cache-based designs, some microcontrollers use flash prefetch units that allow sequential fetches with a zero-wait state. Prefetch units are smaller than a cache unit but do not have the same level of advantages as a cache controller because:
+(1) They do not prevent wait states if the access is nonsequential.
+(2) They do not reduce the number of accesses to the flash memory. Thus, there is no power saving benefit.
+
+Error responses are essential, allowing the hardware to inform the software that something has gone wrong, and ensuring, in the process, that remedial actions can be taken in the form ofa fault exception handler. Error responses can be generated by:
+• Bus infrastructure components. This can be caused by:
+	Security or privileged level violations (see Section 6.4.1)
+	Access to an invalid address
+• Bus slaves. This can be caused by:
+	Security or privileged level violations
+	An operation not being supported by the peripheral
+When the processor receives a bus error response, a BusFault exception or a HardFault exception is triggered. The triggered exception is a Bus fault exception if all of the following conditions are met:
+• The processor is an Armv8-M Mainline processor, and
+• The BusFault exception is enabled (by setting BUSFAULTENA, bit-17 of System Handler Control and State Register, SHCSR at address 0xE000ED24).
+• The priority level of the BusFault exception is higher than the processor’s current level. Otherwise, the HardFault exception is triggered.

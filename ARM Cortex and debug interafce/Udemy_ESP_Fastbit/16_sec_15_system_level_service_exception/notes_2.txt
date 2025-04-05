@@ -1,7 +1,0 @@
-( watch lec 69-72 )
-
-at 6:38 in lec 70
-
-each SVC called with different argument has different opcode ? So using this opcode we can find passed argument with SVC. When SVC handler is called, we can get stack pointer and decrement by 6 to ( increment because ARM stack ) to find out PC from stack. That stacked PC will hold the return address and subtracting by 2 ( thumb instructions of 16 bits ) which has code address having SVC call. On that address, SVC opcode will be stored and using 8 bits ( LSB ). We have to keep SVC handler as a naked function because if not then it will generate prologue and may corrupt stack pointer and other registers, so we may not be able to trace the stack back.
-
-Now based on SVC argument we can provide different services. Lets say we want to add or subtract based on that argument, then using that SVC argument we will decide what operations to perform and operands can be passed using register arguments using R0-R3, and can be extracted using SVC stack. Then calculations can be performed and result can be returned using R0 register. AS per AAPCS, R0 is used for return valuie and if return value is large then pointer to that result is passed using R0.

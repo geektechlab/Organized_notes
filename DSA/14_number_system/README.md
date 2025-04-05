@@ -1,4 +1,4 @@
-Structure padding and packing
+- https://www.cs.cornell.edu/~tomf/notes/cps104/twoscomp.html#:~:text=It's%20first%20(leftmost)%20bit%20is,the%20sign%20of%20this%20number.
 
 - IEEE Standard 754 Floating Point Numbers: https://www.geeksforgeeks.org/ieee-standard-754-floating-point-numbers/
 - Fixed Point Representation: https://www.geeksforgeeks.org/fixed-point-representation/

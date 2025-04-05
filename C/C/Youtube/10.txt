@@ -1,0 +1,31 @@
+int b[2][3] creates multi dimensional array, it is 2-D array
+
+here b[0] and b[1] both are 1-D arrays each having 3 integers
+
+suppose 2-d array starts at 20, then 
+b[0] will span 12 bytes, so b[1] will start from 20+12=32 and span till 44.
+
+since name of array is pointer to array,
+b is 2-d array pointer and holds starting address of b[2][3] array.
+b[0] and b[1] are also pointers and holds starting adderess respctive arrays.
+
+b and b[0] points to same location but are of diffrent types, int (*p)[3] and int * respectively.
+
+int *p=b // not valid
+int (*p)[3]=b //valid
+
+b or &b[0] prints 20
+*b or b[0] or &b[0][0] prints 20
+
+b+1 will point to b[1] // 20+size of first 1-d array of 3 integers
+b+1 is same as &b[1]
+
+*(b+1) is same as b[1] and &b[1][0] // they have int * type
+
+*(b+1)+2 is same as b[1][2]
+*(*b+1) is same as b[0][1] // b is int (*)[3], then *b is int * which is same as B[0], then *b+1 is &b[0][1], then dereferencing will give b[0][1]
+
+// just my thoughts when * and + is applied first dereference and then increment ?
+
+b[i][j] = *(b[i]+j) = *(*(b+i)+j)
+

@@ -1,0 +1,113 @@
+SysTick System tick timer(s) is basic 24-bit timer for OS periodic interrupt operations, or for other timekeeping purposes. If TrustZone is present there can be up to two SysTick timers.
+
+Cortex-M33 is 32-bit processors and are based on Armv8-M architecture.
+• Cortex-M33 processor is based on the Mainline subprofile of Armv8-M architecture
+
+Cortex-M33:
+Armv8-M Baseline instruction set + Mainline instruction extension + optional DSP extension + optional single precision FPU extension + optional TrustZone security extension
+
+The Cortex-M33 processor has a three-stage pipeline:
+• First stage: Instruction fetch and predecoding.
+• Second stage: Decode and simple execution.
+• Third stage: Complex execution. Some of the operations are completed at the second pipeline stage. This arrangement enables low power consumption and also better efficiency. This processor pipeline design also supports the limited dual issue of 16-bit instructions.
+
+The higher performance of Cortex-M33 processor is due to:
+• A richer instruction set;
+• Use of Harvard bus architecture to allow concurrent data and instruction fetches;
+• Limited dual-issue capability.
+
+The instruction set used in Arm Cortex-M processors is called the Thumb® instruction set. To enable easy project migration, all of the instructions available in previous Cortex-M processors are also available in the Armv8-M architecture. This upward compatibility is an important characteristic of the Cortex-M processor family, as it provides software reusability and portability. A range of instruction set features, such as hardware divide, which is not available in the Cortex-M0/M0+, has been added to the Armv8-M. Except for double-precision floating-point instructions and cache preload instructions, all instruction supported in the Cortex-M7 processors are available in the Cortex-M33. (Note: The Cortex-M33 does not have a double-precision FPU option or a cache memory controller feature.)
+
+Many of the instructions used in the Armv8-M Baseline instruction set are 16-bit in size. This enables high code density. For general data processing and control tasks, the program code can be composed of mostly 16-bit instructions (instead of 32-bit) to reduce the size of program memory.
+
+Both the Cortex-M23 and Cortex-M33 processors have a 4GB unified address space (32-bit address). Unified means that there is only one address space, even though there can be more than one bus interface. For example, the Cortex-M33 processor is based on Harvard bus architecture, which allows simultaneous instruction and data access, but that does not mean that the system has 4GB of memory space for instructions and another 4GB of memory space for data.
+
+This 4GB address space is divided into a number of regions in the architecture’s definition (Fig. 3.4). Some address ranges in the Private Peripheral Bus (PPB) are allocated to internal components, i.e., the Nested Vectored Interrupt Controller (NVIC), Memory Protection Unit (MPU), and a number of debug components. The rest of the memory regions have predefined memory attributes, making them particularly suitable for storing program (e.g., in the CODE region), data (e.g., in the SRAM region), and for accessing peripherals (e.g., in the Peripheral region). The usage of the memory region is fairly flexible. For example, you can execute programs from the SRAM and RAM regions. If necessary, some of thememory attributes can be overriddenwith theMPU (Memory Protection Unit).
+
+If the Cortex-M23/Cortex-M33 based system supports the TrustZone security extension, then the memory space is divided into Secure and Non-secure address ranges. This partitioning can be programmable using the Security Attribution Unit (SAU) and the Implementation Defined Attribution Unit (IDAU). Both Secure and Non-secure software needs their own program, data, and peripheral address spaces. The actual memory map of the chip is defined by the chip designers. For the same CortexM processor, chip companies can implement different memory sizes and different memory maps.
+
+Cortex-M33 Processors use Arm® AMBA® 5 AHB protocol (also known as AHB5) for their main system buses. AHB is a light-weight pipelined bus protocol optimized for low power systems. AHB5 has a number of enhancements when it is compared to the previous AHB specification (AHB-LITE):
+• the TrustZone security extension.
+• the official exclusive access sideband signals.
+• additional memory attributes.
+
+The Cortex-M33 processor uses Harvard bus architecture and has two AHB5masterinterfaces. One is for access to the CODE region and the other is for access to the rest of the memory space (apart from the Private Peripheral Bus (PPB)). This arrangement allows program fetches to the CODE region and access to data in the RAM or in a peripheral to be carried out at the same time.
+
+The Cortex-M33 processor also has an additional PPB interface for the connection of optional debug components.  This interface is based on the Advanced Peripheral Bus (APB) protocol from AMBA 4.
+
+There are two types of memory access controls in the Cortex-M23 and Cortex-M33 processor systems (Fig. 3.5):
+	1. A mechanism for defining access permissions based on the separation of Secure and Non-secure memories:
+		If the TrustZone security extension is implemented, then the memory space is partitioned into Secure and Non-secure address ranges. The Secure software can access both sets of address ranges, but the Non-secure software can only access the Non-secure address range. If a Non-secure software component tries to access a Secure memory address a fault exception is triggered and the access is blocked.
+
+		On the system level, further transfer filtering mechanisms can be put in place to block transfers based on the address location and the security attribute of the bus transaction. The partition of Secure andNon-secure  address rangesis handled by the SAU and the IDAU.
+	2. A mechanism for defining access permissions based on the separation of Privileged and Unprivileged software:
+		The concept of privileged and unprivileged executionlevels in processors has been around for a number of years. In a system with an Operating Systems (OS), the OS kernel and exception handlers are executed at privileged access level and application threads are (usually) executed using at unprivileged access level. Using a Memory Protection Unit (MPU), the access permission of unprivileged threads/tasks can be restricted.
+
+		If the TrustZone security extension is implemented, there can be two MPUs inside the processor (both of them are optional).One would be used formanaging access permissions for Secure software and the other would be used formanaging access permissions for Non-secure software.
+
+		In a TrustZone capable system, the two types of memory protection mechanisms can work together. If the executing software attempts to access a memory location and the access permission check fails one of the protection measures, the transfer is blocked from reaching the memory/peripheral. A fault exception is then raised to handle the issue.
+
+In Arm processors, interrupts (e.g., IRQs generated by peripherals) are a subset of exceptions. Exceptions also include fault event handling and OS supporting exceptions. In Cortex-M processors, exceptions (including interrupts) are handled by the built-in Nested Vectored Interrupt Controller (NVIC).
+
+The words “Nested” and “Vectored” in NVIC mean:
+Nesting of interrupt services is automatically handled by the processor without any need for software intervention. For example, during the execution of a low priority interrupt service a high priority interrupt can be serviced as normal.
+
+Cortex-M33:
+• Number of interrupt inputs: 1–480
+• Non-Maskable Interrupt (NMI) input: Yes
+• Width of priority level registers: 3-bit (8 programmable levels) to 8-bit (256 programmable levels)
+• Interrupt masking registers: PRIMASK, FAULTMASK, and BASEPRI
+• Interrupt latency in number of clock cycles (assuming a zero wait state memory system is being used): 12
+• Vectored interrupt handling: The starting program address of interrupt service routines (ISRs) is obtained automatically from a vector table by the processor’s hardware. There is no need to use software to determine which interrupt request needs servicing, which reduces the latency of the interrupt service(s).
+
+If the TrustZone security extension is implemented, each of the interrupt sources can be programmed as Secure or Non-secure. Because there are two vector tables, the Secure and Non-secure vector tables are separated and are respectively placed in Secure and Non-secure memory spaces.
+
+Architecturally, Cortex-M processors support sleep and deep-sleep modes. How power is reduced during these sleep modes depends on the design of the chip. Chip designers can further expand the number of sleep modes using system-level control hardware.
+
+Wakeup Interrupt Controller (WIC): This is a small hardware block separated from the NVIC to allow interrupt requests to be detected and will “wake up” the system even when the clock signals to the processor has stopped, or when the processor is placed in a powerdown state (e.g., when state-retention power gating is used).
+
+State Retention Power Gating (SRPG) support: The Cortex-M23 and Cortex-M33 processors can be implemented with various advanced low power design technologies. One of these technologies is the SRPG, which, when used with sleep modes, powers down most of the digital logic hardware in the processor. During SRPG sleep, only a smallnumber of transistors are powered to keep the states (0/1) of the processor’s registers. In this way, when an interrupt arrives, the processor is able to very quickly resume operations.
+
+Cortex-M33 processor are designed to support a wide range of embedded Operating Systems (OSs) (this includes Real-Time OS (RTOS)). The OS support features include:
+• Banked stack pointers to enable easy context switching.
+• Stack-limit registers for stack-limit checking.
+• The ability to separate between privileged and unprivileged states.
+• Memory Protection Unit(s) (MPUs): The OS can use the MPU to restrict access permissions of unprivileged threads.
+• Exception types dedicated to OS support: Including SuperVisor Call (SVCall) and Pendable SuperVisor call (PendSV).
+• A small 24-bit system tick timer called SysTick for periodic OS interrupt generation. If the TrustZone security extensionisimplemented there can be two SysTick timers in the processor.
+
+The Cortex-M33 processor supports an optional coprocessor interface to allow chip designers to add hardware accelerators that are directly coupled to the processor. The coprocessor interface can be used in many ways. For example, it can be used for connecting accelerators for mathematical operations and for cryptography. The key features of this interface:
+• Includes the support of 32-bit and 64-bit transfers between the processor and the coprocessor’s registers in a single clock cycle.
+• Include wait state(s) and an error response signal.
+• Using a single instruction, a custom-defined operation command can be transferred with data simultaneously.
+• Include the ability to support up to eight coprocessors, with each of them able to support a number of coprocessor registers.
+• Include support for TrustZone technology. Each coprocessor can be assigned as Secure or Non-secure. At the interface level, there is also a security attribute to allow the fine grain security control of each individual coprocessor register/operation.
+
+The Arm Custom Instructions (architecturally known as Custom Datapath Extension) is a new feature that was not available in previous Arm processors. It accelerates processing tasks. The Cortex-M33 processor is the first Arm processor to support the Arm Custom Instructions feature.
+
+Unlike the coprocessor instructions, which require the hardware accelerators to include their own coprocessor registers, Arm Custom Instructions allows chip designers to create customer accelerator(s) which can then be integrated into the processor’s data-path. This arrangement speeds up specialized data processing operations by directly using the processor’s registers. This enables lower latency when using hardware accelerator(s). By architectural definition, the operations in Arm Customer Instructions can support 32-bit, 64-bit, and vector data (including integer, floating-point, and vector operations). Not all of these instructions  are included in the Cortex-M33 implementation.
+
+Cortex-M33 processors can be used as a standalone processor in single core microcontroller devices, as well as being part of a multicore SoC product. With suitable bus interconnect hardware support, the bus interface of multiple processors can be connected to the shared memories and peripherals. The inclusion of exclusive access instructions in the Cortex-M23 processor (compared to the Cortex-M0+ which does not have them) enhances multicore software support. For example, by enabling OS semaphore operations in multicore systems. The debug architecture also allows multiple processors to be connected to a debugger through a single debug and trace connection.
+
+There are many enhancements when one compares the Cortex-M33 processor with the Cortex-M3/M4 range of processors (Fig. 3.7). A number of the aforementioned enhancements are similar to those that are found in the Cortex-M23 processor:
+• TrustZone: An optional security extension.
+• MPU (Memory Protection Unit): The programmer’s model of the MPU has been updated and is now based on Protected Memory System Architecture version 8 (PMSAv8)—which makes the MPU more flexible and easier to use. Additionally, the maximum number of MPU regions has been increased from 8 to 16.
+• MTB (Micro Trace Buffer): A low-cost instruction trace solution. Previously this was not available in the Cortex-M3 and Cortex-M4 processors.
+• Breakpoints and watchpoint units: A new programmer’s model has been introduced in the Armv8-M architecture to provide better flexibility.
+• NVIC (Nested Vectored Interrupt Controller): The maximum number of interrupts  supported in the Cortex-M33 has increased to 480 compared to 240 in the Cortex-M3/M4 processor.
+• SysTick timer: A small 24-bit system tick timer for OS period interrupts or for other timing purposes. An Armv8-M processor can support up to two SysTick timers—one for Secure operations and the other for Non-secure operations.
+
+But there are also enhancements that are not available in the Cortex-M23 processor:
+• Stack limit checking: Detects stack overflow errors in both Secure and Non-secure stack pointers and triggers a fault exception to handle the issue.
+• Floating point unit (FPU): The architecture of the floating-point instructions has been updated from FPv4 to FPv5.
+• The DSP/SIMD instruction set is optional, making the processor more configurable than before.
+• Coprocessor interface: A new interface allowing chip designers to add hardware accelerators to the chip that are closely coupled to the processor.
+• Arm Custom Instructions: This feature allows silicon designers to add custom data processing instructions to a Cortex-M33 processor. This feature is to be added in revision 1 of the Cortex-M33 design during mid-2020.
+• There are also a number of instruction-set enhancements (Table 3.7).
+• The Cortex-M33 processor allows the initial addresses of the vector tables to be defined by chip designers. This is not configurable in the Cortex-M3 or Cortex-M4 processors.
+
+For software developers that develop Secure firmware with TrustZone technology, there are new C language extension features known as Cortex-M Security Extension (CMSE), is part of the Arm C Language Extension (ACLE). ACLE is an open specification and is supported by many compiler vendors.
+
+see Table 3.8.
+
+

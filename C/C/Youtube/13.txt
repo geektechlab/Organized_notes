@@ -1,0 +1,27 @@
+malloc return generic void * pointer. So typecast while assigning.
+void * malloc ( size_t size ), size_t is unsigned int
+
+int *p=(int *)malloc(3*sizeof(int)); // not sizeof(int *p), it will give sizeof integer pointer type not sizeof integer
+
+allocated memory will have garbage data.
+
+--------------
+
+void* calloc(size_t num, size_t size);
+int *p=(int *)calloc(3,sizeof(int));
+
+allocated memory will be initialized with 0, so no garbage data. Also, since it accesses memeory to write 0, it guarantees that pages are allocated physically, not just lazy allocation.
+
+--------------
+
+void* realloc(void*ptr, size_t size);
+
+int *p=(int *)malloc(3*sizeof(int));
+int *p=(int*)realloc(p,2*sizeof(int));
+
+-------------
+
+free frees the memory.
+
+free(<pointer>);
+after free set pointer to NULL, to avoid dangling pointer. Wild pointer is which have no address assigned to.

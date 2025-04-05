@@ -1,3 +1,0 @@
-do not return pointer to local variable ( because those are not stack and memory address might not be valid outside function )
-
-instead if required, declare memory on heap and return that address.

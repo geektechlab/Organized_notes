@@ -1,0 +1,74 @@
+Armv8-MMainline architecture supports an optional floating-point extension. When the floating-point hardware is included, the processor’s implementation could:
+(1) Include a single precision (32-bit) floating point unit (FPU) to support single precision floating-point calculations
+(2) Include a floating-point unit (FPU) that support both single precision and double precision (64-bit) floating-point calculations
+For Cortex-M33 and other Armv8-M Mainline processors, the floating-point unit is optional and, when implemented, the Cortex-M33 processor supports option 1—a single precision FPU. If the FPU is not available, it is still possible to handle single precision floating-point calculations by using software emulation. However, when doing this the performance level would be lower than when using a hardware-based approach. Even when the floating-point unit is implemented, the software emulation approach is required in the Cortex-M33 processor if the application code contains double precision floatingpoint data processing.
+
+Before using any floating-point instruction, you must first enable the floating-point unit by setting the CP11 and CP10 bit fields in the Coprocessor Access Control Register (SCB-> CPACR at address 0xE000ED88). For software developers using CMSIS-CORE compliant device drivers, this activity is usually undertaken within the SystemInit(void) function in the device initialization code provided by microcontroller vendors. In the CMSIS-CORE header file of Cortex-M microcontrollers with an FPU, the “__FPU_PRESENT” directive is set to 1. The CPACR register can only be accessed in privileged state. Accordingly, if unprivileged software attempts to access this register a fault exception would be generated.
+
+In systems where the TrustZone security extension has been implemented, the Secure software needs to consider whether it should allow Non-secure software to access the floatingpoint unit feature. This is controlled by the Non-secure Access Control Register (SCB-> NSCAR at address 0xE000ED8C), a register which is accessible from Secure privileged state only. To enable Non-secure software to access the FPU, the CP11 (bit 11) and CP10 (bit10) fields of this register must be set to 1. Additionally, if the TrustZone security extension has been implemented, the Coprocessor Access Control Register (CPACR) is banked between security states. And, the access permissions are as follows:
+• The Secure version of the CPACR can only be accessed by Secure software using SCB-> CPACR (at address 0xE000ED88).
+• The Non-secure version of the CPACR can be accessed by both Secure and Non-secure software. Secure software can access this register using the Non-secure alias address(SCB_NS->CPACR at address 0xE002ED880) and Non-secure software can access the same register using SCB->CPACR at address 0xE000ED88.
+
+Secure software will also need to program the Coprocessor Power Control Register (CPPWR) to decide whether Non-secure software can access the FPU’s power control bit fields. Further information on this topic can be found in Section 15.16.
+
+The floating-point instructions include instructions for floating point data processing as well as floating point data transfers (Table 5.72). All floating-point instructions start with the letter V. The floating-point instruction set in the Cortex-M33 processor is based on the FPv5 (Arm floating point architecture version 5). This is a superset of the floating-point instruction set in the Cortex-M4, which is based on the FPv4. The additional floating-point instruction provides some floating-point processing performance enhancements.
+
+There are two other FPU related instructions that are specifically for TrustZone security management: VLLDM and VLSTM. They are covered in Section 5.20. Please note, floating point processing can generate “exceptions”. For example, a 32-bit data pattern does not always convert  into a valid floating-point number and would, therefore, not be processed by the FPU as normal data—a situation called NaN (Not a Number: further information on this topic can be found in Chapter 14). Although FPU exception signals are exported to the processor’s  outputs, such an arrangement may not trigger any exceptions in the NVIC. Whether it does or not is dependent upon the chip’s system level design. Instead of relying on the occurrence of FPU exceptions via the NVIC exception handling mechanism,  software can detect  abnormalities (such as NaN) by examining the FPU exception status after the cessation of the floating-point operation(s).
+
+The SuperVisor Call (SVC) instruction is used to generate the SVC exception (exception type 11). Typically, the SVC allows an embedded OS/RealTime OS (RTOS) to provide services (which execute in privileged state) to unprivileged application tasks. The SVC exception  provides the transition mechanism from unprivileged to privileged.
+
+The SVC mechanism is optimized for the purpose of being an OS service gateway. This is because application tasks accessing an OS service only need to know the SVC service number and the input parameters: there is no need for the application task to know the actual program memory address of the service.
+
+The SVC instruction requires that the priority level of the SVC exception must be higher than the current priority level and that the exception is not masked by masking registers, e.g., by the PRIMASK register. If it is not higher, the execution of an SVC instruction would instead trigger a fault exception. As a consequence, you cannot use the SVC instruction in a NMI or HardFault handler. This is because the priority levels of those handlers are always higher than the SVC exception.
+
+The SVC instruction has the following syntax:
+	SVC #<immed>
+The immediate value (#<immed>) is 8 bits. The value itself does not affect the behavior of the SVC exception, but the SVC handler can extract this value by way of software and use it as an input parameter. For example, to determine what service is requested by the  application task that executed the SVC instruction.
+
+In a C programming environment, the most common way to insert an SVC instruction is by using an inline assembler and writing the code in the form of inline assembly. For example,
+	__asm volatile (“SVC #3”); // execute SVC instruction with immediate value 3
+The keyword “volatile” is needed to ensure that the C compiler does not reorder the instruction with another code. If additional parameters need to be passed to the SVC, via registers R0–R3, the SVC function can be written as:
+	__attribute__((always_inline)) void svc_3_service(parameter1, parameter2, parameter3, parameter4)
+	{
+		register unsigned r0 asm("r0") = parameter1;
+		register unsigned r1 asm("r1") = parameter2;
+		register unsigned r2 asm("r2") = parameter3;
+		register unsigned r3 asm("r3") = parameter4;
+		__asm volatile(
+						"SVC #3"
+						:
+						: "r" (r0), "r" (r1), "r" (r2), "r" (r3)
+					);
+	}
+	void foo(void)
+	{
+		svc_3_service (0x1, 0x2, 0x3, 0x4);
+	}
+
+Another instruction that is related to exceptions is the Cange Processor State (CPS) instruction. With the Cortex-M processors, you can use this instruction to set or clear interrupt masking registers such as PRIMASK and FAULTMASK (available in Armv8-M Mainline only). These   registers can also be accessed using the MSR and the MRS instructions. The CPS instruction can only be used with one of the following suffixes: IE (interrupt enable) or ID (interrupt disable). Because Armv8-M Mainline processors (Cortex-M33 and all other Armv8-M Mainline processors) have several interrupt mask registers, you must also specify which masking register to set/clear. Table 5.74 lists the various forms of the CPS instruction available for the Cortex-M23, Cortex-M33, and other Armv8-M Mainline processors. The switching of PRIMASK or FAULTMASK to disable and enable interrupts is commonly used to ensure timing critical code can quickly finish without  getting interrupted. Another interrupt masking register, BASEPRI, which is available in Armv8-M Mainline and Armv7-M, can be accessed by MSR and MRS instructions only.
+
+In Armv8-M processors with the TrustZone security extension, the interrupt masking registers are banked. The CPS instructions (Table 5.74) can only be used to access the interrupt masking registers in the current security domain. If Secure privileged software needs to access Non-secure interrupt masking registers, then the MSR and MRS instructions should be used.
+
+The Cortex-M23, Cortex-M33, and other Armv8-M processors are all optimized for small embedded systems and, because they have a relatively short pipeline, do not reorder memory access. However, Arm architectures (including Armv6-M, Armv7-M, and Arm8-M) allow the design of processors to reorder memory transfers, that is, memory access could take place, or complete in an order different from the program code, providing that it does not affect the result of the data processing operations.
+
+Memory access re-ordering often happens in high-end processors, such as those designs with caches, superscalar pipeline or out-of-order-execution capabilities. However, by re-ordering memory access, and if the data is shared between multiple processors, then the data sequence observed by another processor can be different from the programmed sequence. This can cause errors or glitches in a range of applications. Examples of the causes of these failures (refer to Fig. 5.4) is covered in Section 5.7.12, Load-acquire and store release instructions.
+The memory barrier instructions can be used to:
+– enforce ordering between memory accesses,
+– enforce ordering between a memory access and another processor’s operation,
+– ensure the effect of a system configuration change takes place before subsequent operations.
+
+Cortex®-M processors support the following memory barrier instructions (Table 5.75). In C programming with CMSIS (i.e., using a CMSIS-CORE compliant device driver), these instructions can be accessed using the following functions:
+	void __DMB(void); // Data Memory Barrier
+	void __DSB(void); // Data Synchronization Barrier
+	void __ISB(void); // Instruction Synchronization Barrier
+Since the Cortex-M23 and Cortex-M33 processors have relatively simple pipelines, and because the AMBA® 5 AHB bus protocol used in these processors does not allow the reordering of transfers in the memory system, most applications work without any memory barrier instructions. However, there are several cases (Table 5.76) where the aforementioned barrier instructions should be used.
+
+From an architectural point of view, there can be additional situations (listed in Table 5.77) where memory barrier should be used between two operations. Although, that said, omitting the memory barrier in the current Cortex-M23 and Cortex-M33 processors will not cause any issues.  Some of the memory barriers are essential for high-end processors, like the Cortex-M7, where the bus interface contains write buffers and needs a DSB instruction to ensure that the buffered writes are drained.  An application note on the use of memory barrier  instructions for the Cortex®-M processor is available from Arm® and is called “Arm Cortex-M Programming Guide to Memory Barrier  instructions” [6] (ArmDAI0321A).
+
+	DMB Data Memory Barrier: ensures that all memory accesses are completed before new memory access is committed
+	DSB Data Synchronization Barrier: ensures that all memory accesses are completed before the next instruction is executed
+	ISB Instruction Synchronization Barrier: flushes the pipeline and ensures that all previous instructions are completed before executing a new instruction.
+
+( TABLE 5.76 Examples of when memory barrier instruction(s) are needed. )
+
+( TABLE 5.77 Examples of when memory barrier instruction(s) are recommended by architecture definitions )

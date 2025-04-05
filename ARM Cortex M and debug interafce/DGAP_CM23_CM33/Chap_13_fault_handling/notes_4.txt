@@ -1,0 +1,105 @@
+Table 13.2 is a summary of the fault status and fault address registers. These registers are
+only accessible in privileged state.
+If the processor is in Secure state, Secure privileged software is able to access the
+Non-secure view of these registers (except SFSR and SFAR) using the Non-secure alias
+0xE002EDxx.
+The Configurable Fault Status Register (CFSR) is further divided into three parts
+(Table 13.3 and Fig. 13.3).
+The CFSR register can be accessed as a whole using a 32-bit data transfer, or each part
+within the CFSR can be accessed using byte and half word transfers.
+
+MemManage Fault Status Register (MMFSR)
+
+The programmer’s model for the MemManage Fault Status Register is shown in Table 13.4.
+When the TrustZone security extension is implemented, this register is banked between
+security states, and the following views of MMFSR are available:
+• The Secure view of MMFSR shows the cause of the MemManage Fault for the Secure MPU
+• The Non-secure view of MMFSR shows the cause of the MemManage Fault for the
+Non-secure MPU (Secure privileged software can access the Non-secure view of the
+MMFSR using the Non-secure SCB alias).
+Each fault indication status bit (but not including MMARVALID) is set when the fault
+occurs, and stays high until a value of 1 is written to the register. The MemManage fault is
+triggered:
+• When an MPU violation occurs during the execution of a data access instruction and is
+indicated by the fault status bit DACCVIOL.
+• When an instruction fetch triggers an MPU violation, including executing code from a
+memory region marked as XN, and the faulting instruction reaches the execution stage—in
+this fault condition, the fault status bit IACCVIOL is set to 1.
+• When an MPU violation occurs during stacking, unstacking, and lazy stacking (see
+Section 13.2.6) and is indicated by the fault status bits MSTKERR, MUNSTKERR, and
+MLSPERR, respectively.
+Bit 7 of the MMFSR, i.e., the MMARVALID bit, is not a fault status indicator. When the
+MMARVALID bit is set, it is possible to determine the accessed memory location that caused
+the fault using the MemManage Fault Address Register (SCB->MMFAR).
+When the MMFSR indicates that the fault is a data access violation (indicated by
+DACCVIOL being set to 1), or an instruction access violation (indicated by IACCVIOL being set to 1), the faulting code address is usually indicated by the stacked program counter in the
+stack frame (i.e., if the stack frame is still valid).
+
+BusFault Status Register (BFSR)
+
+The programmer’s model for the Bus Fault Status Register is shown in Table 13.5. When the
+TrustZone security extension is implemented and if AIRCR.BFHFNMINS is zero (i.e., default), this register is not accessible from the Non-secure world (i.e., read as zero, write
+ignored).
+Each fault indication status bit (not including BFARVALID) is set when the fault occurs,
+and stays high until a value of 1 is written to the register. The BusFault is triggered:
+• By a bus error during an instruction fetch and when the faulting instruction enters the
+execution stage of the pipeline. This fault condition is indicated by the IBUSERR bit.
+• When an MPU violation occurs during the execution of a data access instruction, and is
+indicated by either the PRECISERR or the IMPRECISERR status bit. PRECISERR indicates
+a synchronous (i.e., precise) bus error (see Section 13.2.2). When PRECISERR is set, the
+faulting instruction address is available from the stacked program counter value in the
+stack frame. Although the address of the data access that triggered the fault is also written
+to the Bus Fault Address Register (SCB->BFAR), the fault handler still needs to check if
+BFARVALID is still 1 after reading the BFAR. When the IMPRECISERR is set (i.e., the bus
+fault is asynchronous or imprecise), the stacked program counter does not reflect the
+faulting instruction address. For an asynchronous bus fault, the address of the faulting
+transfer will not show in the BFAR, with, therefore, the BFARVALID bit being 0.
+• When a bus error occurs during stacking, unstacking, and lazy stacking (see Section 13.2.6)
+and is indicated by the fault status bits STKERR, UNSTKERR, and LSPERR, respectively.
+When the BFARVALID bit is set, it is possible to determine the accessed memory location
+that caused the fault using the Bus Fault Address Register (SCB->BFAR).
+When the BFSR indicates that the fault is a synchronous bus error (indicated by
+PRECISERR being set to 1), or an instruction access bus error (indicated by IBUSERR being
+set to 1), the faulting code address is usually indicated by the stacked program counter in the
+stack frame (i.e., if the stack frame is still valid).
+
+Usage Fault Status Register (UFSR)
+
+The programmer’s model for the Usage Fault Status Register is shown in Table 13.6. When
+the TrustZone security extension is implemented, this register is banked between security
+states. Secure privileged software can access the Non-secure view of the UFSR using the
+Non-secure SCB alias.
+Each fault indication status bit is set when the fault occurs and stays high until a value of 1
+is written to the register.
+
+Secure Fault Status Register (SFSR)
+
+The programmer’s model for the SecureFault Status Register is shown in Table 13.7. The
+SFSR and the Secure Fault Address Register (SFAR) registers are only available when the
+TrustZone security extension has been implemented. When the SecureFault is triggered, one of the fault status bits (not including the SFARVALID bit) in the SFSR is set to 1 to indicate
+the cause of the error.
+Each fault indication status bit is set when the fault occurs and stays high until a value of 1
+is written to the register.
+
+HardFault Status Register (HFSR)
+
+The programmer’s model for the Hard Fault Status Register is shown in Table 13.8. When
+the TrustZone security extension is implemented and if AIRCR.BFHFNMINS is zero (i.e., default), this register is not accessible from the Non-secure world (i.e., read as zero, write
+ignored).
+A HardFault handler uses this register to determine whether a HardFault was caused by
+any of the Configurable Faults. If the FORCED bit is set, it indicates that the fault has been
+escalated from one of the Configurable Faults and that the fault handler should check the
+value of the CFSR to see what the cause of the fault was.
+Similar to other Fault Status Registers, each status bit in the HardFault Status Register is set
+when the fault occurs and stays high until a value of 1 is written to the register.
+
+Debug Fault Status Register (DFSR)
+
+Unlike other Fault Status Registers, the DFSR is designed to be used by debug tools such as
+debugger software running on a debug host (e.g., a Personal Computer) or by debug agent
+software running on the microcontroller. The status bits in this register indicate which debug
+event has occurred.
+The programmer’s model for the Debug Fault Status Register is shown in Table 13.9. This
+register is not banked between security states.
+Similar to other Fault Status Registers, each fault indication status bit is set when the fault
+occurs and stays high until a value of 1 is written to the register.

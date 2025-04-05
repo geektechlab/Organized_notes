@@ -1,0 +1,9 @@
+Opaque pointers
+
+Supoose if library provides structure for linkedlist nodes and functions to insert, delete and iterate.
+
+Ideally, application developer should just should those functions and shouldn't touch nodes instances and it's internal variables. But, if somebody does that then he can damage the functionality. So, opaque pointers can be used to restrict access to those instances and it's internal variables.
+
+So, to solve it define node definition in .c file and just provide insert, delete and iterate functions in header file. So, main.c will be able to perform operations using functions but will not be able to access actual instances and it's contents because those are defined in .c only. main.c will just get it's pointers.
+
+This works better if we provide .c as library files. So, application developer will not be able to even open .c file and find implementation.

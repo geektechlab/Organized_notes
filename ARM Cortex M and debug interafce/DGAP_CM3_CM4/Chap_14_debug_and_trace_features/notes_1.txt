@@ -1,0 +1,71 @@
+USB is less suitable for direct use as
+a debug communication protocol, as it can increase the power consumption and the
+cost of the design. On the other hand, Serial Wire and JTAG interfaces have much
+smaller silicon areas and can be used with an extremely wide range of clock
+frequencies. The JTAG debug protocol also allows JTAG debug interfacing, in which
+multiple chips can be connected in a simple daisy chain arrangement, which is useful
+for some complex system designs.
+
+Once there is a communication connection between the debug host and the
+microcontroller, we can then:
+• Download a compiled program image to the microcontroller.
+• Control the microcontroller to perform a reset.
+• Start the program execution, or if you like, execute instructions line by line
+(single stepping).
+• Stop the processor (halting).
+• Insert/remove breakpoints: the breakpoint feature allows you to define instruction addresses so that when the processor gets to that instruction, it stops there
+(enters halt, or sometimes referred to as debug state in ARM documentation).
+• Insert/remove watchpoints: the watchpoint feature allows you to define data
+addresses so that when the processor accesses this address location, it triggers a
+debug event that can be used to halt the processor.
+• You can examine or change the contents of the memory or peripherals at any
+time, even when the processor is running. This feature is often called on-the-fly
+memory access.
+• You can also examine or change the values inside the processor. This can only be
+done when the processor is stopped (halted).
+All these debug features are available on all the Cortex-M processors, including
+the low-cost Cortex-M0 and Cortex-M0þ microcontroller products.
+
+Two types of trace interface operation modes are supported: either a single-pin
+model called Serial Wire Viewer (SWV) (using a signal called Serial Wire Output
+(SWO)), or a multi-pin Trace Port interface (typically four data pins þ one clock
+pin). Although debug and trace interfaces operate independently, they are normally
+connected using a single connector.
+
+( important: Figure 14.2 shows typical debug and trace connection configurations. )
+
+SWV provides a low pin count trace solution, and the SWO output signal can be
+shared with the TDO (Test Data Out, see Figure 14.2) pin when the Serial Wire
+debug protocol is used, and allows trace data to be collected with the same debug
+adaptor for debug operations. The baud rate of the SWO is typically limited to under
+2Mbit/sec (limited by the debug adaptor hardware; the actual bandwidth could be
+even lower). However, it is very useful for exporting lots of information as discussed
+in the following:
+• Exception events
+• Information associated with a data watchpoint event (e.g., data value, program
+counter value, address values, or combination of two pieces of such
+information).
+
+• Events from profiling counters
+• Software-generated trace data (instrumentation trace; for example, a message
+output from a “printf” statement in the program code).
+• Timestamp information: for each trace data, you can enable a timestamp packet
+to go with it so that the timing of events can be reconstructed by the debug host.
+The Trace Port interface provides a much higher trace data bandwidth. However,
+you need a more complex (and usually more expensive) trace adaptor to capture the
+trace information using the trace port interface. With the high bandwidth offered by
+the Trace Port output, you can collect additional trace information in addition to the
+information that you can get from SWO:
+• Instruction trace. The instruction trace feature needs an optional on-chip hardware
+component called the Embedded Trace Macrocell (ETM). This can provide information about the program execution so the whole program execution history
+can be reconstructed by the debug host. This feature is very useful for debugging
+complex software bugs, code coverage measurement, and performance analysis.
+The ETM instruction trace also supports timestamp information.
+Instruction trace is also available on the Cortex-M0þ processor as an optional
+component. However, the design is different. The Micro Trace Buffer (MTB) in
+the Cortex-M0þ processor uses a small part of the SRAM in the microcontroller
+as trace buffer, typically operating in circular buffer mode to store information about
+program flow changes. After the program stops, the debugger can then extract the
+trace data from SRAM using the debug connection. Table 14.1 compares the advantages of MTB and ETM instruction trace.
+
+( Table 14.2 Debug and Trace Features on Various Cortex-M Processors )

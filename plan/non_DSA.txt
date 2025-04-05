@@ -1,0 +1,61 @@
+27 - LKP, LSP, Feabhas
+28 - Life long, virtual memory
+29 - RTOS internal, resume preparation, C, bit manipulations, DSA, CFESI, Linkedlist etc.
+30 - CFS, top half bottom half mechanism with workqueue and worker threads, GPU gpt, Linux boot etc. GPT, syscall prototype, IOCTL prototype, char dev API name and flow, Linux module commands, POSIX high level overview, virginia all focusing on TCPIP and Crypto, GPT rev, LPI SPI etc. interrupts, GPT jist, SLOB/SLAB/SLUB allocator implementation, SMMU internals
+31 - memory management, headroom, heavy C revision, Ayush content revision, resume revision
+?1 - heavy DSA like circular queue, locking, linear and non linear DSA
+
+	SMMU internals
+	virginia all focusing on TCPIP and Crypto with networking notes crisp GFG and Expertify
+	resume revision
+
+rickshaw: I2C, UART, SPI protocols etc.
+	now: Ayush content revision DSA
+	now: CFESI, DSA, Linkedlist
+train: Linux linkedlist, bit manipulations
+airport: memory management
+	heavy DSA like circular queue, locking
+airport: non linear DSA
+airport bus: revision like GPT crisp, all other notes and topics specially Linux and self project
+tomorrow: DSA hands on
+tomorrow: WiFi also because Siva Muleti has Cypress WiFi background. Go through WiFi WPA2/3 code example.
+
+https://www.linkedin.com/in/utkarsha-goswami-80622a103?trk=public_profile_browsemap-profile
+https://chatgpt.com/share/67ec0f6f-ca40-8001-a6f5-ab007d12e5d0
+
+	11:30 - 12 : ARP mbedtls
+	12 - 12:30 : CFESI, general DSA revision, Wifi fundamentals, resume revision, mutex etc my crisp note
+12:30 - 1:30 : Linkedlist general recursion normal traversal loop detection and break xor, Linux linkedlist
+1:30 - 2 : Syscall, IOCTL prototype, Linux insmod command list, driver probe and bootup sequence, Ayush notes check once more, one line description of networking terminologies GPT
+2 - 3 travel to office: GPT jist, Linux kernel intr question Udemy, SMMU fundamentals
+3 - 4 : non linear DSA, color formats and framebuffer basics
+4 - 5 : Buffer
+
+Wifi simple configuration protocol,
+scket - bind, listen, accept, send/recv, close
+
+------------
+
+Layerscape guide: https://docs.nxp.com/bundle/GUID-487B2E69-BB19-42CB-AC38-7EF18C0FE3AE/page/GUID-D93F434A-AC29-46DB-9605-FC1834113D7F.html
+DPDK: file:///C:/Users/pranj/Downloads/dpdk-programmers-guide.pdf
+
+------------
+
+• Morning : 1 hour: 6 - 7 : Plan content revision
+• Morning : 1 hour: 7 - 8 : Linear DSA leetcode 
+• Evening : 3 hour: 7 - 10: Non-linear DSA
+• Read Non-linear DSA / Forbes / HBR if get time in between for improving english or to revise
+
+• Saturday: 1 hour: Networking : theory -> Add difference between AP and host etc.
+• Sunday  : 1 hour: Networking : coding from Mtb example and shreyat repo
+
+• In rest of time, improvise SMMU and other notes and make as much as crisp possible
+
+------------
+
+- Remains UEFI, multimedia, graphics, SMMU, hypervisor etc.
+- Multimedia graphics can be on fate can't be done by myself if it is in my fate then can happen like Siva Mulleti
+- UEFI is not possible because I didn't get opportunity, so on fate
+- SMMU hypervisor is also on fate
+
+Basic networking and DSA is in hand so complete it and leave everything else on fate

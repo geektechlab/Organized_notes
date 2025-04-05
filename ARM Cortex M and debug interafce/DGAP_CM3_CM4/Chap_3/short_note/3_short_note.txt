@@ -1,0 +1,180 @@
+    All the ARM Cortex-M processors are 32-bit RISC (Reduced Instruction Set
+    Computing) processors. They have:
+    • 32-bit registers
+    • 32-bit internal data path
+    • 32-bit bus interface
+    In addition to 32-bit data, the Cortex-M processors (as well as any other ARM
+    processors) can also handle 8-bit, and 16-bit data efficiently.The Cortex-M3 and
+    M4 processors also support a number of operations involving 64-bit data
+
+    The Cortex-M3 and Cortex-M4 processors both have a three-stage pipeline
+    design (instruction fetch, decode, and execution), and both have a Harvard
+    bus architecture, which allows simultaneous instruction fetches and data accesses
+
+    The memory system of the ARM Cortex-M processors uses 32-bit addressing,
+    which allows a maximum 4GB address space. The memory map is unified, which
+    means that although there can be multiple bus interfaces, there is only one 4GB
+    memory space. The memory space is used by the program code, data, peripherals,
+    and some of the debug support components inside the processors.
+
+    Cortex-M processors are based on a
+    load-store architecture. This means data needs to be loaded from the memory, processed,
+    and then written back to memory using a number of separate instructions.
+    For example, to increment a data value stored in SRAM, the processor needs to
+    use one instruction to read the data from SRAM and put it in a register inside the
+    processor, a second instruction to increment the value of the register, and then a third
+    instruction to write the value back to memory.
+
+    With the introduction of Thumb-2 technology, the Thumb instruction set has
+    been extended to support both 16-bit and 32-bit instruction encoding. It is now
+    possible to handle all processing requirements without switching between the
+    two different operation states. In fact, the Cortex-M processors do not support
+    32-bit ARM instructions at all (Figure 3.2). Even interrupt processing is handled
+    entirely in Thumb state, whereas in classic ARM processors interrupt handlers
+    are entered in ARM state. With Thumb-2 technology, the Cortex-M processor has a
+    number of advantages over classic ARM processors, such as:
+    •  No state switching overhead, saving both execution time and instruction space.
+    • No need to specify ARM state or Thumb state in source files, making software
+    development easier.
+    • It is easier to get the best code density, efficiency, and performance at the same
+    time.
+    • With Thumb-2 technology, the Thumb instruction set has been extended by a
+    wide margin when compared to a classic processor like the ARM7TDMI. Note
+    that although all of the Cortex-M processors support Thumb-2 technology, they
+    implement various subsets of the Thumb ISA.
+
+    There are also additional advantages:
+    • Thumb-2 technology allows 16-bit instructions and 32-bit instructions to work
+    together without any state switching overhead. Most simple operations can be
+    carried out with a 16-bit instruction.
+    • Support for hardware divide instructions and Multiply-and-Accumulate (MAC)
+    instructions exist in both Cortex-M3 and Cortex-M4
+    • Instructions for bit field processing in Cortex-M3/M4
+    • Single Instruction, multiple data (SIMD) instruction support exists in Cortex-M4
+
+    Besides lower system cost, high code density also reduces power consumption,
+    because you can use a device with less flash memory. You can also copy some parts
+    of the program code (e.g., interrupt handlers) into SRAM for high speed execution
+    without worrying that this will take up too much SRAM space.
+
+    Check Block diagram of the Cortex-M3 and Cortex-M4 processor ( FIGURE 3.3 )
+
+    • I-CODE Primarily for program memory: Instruction fetch and vector fetch for
+    address 0x0 to 0x1FFFFFFF. Based on AMBA 3.0 AHB Lite bus
+    protocol.
+    • D-CODE Primarily for program memory: Data and debugger accesses for
+    address 0x0 to 0x1FFFFFFF. Based on AMBA 3.0 AHB Lite bus
+    protocol.
+    • System Primarily for RAM and peripherals: Any accesses from address
+    0x20000000 to 0xFFFFFFFF (apart from PPB regions). Based on
+    AMBA 3.0 AHB Lite bus protocol.
+    • PPB External Private Peripheral Bus (PPB): For private debug components
+    on system level from address 0xE0040000 to 0xE00FFFFF. Based on
+    AMBA 3.0 APB protocol.
+    • DAP Debug Access Port (DAP) interface: For debugger accesses generated
+    from the debug interface module to any memory locations including
+    system memory and debug components. Based on the ARM
+    CoreSight debug architecture.
+
+    The bus interfaces on the Cortex-M processors are 32-bit, and based on
+    the Advanced Microcontroller Bus Architecture (AMBA) standard. The main bus interface protocol used
+    by the Cortex-M3 and M4 processors is the AHB Lite (Advanced High-performance Bus),
+    which is used in program memory and system bus interfaces. Another bus protocol used is
+    the Advanced Peripheral Bus (APB) interface, commonly used in the peripheral systems of ARM-based
+    microcontrollers. In addition, the APB protocol is used inside the Cortex-M3 and Cortex-M4
+    processor for debug support. Multiple bus interfaces allow simultaneous instruction
+    and data accesses to be performed.
+
+    The Cortex-M3 and Cortex-M4 processors include an interrupt controller called
+    the Nested Vectored Interrupt Controller (NVIC). It is programmable and its
+    registers are memory mapped. By default the vector table is located at the beginning of the memory space (address 0x0),
+    but the vector table offset can be changed at runtime if needed.The NVIC provides a number of features:
+    • Supports up to 240 interrupt inputs, a Non-Maskable Interrupt (NMI) input, and a
+    number of system exceptions. Each interrupt (apart from the NMI) can be
+    individually enabled or disabled.
+    • Programmable priority levels for interrupts and a number of system exceptions.
+    In Cortex-M3 and Cortex-M4, the priority levels can be changed dynamically
+    at run time (note: dynamic changing of priority level is not supported in the
+    Cortex-M0/M0þ).
+    • Automatic handling of interrupt/exception prioritization and nested interrupt/
+    exception handling.
+    • Vectored interrupt/exception. This means the processor automatically fetches
+    interrupt/exception vectors without the need for software to determine
+    which interrupt/exception needs to be served.
+    • Vector table can be relocated to various areas in the memory.
+    • Low interrupt latency. With zero wait state memory system, the interrupt latency
+    is only 12 cycles.
+    • Interrupts and a number of exceptions can be triggered by software.
+    • Various optimizations to reduce interrupt processing overhead when switching
+    between different exception contexts.
+    • Interrupt/exception masking facilities allow all interrupts and exceptions (apart
+    from the NMI) to be masked, or to mask interrupt/exceptions below a certain
+    priority level.
+
+    Support of little endian or big endian memory systems. The Cortex-M3/M4
+    processors can operate in both little endian or big endian mode. However, almost
+    all microcontrollers will be designed for either little endian or big endian, but not
+    both. The majority of the Cortex-M microcontroller products use little endian.
+
+    In common scenarios, an OS can set up the MPU to protect
+    data used by the OS kernel and other privileged tasks, preventing untrusted user programs from corrupting them.
+    Optionally, the OS can also isolate memory regions between different user tasks. These measures allow
+    better detection of system failures and allow systems to be more robust in handling error conditions.
+    The MPU can also be used to make memory regions read-only, to prevent accidental erasure of data in SRAM
+    or overwriting of instruction code. By default the MPU is disabled and applications that do not
+    require a memory protection feature do not have to initialize it.
+
+    The Cortex-M3 and Cortex-M4 processors are designed to support embedded OSs
+    efficiently. They have a built-in system tick timer called SysTick, which can be set
+    up to generate regular timer interrupts for OS timekeeping.
+
+    The Cortex-M3 and Cortex-M4 processors also have banked stacked pointers:
+    for OS kernel and interrupts, the Main Stack Pointer (MSP) is used; for application
+    tasks, the Process Stack Pointer (PSP) is used. In this way, the stack used by the OS
+    kernel can be separated from that use by application tasks, enabling better reliability
+    as well as allowing optimum stack space usage. For simple applications without an
+    OS, the MSP can be used all the time.
+
+    To improve system reliability further, the Cortex-M3 and Cortex-M4 processors
+    support the separation of privileged and non-privileged operation modes. By default,
+    the processors start in privileged mode. When an OS is used and user tasks are
+    executed, the execution of user tasks can be carried out in non-privileged operation
+    mode so that certain restrictions can be enforced, such as blocking access to some
+    NVIC registers. The separation of privileged and non-privileged operation modes
+    can also be used with the MPU to prevent non-privileged tasks from accessing
+    certain memory regions. In this way a user task cannot corrupt data used by the
+    OS kernel or other tasks, thus enhancing the system’s stability. Most simple applications
+    do not require the use of non-privileged mode at all. But when building an embedded system
+    that requires high reliability, the separation of privileged and non-privileged tasks may
+    allow the system to continue operation even if a non-privileged task has failed.
+
+    Cortex-M3 and Cortex-M4 processors support up to eight hardware comparators for breakpoints
+    (six for instruction addresses, two for literal data addresses) in the Flash Patch and BreakPoint Unit (FPB).
+    When triggered, the processor can be halted or the transfers can be remapped to a SRAM location. The remapping
+    feature allows a read-only program memory location to be modified. For example, to patch the program
+    in a masked ROM with a small programmable memory. This enables bugs to be rectified or enhancements
+    made even when the main code is in masked ROM.
+
+    The Cortex-M3 and Cortex-M4 processors also have up to four hardware data
+    watchpoint comparators in the Data Watchpoint and Trace (DWT) unit. These can
+    be used to generate watchpoint events to halt the processor when selected data is
+    accessed, or to generate trace information that can be collected by the trace interface
+    without stopping the processor. The data value and additional information can then
+    be presented by the debugger in an Integrated Development Environment (IDE) to
+    visualize the change of data values over time. The DWT can also be used to generate
+    exception event traces and basic profiling information, which is again output through
+    the trace interface.
+
+    The Cortex-M3 and Cortex-M4 processors also have an optional Embedded
+    Trace Macrocell (ETM) module that can be used to generate instruction traces.
+    This allows full visibility of the program flow during execution, which is very useful
+    for debugging complex software issues and also can be used for detailed profiling
+    and code coverage analysis.
+
+    Debugging the Cortex-M3 and Cortex-M4 processors can be handled by a JTAG
+    connection, or a two-wire interface called a Serial-Wire Debug (SWD) interface.
+    Both JTAG and SWD protocols are widely supported by many development tool vendors.
+    Trace information can be collected using a single wire Serial-Wire Viewer
+    (SWV) interface, or a trace port interface (typically 5-pin) if high-trace bandwidth
+    is required (e.g., when instruction trace is used). The debug and trace interfaces
+    can be combined into a single connector.

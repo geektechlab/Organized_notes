@@ -1,0 +1,44 @@
+refer ( TABLE 5.1 Instruction set features in Cortex-M processors ) to check what is new in CM33.
+
+Trustzone and C11 atomic instructions are new.
+
+General I/O processing: all Cortex-M processors are well capable of handling this. But for applications that need low power, using the Cortex-M0+ or Cortex-M23 processors has the  additional advantage of being small (lower power and a lower silicon area cost). At the same  time, these two processors have the single cycle I/O interface which enables fast and efficient I/O access operations.
+
+Please note, some instructions are available in multiple encoding forms. For example, most of the 16-bit Thumb instructions can also be encoded in a 32-bit equivalent instruction. However, the 32-bit version of the aforementioned instruction has additional bit fields for additional control such as:
+• selecting whether flags should be updated,
+• wider immediate data/offset, or
+• enabling access to the high registers (r8–r12).
+
+These control capabilities are not possible for some of the 16-bit instructions due to the limitation of the instruction encoding space. If an operation can be carried out in either a 16- or 32-bit version of the same instruction, the C compiler can choose:
+• a 16-bit version of the instruction for a smaller code size, or
+• in some cases, use a 32-bit version of the instruction to align the position of a subsequent 32-bit branch target instruction to align it to a 32-bit boundary (this improves performance as the 32-bit instruction can then be fetched with a single bus transfer). 32-bit Thumb-2 instructions can be half word aligned. For example, you can have a 32-bit instruction located in a half word location (unaligned, Fig. 5.1):
+	0x1000 : LDR r0,[r1] ;a 16-bit instructions (occupy 0x1000-0x1001)
+	0x1002 : RBIT.W r0 ;a 32-bit Thumb-2 instruction (occupy 0x1002-0x1005)
+
+( IMP: TABLE 5.12 Special registers accessible with MRS and MSR instructions. )
+
+( IMP: TABLE 5.14 Instructions for transferring data to/from floating point registers )
+
+Usually, APIs provided by an OS execute at privileged level, e.g., when the APIs are accessed via SuperVisor Call (SVC). Since an API might perform memory access on behalf of the unprivileged task that called the API, the API must take care that it is not performing operations on an address space that the unprivileged task is not supposed to have access to. Otherwise, a malicious task could call an OS API to modify an address which is owned by the OS, or by other tasks in the system, resulting in security vulnerabilities.
+
+To solve this problem, traditionally many Arm processors provided memory access instructions that allowed privileged software to access memories at unprivileged level. These instructions are also supported in Armv8-M Mainline (the Cortex-M33 processor). By using these aforementioned instructions, the access permission is restricted by the Memory Protection Unit (MPU). This means that the OS APIs accessing data on behalf of an unprivileged software task have the same permission as the unprivileged software task.
+
+Please note, Armv8-M provides an alternative way for privileged APIs to check whether the pointers from an unprivileged task are permitted to be accessed under the current MPU configuration. The TT (Test Target) instruction, together with the new C intrinsic functions defined in the Arm C Language Extension (ACLE), provides an easier way to handle the pointer check. There is, accordingly, no need to use hand coded assembly APIs to utilize unprivileged memory access instructions.
+
+Load-acquire and store-release instructions are memory access instructions with memory ordering requirements. These instructions are new in the Cortex-M processor family and are designed to help handle data access across multiprocessor systems. This includes the handling of atomic variables, a feature introduced in the C11 standard. In high performance processors, the processor hardware can re-order memory access to increase performance. This optimization does not cause problems to the software providing that:
+(a) the processor keeps track of the access ordering and
+(b) ensures that the operation results are not affected.
+
+Memory access re-ordering techniques include the following:
+• In the case of reading data, a processor can, optionally, perform the read operation earlier to prevent the subsequent data processing operations that use the data from being stalled. In a high-performance processor with a long pipeline, the read operation can potentially, as long as the memory location is not a peripheral, speculatively start earlier in the pipeline. The speculative read does not violate security management, such as memory partitioning of the TrustZone security extension.
+• In the case of data write, a processor might implement a write buffer with multiple buffer entries. In such a case, a write operation might be delayed and stay in the write buffer for a period of time, resulting in subsequent write operations, potentially, reaching the  memory before it.
+
+In single processor systems, such memory access re-ordering is perfectly fine. But, when the system contains two or more processors and there are interactions between the software running on those processors, there could be issues when reordering takes place. By way of an example, I show in Fig. 5.4 an operation sequence where such an issue can occur: When memory access reordering takes place, processor B will, potentially, take data from memory location X that has not been updated, as shown in Fig. 5.5. Such issue’s do not happen in asingle core system because the processor’s bus interface detects and resolves the potential access conflicts by forwarding the write data in the write buffer to the speculative read access in location X. In previous Arm processors, there are memory accessing ordering requirements for devices (i.e., peripheral address ranges). But, the memory access ordering behavior for normal memories (e.g., SRAM) is not strictly required and could lead to the problem shown in Fig. 5.5. To solve this issue, memory barrier instructions (see Section 5.19) should be added to ensure the ordering of memory access observed by other bus masters in the system matches the program’s intended behaviors (Fig. 5.6). In high performance processors, however, the use of those memory barrier instructions can take many clock cycles, which can impact performance, e.g., all data in the write buffers must be drained and if any of the subsequent reads have started early these must be discarded and re-issued.
+
+To reduce the performance impact, newer Arm processors (from Armv8-M onwards) introduced store release and load acquire instructions (Fig. 5.7).
+• Store-release—memory store operations that need to wait until previously issued write operations are complete before they are issued tothe bus. In this situation, when other bus masters observe the update of flag variable Y (updated by a store release instruction), the update on data block X must have been completed. 
+• Load-acquire—memory load operations that prevent subsequent read accesses to be issued in advance until the load acquire operation has been completed. Preceding buffered writes do not have to be drained and thus avoid causing a long delay.
+
+In Armv8-M architecture, the load acquire and store release instructions are available for data sizes of word, halfword, byte (Table 5.39). Exclusive access variants of load acquire and store release instructions are shown in Table 5.38.
+
+In the Cortex-M23 and Cortex-M33 processors, because the pipelines are relatively simple and are without memory access re-ordering, the load-acquire and store-release instructions execute just like normal memory access instructions. The inclusion of these instructions helps to achieve better architecture alignment between the different classes of processors (small and low power Cortex-M as well as the high-performance Cortex-A processors). It is possible to design a Cortex-M processor product to have a superscalar pipeline, similar to  that in the Cortex-M7 processor, and the inclusion of these instructions in the architecture enables such designs to be more efficient.  This is important for the Cortex-M processor family as this product range has a very long product life cycle.

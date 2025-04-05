@@ -1,0 +1,21 @@
+The Cortex-M3 and Cortex-M4 processors support an optional feature called the Memory Protection Unit (MPU). Some of the Cortex-M3 and Cortex-M4 microcontrollers have this feature, and some do not. The MPU is a programmable device that can be used to define memory access permissions (e.g., privileged access only or full access) and memory attributes (e.g., bufferable, cacheable) for different memory regions. The MPU on CortexM3 and Cortex-M4 processors can support up to eight programmable memory regions, each with their own programmable starting addresses, sizes, and settings. It also supports a background region feature.
+
+The MPU can be used to make an embedded system more robust, and in some cases it can make the system more secure by:
+• Preventing application tasks from corrupting stack or data memory used by other tasks and the OS kernel
+• Preventing unprivileged tasks from accessing certain peripherals that can be critical to the reliability or security of the system
+• Defining SRAM or RAM space as non-executable (eXecute Never, XN) to prevent code injection attacks
+
+You can also use the MPU to define other memory attributes such as cacheability, which can be exported to the system-level cache unit or memory controllers. If a memory access violates the access permissions defined by the MPU, or accesses a memory location that is not defined in the programmed MPU regions, the transfer would be blocked and a fault exception would be triggered. The fault exception handler triggered could either be the MemManage (Memory Management) fault or the HardFault exception, depending on whether the MemManage fault is enabled, and the current priority levels. The exception handler can then decide if the system should be reset or just terminate the offending task in an OS environment. The MPU needs to be programmed and enabled before use. If the MPU is not enabled, the processor no MPU is present. MPU regions can be overlapped. If a memory location falls in two programmed MPU regions, the memory access attributes and permission will be based on the highest-numbered region. For example, if a transfer address is within the address range defined for region 1 and region 4, the region 4 settings will be used.
+
+In systems without an embedded OS, the MPU can be programmed to have a static configuration. The configuration can be used for functions like:
+• Setting a RAM/SRAM region to be read-only to protect important data from accidental corruption
+• Making a portion of RAM/SRAM space at the bottom of the stack inaccessible to detect stack overflow
+• Setting a RAM/SRAM region to be XN to prevent code injection attacks
+• Defining memory attribute settings that can be used by system level cache (level 2) or the memory controllers
+
+In systems with an embedded OS, the MPU can be programmed at each context switch so that each application task can have a different MPU configuration. In this way, you can:
+• Define memory access permissions so that stack operations of an application task can only access their own allocated stack space, thus preventing stack corruptions of other stacks in the case of a stack leak
+• Define memory access permissions so that an application task can only have access to a limited set of peripherals
+• Define memory access permissions so that an application task can only access its own data, or access its own program data (these are much trickier to set up because in most cases the OS and the program code are compiled together, so the data could be mixed together in the memory map).
+
+Systems with an embedded OS can also use a static configuration if preferred.

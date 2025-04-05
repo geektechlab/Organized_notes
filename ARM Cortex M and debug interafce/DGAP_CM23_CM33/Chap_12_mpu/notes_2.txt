@@ -1,0 +1,69 @@
+The MPU registers (Table 12.1) are memory mapped and are placed in the System Control
+Space (SCS). In Armv8-M architecture, the access to the MPU registers should always be
+32-bit in size.
+
+When TrustZone is implemented:
+• If the processor is running Non-secure privileged software, software can access the Nonsecure MPU registers via address 0xE000ED90 to 0xE000EDC4.
+• If the processor is running Secure privileged software, software can access the Secure MPU
+registers via address 0xE000ED90 to 0xE000EDC4.
+• If the processor is running Secure privileged software, software can access the Non-secure
+MPU registers via address 0xE002ED90 to 0xE002EDC4 (i.e., Non-secure MPU alias
+address).
+
+( read and compare 12.2 MPU registers )
+
+( read and compare 12.3 Configuration of MPU )
+
+If TrustZone is not implemented in an Armv8-M processor, there can be only one MPU in
+the processor. If TrustZone is implemented, then the processor can have up to two MPUs.
+These are:
+• The Secure MPU (MPU_S), which monitors the operations of the Secure software
+(including access to the Non-secure memories).
+• The Non-secure MPU (MPU_NS), which monitors the operations of the Non-secure
+software.
+Each of the MPU’s can have a different number of MPU regions and can operate independently of each other. One could, for example, be enabled and the other not. In a typical
+TrustZone enabled environment:
+• The Non-secure MPU can be used to handle process isolation for unprivileged
+applications.
+• The Secure MPU can be used to handle process isolation for unprivileged Secure libraries.
+A concept of how the MPUs could be used is shown in Fig. 12.12.
+
+In such an environment, if a Secure MPU is used, the Secure MPU configuration would be
+based on which Secure APIs are being called from the Non-secure world. When there is a
+context switch in the Non-secure world, the Secure MPU configuration will also need to
+be switched. This requirement is supported by the OS helper APIs as described in
+Section 11.8.
+Two approaches can be used to ensure that the Secure MPU is configured to the right secure library context:
+• Before an application in the Non-secure world starts to call a library function in the Secure
+world, it calls a function in the secure firmware to request access to the library so that the
+Secure Partition Manager can setup the Secure MPU for this context. If the Non-secure
+software needs to call another function in another Secure library, it needs to call a Secure
+function to request the context switch of the Secure MPU.
+• For Armv8-M Mainline, instead of calling a Secure function in the Secure world to
+request access to a Secure library, it is possible to call the library directly. The Secure
+MemManage fault handler detects the need to context switch the Secure MPU and
+deals with that accordingly. The call to the Secure APIs can then resume. This method
+is not suitable for Armv8-M Baseline (i.e., the Cortex-M23 processor) due to the lack of
+the Secure MemManage fault and the lack of fault status registers in the Baseline
+subprofile.
+
+The Secure Partition Manager keeps track of which Secure library is being used in each
+Non-secure thread so that the Secure MPU is updated accordingly in each context switch.
+When using the MPU setup shown in Fig. 12.12, the MPU regions for the Secure and Nonsecure MPU are different. In order to allow a Secure API to provide services to a Non-secure
+application, the Secure software needs to setup the Secure MPU so that it can access Nonsecure application data and carry out operations on behalf of the Non-secure application.
+For example, when an application calls a Secure API to process its data, it needs to pass a
+pointer to the Secure API, as shown in Fig. 12.13.
+
+If in the example shown in Fig. 12.13 the Secure library is executing in an unprivileged
+state, then it is unable to update the Secure MPU settings by itself. Instead, the Secure library
+passes the pointer to and requests the Secure Partition Manager for permission to access the
+data. Since the Secure Partition Manager is aware that library 1 is called from application 1, it
+can decide if the requested access permission should be granted by checking the access permission of application 1. This permission check is carried out by checking the Non-secure
+MPU configuration (using the TT instruction) as follows:
+• If application 1 has access permission to the address pointed to by the pointer, then the
+Secure Partition Manager grants Secure Library 1 access to the data referenced to by that
+pointer.
+• If application 1 does not have access permission to the address pointed to by the pointer,
+the request is rejected and the Secure API returns an error status to application 1.
+With this setup, a Non-secure application cannot use Secure APIs to bypass the security
+measures in the Non-secure OS (i.e., the process isolation) to attack the privileged software.

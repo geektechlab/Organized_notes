@@ -1,0 +1,36 @@
+In C programming, you can define data as floating point values. For example, a value can be declared as single precision:
+	float pi = 3.141592F;
+or double precision:
+	double pi = 3.1415926535897932384626433832795;
+Floating point data allows the processor to handle a much wider data range (compared to integers or fixed point data) as well as very small values. There is also a half-precision floating point data format, which is 16-bit. The half-precision floating point format is not supported by some C compilers. In gcc or the ARM C compiler, you can declare data as half precision using the __fp16 data type.
+
+( Very important: The single-precision data format is shown in Figure 13.1. In normal cases, the exponent is in the range of 1 to 254, and the value of the single-precision value would be represented by the equation in Figure 13.2. FIGURE 13.3 Denormalized number insingle-precision format )
+
+To convert a value to single-precision floating point, we need to normalize it to the range between 1.0 and 2.0, as shown in Table 13.1.
+If the exponent value is 0, then there are several possibilities:
+• If Fraction is equal to 0 and Sign bit is also 0, then it is a zero (þ0) value.
+• If Fraction is equal to 0 and Sign bit is 1, then it is a zero (0) value. Usually þ0 and 0 have the same behavior in operations. In a few cases, for example, when a divide-by-zero happened, the sign of the infinity result would depend on whether the divider is þ0 or 0.
+• If Fraction is not 0, then it is a denormalized value. It is a very small value between (2^(126)) and (2^(126)).
+A denormalized value can be represented by the equation in Figure 13.3. If the exponent value is 0xFF, there are also several possibilities:
+• If Fraction is equal to 0 and Sign bit is also 0, then it is an infinity (þN) value.
+• If Fraction is equal to 0 and Sign bit is 1, then it is a minus infinity (N) value.
+• If Fraction is not 0, then it is a special code to indicate that the floating point value is invalid, more commonly known as NaN (Not aNumber). There are two types of NaN:
+• If bit 22 of the Fraction is 0, it is a signaling NaN. The rest of the bit in the Fraction can be any value apart from all 0.
+• If bit 22 of the Fraction is 1, it is a quiet NaN. The rest of the bit in the Fraction can be any value.
+The two types of NaN can result in different floating exception behaviors in couple of floating point instructions (e.g., VCMP, VCMPE). In some floating point operations, if the result is invalid it will return a “Default NaN” value. This has the value of 0x7FC00000 (Sign ¼ 0, Exponent ¼ 0xFF, bit 22 of Fraction is 1 and the rest of the Fraction bits are 0).
+
+Half-precision floating point numbers
+	In many ways the half-precision floating point format is similar to single precision, but using fewer bits for the Exponent and Fraction field, as shown in Figure 13.4. When 0 < Exponent < 0x1F, the value is a normalized value, and the value of the half-precision value wouldbe represented by the equation in Figure 13.5:
+	If the exponent value is 0, then there are several possibilities:
+	• If Fraction is equal to 0 and Sign bit is also 0, then it is a zero (þ0) value.
+	• If Fraction is equal to 0 and Sign bit is 1, then it is a zero (0) value. Usually þ0 and 0 behave in the same way in operations. In a few cases, for example, when a divide-by-zero happens, the sign of the infinity result would be dependent on whether the divider is þ0 or 0.
+	• If Fraction is not 0, then it is a denormalized value. It is a very small value between (2^(14)) and (2^(14)). A denormalized value can be represented by the equation in Figure 13.6. If the exponent value is 0x1F, the situation is a bit more complex. The floating point feature in ARMv7-M supports two operation modes for half-precision data:
+	• IEEE half precision
+	Alternate half precision. This does not support Infinity or NaN, but can have a larger number range and can have higher performance in some cases. However, if the application must be IEEE 754 compliant, this operation mode should not be used.
+	In IEEE half-precision mode, when the exponent value equals 0x1F:
+	• If Fraction is equal to 0 and Sign bit is also 0, then it is an infinity (þN) value.
+	• If Fraction is equal to 0 and Sign bit is 1, then it is a minus infinity (N) value.
+	• If Fraction is not 0, then it is a special code to indicate that the floating point value is invalid, more commonly known as NaN (Not a Number). Similar to single precision, a NaN can be signaling or quiet:
+	• If bit 9 of the Fraction is 0, it is a signaling NaN. The rest of the bit in the Fraction can be any value apart from all 0.
+	• If bit 9 of the Fraction is 1, it is a quiet NaN. The rest of the bit in the Fraction can be any value.
+	In some floating point operations, if the result is invalid it will return a “Default NaN” value. This has the value of 0x7E00 (Sign ¼ 0, Exponent ¼ 0x1F, bit 9 of Fraction is 1, and the rest of the Fraction bits are 0). In Alternate Half precision mode, when the exponent value equals 0x1F, the value is a normalized number and can be represented by the equation shown in Figure 13.7.

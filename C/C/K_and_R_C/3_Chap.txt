@@ -1,0 +1,55 @@
+The switch statement is a multi-way decision that tests whether an expression matches one of 
+a number of constant integer values, and branches accordingly. 
+ switch (expression) { 
+ case const-expr: statements
+ case const-expr: statements
+ default: statements
+ } 
+
+Each case is labeled by one or more integer-valued constants or constant expressions. If a case 
+matches the expression value, execution starts at that case. All case expressions must be 
+different. The case labeled default is executed if none of the other cases are satisfied. A 
+default is optional; if it isn't there and if none of the cases match, no action at all takes place. 
+Cases and the default clause can occur in any order.
+
+The break statement causes an immediate exit from the switch. Because cases serve just as 
+labels, after the code for one case is done, execution falls through to the next unless you take 
+explicit action to escape. break and return are the most common ways to leave a switch. A 
+break statement can also be used to force an immediate exit from while, for, and do loops
+
+The for statement 
+ for (expr1; expr2; expr3) 
+ statement
+is equivalent to 
+ expr1; 
+ while (expr2) { 
+ statement
+ expr3; 
+ } 
+
+It is sometimes convenient to be able to exit from a loop other than by testing at the top or 
+bottom. The break statement provides an early exit from for, while, and do, just as from 
+switch.
+
+IMP: A break causes the innermost enclosing loop or switch to be exited immediately.
+
+The continue statement is related to break, but less often used; it causes the next iteration of 
+the enclosing for, while, or do loop to begin. In the while and do, this means that the test 
+part is executed immediately; in the for, control passes to the increment step. The continue
+statement applies only to loops, not to switch. A continue inside a switch inside a loop 
+causes the next loop iteration.
+
+for ( ... ) 
+ for ( ... ) { 
+ ... 
+ if (disaster) 
+ goto error; 
+ } 
+ ... 
+ error: 
+ /* clean up the mess */ 
+This organization is handy if the error-handling code is non-trivial, and if errors can occur in 
+several places. 
+A label has the same form as a variable name, and is followed by a colon. It can be attached to 
+any statement in the same function as the goto. The scope of a label is the entire function.
+

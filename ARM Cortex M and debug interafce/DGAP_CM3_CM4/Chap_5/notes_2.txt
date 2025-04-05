@@ -1,0 +1,81 @@
+Assembly tools from different vendors (e.g., the GNU toolchain) have different syntaxes. In most cases, the mnemonics of the assembly instructions are the same, but assembly directives, definitions, labeling, and comment syntax can be different.
+
+With ARM assembly the following instruction formatting is used:
+	label
+	mnemonic operand1, operand2, . ; Comment
+
+The “label” is used as a reference to an address location. It is optional; some instructions might have a label in front of them so that the address of the instruction can be obtained by using the label. Labels can also be used to reference data addresses. For example, you can put a label for a lookup table inside the program. After the “label” you can find the “mnemonic,” which is the name of the instruction, followed by a number of operands:
+• For data processing instructions written for the ARM assembler, the first operand is the destination of the operation.
+• For a memory read instruction (except multiple load instructions), the first operand is the register which data is loaded into.
+• For a memory write instruction (except multiple store instructions), the firstoperand is the register that holds the data to be written to memory. Instructions that handle multiple loads and stores have a different syntax.The number of operands for each instruction depends on the instruction type. Some instructions do not need any operand and some might need just one.
+
+Note that some mnemonics can be used with different types of operands, and this can result in different instruction encodings. For example, the MOV (move) instruction can be used to transfer data between two registers, or it can be used to put an immediate constant value into a register.
+
+The number of operands in an instruction depends on what type of instruction it is, and the syntax for the operands can also be different in each case. For example, immediate data are usually prefixed with “#”:
+	MOVS R0, #0x12 ; Set R0 = 0x12 (hexadecimal)
+	MOVS R1, #’A’ ; Set R1 = ASCII character A
+
+The text after each semicolon “;” is a comment. Comments do not affect program operation, but should make programs easier for humans to understand. In the GNU toolchain, the common assembly syntax is:
+	label:
+	mnemonic operand1, operand2,. /* Comments */
+
+The opcode and operands are the same as the ARM assembler syntax, but the syntax for labels and comments are different. For the same instructions as above, the GNU version is:
+	MOVS R0, #0x12 /* Set R0 = 0x12 (hexadecimal) */
+	MOVS R1, #’A’ /* Set R1 = ASCII character A */
+
+An alternate way to insert comments in gcc is to make use of the inline comment character “@.” For example:
+	MOVS R0, #0x12 @ Set R0 = 0x12 (hexadecimal)
+	MOVS R1, #’A’ @ Set R1 = ASCII character A
+
+By using constant definitions, the program code can be made more readable and this can make code maintenance much easier. In ARM assembly, an example of defining a constant is:
+	NVIC_IRQ_SETEN EQU 0xE 000E100
+	NVIC_IRQ0_ENABLE EQU 0x1
+
+	LDR R0,=NVIC_IRQ_SETEN ; Put 0xE000E100 into R0 LDR here is a pseudo instruction that will be converted to a PC relative literal data load by the assembler
+	MOVS R1, #NVIC_IRQ0_ENABLE ; Put immediate data (0x1) into register R1
+	STR R1, [R0] ; Store 0x1 to 0xE000E100, this enable external interrupt IRQ#0
+
+The address value of an NVIC register is loaded into register R0 using the pseudo instruction LDR. The assembler will place the constant value into a location in the program code, and insert a memory read instruction to read the value into R0. The use of a pseudo instruction is needed because the value is too large to be encoded in a single move immediate instruction. When using LDR pseudo instructions to load a value into a register, the value requires an “¼” prefix. In the normal case of loading an immediate data into a register (e.g., with MOV), the value should be prefixed by “#.”
+
+Similarly, the same code can be written in GNU toolchain assembler syntax:
+	.equ NVIC_IRQ_SETEN, 0xE000E100
+	.equ NVIC_IRQ0_ENABLE, 0x1
+
+	LDR R0,=NVIC_IRQ_SETEN /* Put 0xE000E100 into R0 LDR here is a pseudo instruction that will be converted to a PC relative load by the assembler */
+	MOVS R1, #NVIC_IRQ0_ENABLE /* Put immediate data (0x1) into register R1 */
+	STR R1, [R0] /* Store 0x1 to 0xE000E100, this enable external interrupt IRQ#0 */
+
+Another typical feature of most assembly tools is allowing data to be inserted inside the program. For example, we can define data in a certain location in the program memory and access it with memory read instructions. In ARM assembler, an example is:
+	LDR R3,=MY_NUMBER ; Get the memory location of MY_NUMBER
+	LDR R4, [R3] ; Read the value 0x12345678 into R4
+
+	LDR R0,=HELLO_TEXT ; Get the starting address of HELLO_TEXT
+	BL PrintText ; Call a function called PrintText to display string
+
+	ALIGN 4
+	MY_NUMBER DCD 0x12345678
+	HELLO_TEXT DCB “Hello\n”, 0 ; Null terminated string
+
+In the above example, “DCD” is used to insert a word-sized data item, and “DCB” is used to insert byte-size data into the program. When inserting wordsize data in program, we should use the “ALIGN” directive before the data. The number after the ALIGN directive determines the alignment size. In this case, the value 4 forces the following data to be aligned to a word boundary. By ensuring the data placed at MY_NUMBER is word aligned, the program will be able to access the data with just a single bus transfer, and the code can be more portable (unaligned accesses are not supported in the Cortex-M0/M0+/M1 processors).
+
+Again, this example can be rewritten in GNU toolchain assembler syntax:
+	LDR R3,=MY_NUMBER /* Get the memory location of MY_NUMBER */
+	LDR R4, [R3] /* Read the value 0x12345678 into R4 */
+
+	LDR R0,=HELLO_TEXT /* Get the starting address of HELLO_TEXT */
+	BL PrintText /* Call a function called PrintText to display string */
+
+	.align 4
+	MY_NUMBER:
+	.word 0x12345678
+	HELLO_TEXT:
+	.asciz “Hello\n” /* Null terminated string */
+
+A number of different directives are available in both ARM assembler and GNU assembler for inserting data into a program. Table 5.1 gives a few commonly used examples. In most cases, you can also add a label before the directive so that the addresses of the data can be determined using the label. There are a number of other useful directives that are often used in assembly language programming. For example, some of the ARM assembler directives given in Table 5.2. Additional information about directives in ARM assembler can be found in the “ARM Compiler Toolchain Assembler Reference,” (reference 6, section 6.3, Data, Data DefinitionDirectives1 ).
+
+In assembler for ARM processors, some instructions can be followed by suffixes ( Table 5.3 ). For the Cortex-M3/M4 processors, a data processing instruction can optionally update the APSR (flags). If using the Unified Assembly Language (UAL) syntax, we can specify if the APSR update should be carried out or not. For example, when moving a data from one register to another, it is possible to use
+	MOVS R0, R1 ; Move R1 into R0 and update APSR
+Or
+	MOV R0, R1 ; Move R1 into R0, and not update APSR
+
+The second type of suffix is for conditional execution of instructions. The Cortex-M3 and Cortex-M4 processors support conditional branches, as well as conditional execution of instructions by putting the conditional instructions in an IF-THEN (IT) instruction block. By updating the APSR using data operations, or instructions like test (TST) or compare (CMP), the program flow can be controlled based on conditions of operation results.

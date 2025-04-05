@@ -1,2 +1,0 @@
-todo
-Glue based data structure

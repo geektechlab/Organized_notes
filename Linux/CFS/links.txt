@@ -1,3 +1,0 @@
-- https://medium.com/@noman_bajwa/process-scheduling-completely-fair-scheduler-cfs-part-i-f23d1812572e
-- https://svalaks.medium.com/linux-internals-completely-fair-scheduling-cfs-cpu-scheduler-algorithm-7412c08d2e37
-- https://www.geeksforgeeks.org/completely-fair-scheduler-cfs-and-brain-fuck-scheduler-bfs/

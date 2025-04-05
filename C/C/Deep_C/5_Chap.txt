@@ -1,0 +1,139 @@
+The compiler creates an output file containing relocatable objects.
+
+o to pass any option through the compiler driver to the linker, you have to prefix it by "-Wl," to tell 
+the compiler driver that this option is intended for the link editor, not the preprocessor, compiler, 
+assembler, or another compilation phase. The command 
+cc -Wl,-m main.c > main.linker.map 
+will give ld the "-m" option, telling it to produce a linker map.
+
+Dynamically linked modules are link-edited and then loaded and runtime-linked to run them. At 
+execution, before main() is called, the runtime loader brings the shared data objects into the process 
+address space. It doesn't resolve external function calls until the call is actually made, so there's no 
+penalty to linking against a library that you may not call.
+
+Figure 5-2. Static Linking versus Dynamic Linking 
+Even with static linking, the whole of libc. a is not brought into the executable, just the routines 
+needed.
+
+Dynamic linking is the more modern approach, and has the advantage of much smaller executable size. 
+Dynamic linking trades off more efficient use of the disk and a quicker link-edit phase for a small 
+runtime penalty (since some of the linker's work is deferred until loadtime).
+
+A major purpose of dynamic linking is to decouple programs from the particular library 
+versions they use. Instead, we have the convention that the system provides an interface to 
+programs, and that this interface is stable over time and successive OS releases. 
+Programs can call services promised by the interface, and not worry about how they are 
+provided or how the underlying implementation may change. Because this is an interface 
+between application programs and the services provided by library binary executables, we 
+call it an Application Binary Interface or ABI. 
+
+Although an individual executable has a slightly greater start-up cost, dynamic linking helps overall 
+performance in two ways: 
+1. A dynamically linked executable is smaller than its statically linked counterpart. It saves disk 
+and virtual memory, as libraries are only mapped in to the process when needed. Formerly, 
+the only way to avoid binding a library copy into each executable was to put the service in the 
+kernel instead of a library, contributing to the dreaded "kernel bloat." 
+2. All executables dynamically linked to a particular library share a single copy of the library at 
+runtime. The kernel ensures that libraries mapped into memory are shared by all processes 
+using them. This provides better I/O and swap space utilization and is sparing of physical 
+memory, improving overall system throughput. If the executables were statically linked, each 
+would wastefully contain its own complete duplicate copy of the library.
+
+Dynamic linking permits easy versioning of libraries. New libraries can be shipped; once installed on 
+the system, old programs automatically get the benefit of the new versions without needing to be 
+relinked.
+
+Finally (much less common, but still possible), dynamic linking allows users to select at runtime 
+which library to execute against. It's possible to create library versions that are tuned for speed, or for 
+memory efficiency, or that contain extra debugging information, and to allow the user to express a 
+preference when execution takes place by substituting one library file for another.
+
+Dynamic linking is "just-in-time" linking. It does mean that programs need to be able to find their 
+libraries at runtime. The linker accomplishes this by putting library filenames or pathnames into the 
+executable; and this in turn, means that libraries cannot be moved completely arbitrarily. If you linked 
+your program against library /usr/lib/libthread.so, you cannot move the library to a 
+different directory unless you specified it to the linker. Otherwise, the program will fail at runtime 
+when it calls a function in the library, with an error message like:
+ld.so.1: main: fatal: libthread.so: can't open file: errno=2 
+
+This is also an issue when you are executing on a different machine than the one on which you 
+compiled. The execution machine must have all the libraries that you linked with, and must have them 
+in the directories where you told the linker they would be. For the standard system libraries, this isn't a 
+problem.
+
+The main reason for using shared libraries is to get the benefit of the ABI—freeing your software from 
+the need to recompile with each new release of a library or OS. As a side benefit, there are also overall 
+system performance advantages.
+
+Anyone can create a static or dynamic library. You simply compile some code without a main routine, 
+and process the resulting .o files with the correct utility—"ar" for static libraries, or "ld" for dynamic 
+libraries.
+
+The major risk you run with static linking is that future versions of the operating system will 
+be incompatible with the system libraries bound in with your executable. If your application 
+was statically linked on OS version N and you try to run it on version N+1, it may run, or it 
+may fail with a core dump or a less obvious error.
+
+Static libraries are known as archives.
+
+A dynamically linked library is created by the link editor, ld. The conventional file extension for a 
+dynamic library is ".so" meaning "shared object"—every program linked against this library shares the 
+same one copy, in contrast to static linking, in which everyone is (wastefully) given their own copy of 
+the contents of the library. In its simplest form, a dynamic library can be created by using the -G 
+option to cc, like this: 
+	% cat tomato.c 
+	my_lib_function() {printf("library routine called\n"); } 
+	% cc -o libfruit.so -G tomato.c 
+You can then write routines that use this library, and link with it in this manner: 
+	% cat test.c 
+	main() { my_lib_function(); } 
+	% cc test.c -L/home/linden -R/home/linden -lfruit 
+	% a.out 
+library routine called 
+The -L/home/linden -R/home/linden options tell the linker in which directories to look 
+for libraries at linktime and at runtime, respectively. 
+You will probably also want to use the -K pic compiler option to produce position-independent 
+code for your libraries. Position-independent code means that the generated code makes sure that 
+every global data access is done through an extra indirection. This makes it easy to relocate the data 
+simply by changing one value in the table of global offsets. Similarly, every function call is generated 
+as a call through an indirect address in a procedure linkage table. The text can thus easily be relocated 
+to anywhere, simply by fixing up the offset tables. So when the code is mapped in at runtime, the 
+runtime linker can directly put it wherever there is room, and the code itself doesn't have to be 
+changed.
+
+By default, the compilers don't generate PICode as the additional pointer dereference is a fraction 
+slower at runtime. However, if you don't use PICode, the generated code is tied to a fixed address—
+fine for an executable, but slower for a shared library, since every global reference now has to be fixed 
+up at runtime by page modification, in turn making the page unshareable. 
+
+The runtime linker will fix up the page references anyway, but the task is greatly simplified with 
+position-independent code. It is a trade-off whether PICode is slower or faster than letting the runtime 
+linker fix up the code. A rule of thumb is to always use PICode for libraries. Position-independent 
+code is especially useful for shared libraries because each process that uses a shared library will 
+generally map it at a different virtual address (though sharing one physical copy). 
+
+A related term is "pure code." A pure executable is one that contains only code (no static or initialized 
+data). It is "pure" in the sense that it doesn't have to be modified to be executed by any specific 
+process. It references its data off the stack or from another (impure) segment. A pure code segment 
+can be shared. If you are generating PIcode (indicating sharing) you usually want it to be pure, too.
+
+all dynamic libraries have a filename of the form libname .so
+(version numbers may be appended to the name). Thus, the library of thread routines 
+is called libthread .so. A static archive has a filename of the form libname.a.
+
+the compiler is told to link against a library with the command line 
+option -lname where the library is called libname .so—in other words, the 
+"lib" part and the file extension are dropped, and -l is jammed on the beginning 
+instead. 
+
+compiler option -Lpathname is used to tell the linker a list of other directories 
+in which to search for libraries that have been specified with the -l option
+
+With dynamic 
+libraries, all the library symbols go into the virtual address space of the output file, 
+and all the symbols are available to all the other files in the link. In contrast, static 
+linking only looks through the archive for the undefined symbols presently known to 
+the loader at the time the archive is processed.
+
+Use the ldd command to list the dynamic dependencies of an executable. This command 
+will tell you the libraries that a dynamically linked program needs.

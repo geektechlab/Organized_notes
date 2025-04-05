@@ -1,0 +1,56 @@
+In order to allow problems to be detected as early as possible, the Cortex-M processors have a fault exception mechanism included. If a fault is detected, a fault exception is triggered and one of the fault exception handlers is executed. By default, all the faults trigger the HardFault exception (exception type number 3). This fault exception is available on all Cortex-M processors including the Cortex-M0 and Cortex-M0þ processors. Cortex-M3 and Cortex-M4 processors have three additional configurable fault exception handlers:
+• MemManage (Memory Management) Fault (exception type 4)
+• Bus Fault (exception type 5)
+• Usage Fault (exception type 6)
+These exceptions are triggered if they are enabled, and if their priority is higher than the current exception priority level, as shown in Figure 12.1. These exceptions are called configurable fault exceptions, and have programmable exception priority levels (see section 7.9.5).
+
+To help detect what type of error was encountered in the fault handler, the CortexM3 and Cortex-M4 processors also have a number of Fault Status Registers (FSRs). The status bits inside these FSRs indicate the kind of fault detected. Although it might not pinpoint exactly when or where things went wrong, locating the source of the problem is made easier with these addition pieces of information. In addition, in some cases the faulting address is also captured by Fault Address Registers (FARs).
+
+Memory management (MemManage) faults
+	MemManage faults can be caused by violation of access rules defined by the MPU configurations. For example:
+		• Unprivileged tasks trying to access a memory region that is privileged access only
+		• Access to a memory location that is not defined by any defined MPU regions (except the Private Peripheral Bus (PPB), which is always accessible by privileged code)
+		• Writing to a memory location that is defined as read-only by the MPU The accesses could be data accesses during program execution, program fetches, or stack operations during execution sequences. For instruction fetches that trigger a MemManage fault, the fault triggers only when the failed program location enters the execution stage.
+	For a MemManage fault triggered by stack operation during exception sequence:
+		• If the MemManage fault occurred during stack pushing in the exception entrance sequence, it is called a stacking error.
+		• If the MemManage fault occurrs during stack popping in the exception exit sequence, it is called an unstacking error.
+	The MemManage fault can also be triggered when trying to execute program code in eXecute Never (XN) regions such as the PERIPHERAL region, DEVICE region, or SYSTEM region (see section 6.9). This can happen even for Cortex- M3 or Cortex-M4 processors without the optional MPU.
+
+Bus faults
+	The bus faults can be triggered by error responses received from the processor bus interface during a memory access; for example:
+		• Instruction fetch (read), also called prefetch abort in traditional ARM processors
+		• Data read or data write, also called data abort in in traditional ARM processors
+	In addition, the bus fault can also occur during stacking and unstacking of the exception handling sequence:
+		• If the bus error occurred during stack pushing in the exception entrance sequence, it is called a stacking error.
+		• If the bus error occurred during stack popping in the exception exit sequence, it is called an unstacking error.
+	If the bus error happened in the instruction fetch, the bus fault triggers only when the failed program location enters the execution stage. (A branch shadow access that triggers a bus error does not trigger the bus fault exception if the instruction does not enterexecution stage.) Please note that if a bus error is returned at vector fetch, the HardFault exception would be activated even when Bus Fault exception is enabled. A memory system can return error responses if:
+		• The processor attempts to access an invalid memory location. In this case, the transfer is sent to a module in the bus system called default slave. The default slave returns an error response and triggers the bus fault exception in the processor.
+		• The device is not ready to accept a transfer (e.g., trying to access DRAM without initializing the DRAM controller might trigger the bus error. This behavior is device-specific.)
+		• The bus slave receiving the transfer request returns an error response. For example, it might happen if the transfer type/size is not supported by the bus slave, or if the peripherals determined that the operation carried out is not allowed.
+		• Unprivileged access to the Private Peripheral Bus (PPB) that violates the default memory access permission (see section 6.8).
+	Bus faults can be classified as:
+		• Precise bus faults e fault exceptions happened immediately when the memory access instruction is executed.
+		• Imprecise bus faults e fault exceptions happened sometime after the memory access instruction is executed.
+	The reason for a bus fault to become imprecise is due to the presence of write buffers in the processor bus interface (Figure 6.17). When the processor writes data to a bufferable address (see section 6.9 on memory access attributes, and section 11.2.5 on MPU Base Region attribute and Size register), the processor can proceed to execute the next instruction even if the transfer takes a number of clock cycles to complete. The write buffer allows the processor to have higher performance, but this can make debugging a bit harder because by the time the bus fault exception is triggered, the processor could have executed a number of instructions, including branch instructions. If the branch target can be reached via several paths (Figure 9.16), it could be hard to tell where the faulting memory access took place unless you have an instruction trace (see Chapter 14, section 14.3.5). To help with debugging such situations, you can disable the write buffer using the DISDEFWBUF bit in the Auxiliary Control register (section 9.9). Read operations and accesses to the Strongly Order region (e.g., Private Peripheral Bus, PPB) are always precise in the Cortex-M3 and Cortex-M4 processors.
+
+Usage faults
+	The Usage Fault exception can be caused by a wide range of factors:
+		• Execution of an undefined instruction (including trying to execute floating point instructions when the floating point unit is disabled).
+		• Execution of Co-processor instructions e the Cortex-M3 and Cortex-M4 processors do not support Co-processor access 	instructions, but it is possible to use the usage fault mechanism to emulate co-processor instruction support.
+		• Trying to switch to ARM state e classic ARM processors like ARM7TDMI support both ARM instruction and Thumb instruction sets, while Cortex-M processors only support Thumb ISA. Software ported from classic ARM processors might contain code that switches the processor to ARM state, and software could potentially use this feature to test whether the processor it is running on supports ARM code.
+		• Invalid EXC_RETURN code during exception-return sequence (see section 8.1.4 for details of EXC_RETURN code). For example, trying to return to Thread level with exceptions still active (apart from the current serving exception).
+		• Unaligned memory access with multiple load or multiple store instructions (including load double and store double; see section 6.6).
+		• Execution of SVC when the priority level of the SVC is the same or lower than current level.
+		• Exception return with Interrupt-Continuable Instruction (ICI) bits in the unstacked xPSR, but the instruction being executed after exception return is not a multiple-load/store instruction. It is also possible, by setting up the Configuration Control Register (CCR; see sections 9.8.4 and 9.8.5) to generate usage faults for the following:
+		• Divide by zero
+		• All unaligned memory accesses
+	Please note that the floating point instructions supported by the Cortex-M4 are not co-processor instructions (e.g., MCR, MRC; see section 5.6.15). However, slightly confusingly, the register that enables the floating point unit is called the Coprocessor Access Control Register (CPACR; see section 9.10).
+
+HardFaults
+	As illustrated in Figure 12.1, the HardFault exception can be triggered by escalation of configurable fault exceptions. In addition, theHardFault can be triggered by:
+		• Bus error received during a vector fetch
+		• Execution of breakpoint instruction (BKPT) with a debugger attached (halt debugging not enabled) and debug monitor exception (see section 14.3) not enabled Note: In some development tool chains, breakpoints are used by the debugger to carry out semi-hosting. For example, when reaching a “printf” operation, the processor executes a BKPT instruction and halt, and the debugger can detect the halt and HardFaults As illustrated in Figure 12.1, the HardFault exception can be triggered by escalation of configurable fault exceptions.
+	In addition, the HardFault can be triggered by:
+		• Bus error received during a vector fetch
+		• Execution of breakpoint instruction (BKPT) with a debugger attached (halt debugging not enabled) and debug monitor exception (see section 14.3) not enabled.
+	Note: In some development tool chains, breakpoints are used by the debugger to carry out semi-hosting. For example, when reaching a “printf” operation, the processor executes a BKPT instruction and halt, and the debugger can detect the halt andcheck the register status and the immediate value in the BKPT instruction. Then the debugger can display the message or character form the message in the printf statement. If the debugger is not attached, such operation results in HardFault and executes the HardFault exception handler.

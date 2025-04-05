@@ -1,0 +1,60 @@
+A character constant is an integer, written as one character within single quotes, such as 
+'x'. The value of a character constant is the numeric value of the character in the machine's 
+character set. For example, in the ASCII character set the character constant '0' has the value 
+48, which is unrelated to the numeric value 0. If we write '0' instead of a numeric value like 
+48 that depends on the character set, the program is independent of the particular value and 
+easier to read. Character constants participate in numeric operations just as any other integers, 
+although they are most often used in comparisons with other characters. 
+
+The character constant '\0' represents the character with value zero, the null character.
+
+Technically, a string constant is an array of characters. The internal representation of a string 
+has a null character '\0' at the end, so the physical storage required is one more than the 
+number of characters written between the quotes.
+
+The standard library function strlen(s) returns the length of its character string 
+argument s, excluding the terminal '\0'.
+
+Be careful to distinguish between a character constant and a string that contains a single 
+character: 'x' is not the same as "x". The former is an integer, used to produce the numeric 
+value of the letter x in the machine's character set. The latter is an array of characters that 
+contains one character (the letter x) and a '\0'.
+
+There is one other kind of constant, the enumeration constant. The first name in an enum has value 0, the next 1, and so on, unless explicit values are 
+specified. If not all values are specified, unspecified values continue the progression from the 
+last specified value.
+
+Names in different enumerations must be distinct. Values need not be distinct in the same 
+enumeration.
+
+Enumerations provide a convenient way to associate constant values with names, an 
+alternative to #define with the advantage that the values can be generated for you. Although 
+variables of enum types may be declared, compilers need not check that what you store in 
+such a variable is a valid value for the enumeration. Nevertheless, enumeration variables offer 
+the chance of checking and so are often better than #defines. In addition, a debugger may be 
+able to print values of enumeration variables in their symbolic form.
+
+------------------------------------------------------------------------------------------------
+
+When an operator has operands of different types, they are converted to a common type 
+according to a small number of rules. In general, the only automatic conversions are those that 
+convert a ``narrower'' operand into a ``wider'' one without losing information, such as 
+converting an integer into floating point in an expression like f + i. Expressions that don't 
+make sense, like using a float as a subscript, are disallowed.
+
+A char is just a small integer, so chars may be freely used in arithmetic expressions. This 
+permits considerable flexibility in certain kinds of character transformations.
+
+example on page no. 41, 42
+
+The language does 
+not specify whether variables of type char are signed or unsigned quantities. When a char is 
+converted to an int, can it ever produce a negative integer? The answer varies from machine 
+to machine, reflecting differences in architecture.
+
+------------------------------------------------------------------------------------------------
+
+good practice examples on page no. 47
+
+In a two's complement number system, x &= (x-1) deletes the rightmost 1-bit 
+in x. Explain why. Use this observation to write a faster version of bitcount. 

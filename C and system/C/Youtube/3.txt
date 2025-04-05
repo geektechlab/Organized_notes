@@ -1,5 +1,0 @@
-pointers should be of type to which they are assigned to. Pointers are strongly typed in C.
-
-using (void *) we can have generic pointer. But with that, we can't dereference because size of datatype pointer assigned to is not available. Also we can not perform arithmetic operations like p+1 or p++.
-
-we can typecast (void *) to other type using (int *) / (char *) etc.

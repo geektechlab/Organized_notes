@@ -1,8 +1,0 @@
-- FIG. 2.10 Example RAM usage in single-task systems (without OS).
-- FIG. 2.11 Example RAM usage in multiple task systems (with an OS).
-
-- FIG. 2.12 Example boot sequence for Cortex-M microcontrollers without TrustZone security extension.
-- FIG. 2.13 Example boot sequence for Cortex-M microcontrollers with TrustZone security extension.
-
-- FIG. 2.14 Typical program generation flow
-- FIG. 2.16 Various functions of the debug interface on Cortex-M processors.

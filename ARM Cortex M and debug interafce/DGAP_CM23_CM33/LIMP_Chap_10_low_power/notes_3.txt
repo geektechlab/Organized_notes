@@ -1,0 +1,56 @@
+CCR—Configuration and Control Register (SCB->CCR, 0xE000ED14)
+10.5.5.1 CCR overview
+The CCR is a register in the SCB for controlling several processor configurations
+(Table 10.11). This register is privileged access only.
+
+CCR—STKOFHFNMIGN bit
+STKOFHFNMIGN (Stack Over-Flow HardFault NMI Ignore) allows HardFault and NMI
+handlers to bypass stack limit checks. This bit, when using the stack limit check feature, is
+useful when you want to reserve some memory space at the end of the main stack for the
+HardFault and NMI handlers.
+
+CCR—BFHFNMIGN bit
+When this bit is set, handlers with a priority of 1 (e.g., HardFault) or 2 (e.g., NMI) will
+ignore data bus faults caused by load and store instructions. This can also be used when
+configurable fault exception handlers (i.e., BusFault, Usage Fault, or MemMenage fault)
+are executing with the FAULTMASK bit set to 1.
+If this bit is not set, a data bus fault in the NMI or the HardFault handler will result in the
+system entering into a lock upstate (see Section 13.6).
+The bit is typically used in fault handlers that need to probe various memory locations to
+detect the presence of issues relating to system buses and memory controller(s).
+
+CCR—DIV_0_TRP bit
+When this bit is set, a Usage Fault exception is triggered when a divide by zero occurs in the
+SDIV (signed divide) or the UDIV (unsigned divide) instructions. When it is not set, the operation will complete with a quotient of 0.
+If the Usage Fault handler is not enabled, the HardFault exception would be triggered (see
+Sections 13.2.3 and 13.2.5).
+
+CCR—UNALIGN_TRP bit
+The Cortex-M33 processor supports unaligned data transfers (see Section 6.6). However,
+unaligned data access can be less efficient than aligned data access. This is because multiple
+clock cycles are required for each unaligned transfer. Also, in some instances, the occurrence
+of unaligned transfers might indicate the use of incorrect program code (e.g., the use of an
+incorrect data type). To allow software developers to detect and remove unnecessary unaligned transfers, a trap exception mechanism is, therefore, implemented in the processor
+to detect the presence of unaligned transfers.
+If the UNALIGN_TRP bit is set to 1, the Usage Fault exception is triggered when an unaligned transfer occurs. If it is not (i.e., the UNALIGN_TRP is set to 0—the default value),
+unaligned transfers are allowed but only for the following single load and store instructions:
+LDR, LDRT, LDRH, LDRSH, LDRHT, LDRSHT, LDA, LDAH STR, STRH, STRT, STRHT,
+STA, STAH.
+Multiple transfer instructions such as LDM, STM, LDRD, and STRD always trigger faults if
+the address is unaligned, regardless of the UNALIGN_TRP value.
+Bytes size transfers are always aligned.
+
+CCR—USERSETMPEND bit
+By default, the Software Trigger Interrupt Register (NVIC->STIR) can only be accessed in a
+privileged state. If the USERSETMPEND is set to 1, unprivileged access is allowed on this
+register.
+Please note: setting USERSETMPEND does not allow unprivileged access to other NVIC
+and SCB registers.
+Setting USERSETMPEND can result in the following scenario. After it is set, unprivileged
+tasks can trigger, apart from system exceptions, any software interrupt. As a result, if
+USERSETMPEND is used and the system contains untrusted user tasks, the interrupt
+handlers need to check whether, because it could have been triggered from untrusted programs, there is an actual need for the exception handling to be carried out.
+
+Auxiliary Control Register
+
+TABLE 10.13 Auxiliary Control Register (SCnSCB->ACTLR, 0xE000ED08) for the Cortex-M33 processor.

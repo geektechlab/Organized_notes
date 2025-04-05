@@ -1,0 +1,46 @@
+Self-reset
+	The Cortex-M processor provides a mechanism for triggering self-reset in software. In section 7.9.4, we discussed the Application Interrupt and Reset Control Register (AIRCR). This register has two control bits for reset. The SYSRESETREQ bit (bit 2) generates a system reset request to the microcontroller’s system reset control logic. To use the SYSRESETREQ feature (or any access to the AIRCR), the program must be running in privileged state. The easiest way is to use a function provided in the CMSIS-Core header file called “NVIC_SystemReset(void).” Instead of using CMSIS-Core, you can access the AIRCR register directly:
+		// Use DMB to wait until all outstanding
+		// memory accesses are completed
+		__DMB();
+		// Read back PRIGROUP and merge with SYSRESETREQ
+		SCB->AIRCR = 0x05FA0004 j (SCB->AIRCR & 0x700);
+		while(1); // Wait until reset happen
+
+	The Data Memory Barrier (DMB) instruction is needed to make sure previous memory accesses are completed before the reset happens. When writing to AIRCR, the upper 16 bits of the write value should be set to 0x05FA, which is key to preventing accidentally resetting the system. The second reset feature is the VECTRESET control bit (bit 0). This is indented for use by debuggers. Writing 1 to this bit resets the Cortex-M3/Cortex-M4 processor excluding the debug logic. This reset feature does not reset the peripherals in the microcontroller. In some cases, this feature can be useful for systems with multiple processor cores because you might want to reset just one processor, but not the rest of the system. Writing to VECTREST is similar to setting SYSRESETREQ:
+		// Use DMB to wait until all outstanding
+		// memory accesses are completed
+		__DMB();
+		// Read back PRIGROUP and merge with SYSRESETREQ
+		SCB->AIRCR = 0x05FA0001 j (SCB->AIRCR & 0x700);
+		while(1); // Wait until reset happen
+	Unlike SYSRESETREQ, the VECTRESET happens almost immediately because the reset path is not dependent on other logic circuits in the microcontroller. However, because the VECTRESET does not reset peripherals, it is not recommended for general use in application programming.
+
+	In some cases, you might want to set PRIMASK to disable processing before starting the self-reset operation. Otherwise, if the system reset takes some time to trigger, an interrupt could occur during the delay and the system reset could happen in the middle of the interrupt handler.
+
+CPU ID base register
+	Inside the System Control Block (SCB) there is a register called the CPU ID Base Register. This is a read-only register that shows the processor type and the revision number. The address of this register is 0xE000ED00 (privileged accesses only). In C language programming you can access to this register using “SCB->CPUID”. For reference, the CPU IDs of all existing Cortex-M processors are shown in Table 9.11. Individual debug components inside the Cortex-M processors also carry their own ID registers, and their revision fields might also  be different between different revisions.
+
+There is a register in the System Control Block (SCB) called the Configuration Control Register (CCR). This can be used to adjust some of the behaviors in the processor and for controlling advanced features. The address of this register is 0xE000ED14 (privileged accesses only). The details of the CCR bit fields are listed in Table 9.12. In C programming you can access this register using SCB->CCR.
+
+	STKALIGN bit
+		When the STKALIGN bit is set to 1, it forces the stack frame to be placed in doubleword aligned memory locations. If the stack pointer was not pointing to a doubleword aligned address when an interrupt occurred, a padding word will be added during stacking and bit 9 of the stacked xPSR will be set to 1 to indicate that the stack has been adjusted, and the adjustment will be reversed at unstacking. If you areusing Cortex-M3 r1p0 or r1p1, it is highly recommended that you enable the double-word stack alignment feature at the start of the program to ensure that the interrupt handling mechanism fully conforms to AAPCS requirement (see section 8.1.3). This can be done by adding the following code:
+			SCB->CCR j= SCB_CCR_STKALIGN_Msk; /* Set STKALIGN */
+		If this feature is not enabled, the stack frame will be aligned to word (4 bytes) address boundaries. In some applications, problems can occur if the C compiler or run-time library functions make assumptions that the stack pointer is doubleword aligned; for example, when handling pointers computation.
+
+	BFHFNMIGN bit
+		When this bit is set, handlers with priority of 1 (e.g., HardFault) or 2 (e.g., NMI) ignore data bus faults caused by load and store instructions when configurable fault exception handlers (i.e., BusFault, Usage Fault, or MemMenage fault) are executing with the FAULTMASK bit set. If this bit is not set, a data bus fault in NMI or HardFault handler causes the system to enter a lock-up state (see section 12.7 in chapter 12). The bit is typically used in fault handlers that need to probe various memory locations to detect system buses or memory controller issues.
+
+	DIV_0_TRP bit
+		When this bit is set, a Usage Fault exception is triggered when a divide by zero occurs in SDIV (signed divide) or UDIV (unsigned divide) instructions. Otherwise, the operation will complete with a quotient of 0. If the Usage Fault handler is not enabled, the HardFault exception would be triggered .
+
+	UNALIGN_TRP bit
+		The Cortex-M3 and Cortex-M4 processors support unaligned data transfers (see section 6.6). However, in some cases occurrence of unaligned transfers might indicate incorrect program code (e.g., used of incorrect data type), and could result in slower performance because each unaligned transfer needs multiple clock cycles to be carried out. Therefore a trap exception mechanism is implemented to detect the presence of unaligned transfers. If the UNALIGN_TRP bit is set to 1, the Usage Fault exception is triggered when an unaligned transfer occurs. Otherwise (UNALIGN_TRP set to 0, the default value), unaligned transfers are allowed for single-load and store instructions LDR, LDRT, LDRH, LDRSH, LDRHT, LDRSHT, STR, STRH, STRT, and STRHT. Multiple transfer instructions such as LDM, STM, LDRD, and STRD always trigger faults if the address is unaligned regardless of the UNALIGN_TRP value. Byte size transfers are always aligned.
+
+	USERSETMPEND bit
+		By default, the Software Trigger Interrupt Register (NVIC->STIR) can only be accessed in privileged state. If the USERSETMPEND is set to 1, unprivileged accesses are allowed on this register (but do not allow unprivileged accesses other NVIC or SCB registers). Setting USERSETMPEND can lead to another problem. After it is set, unprivileged tasks can trigger any software interrupt apart from system exceptions. As a result, if the USERSETMPEND is used and the system contains untrusted user tasks, the interrupt handlers need to check whether the exception handling should be carried out because it could have been triggered from untrusted programs.
+
+Co-processor access control register
+	The Co-processor Access Control Register is available in Cortex-M4 with floating point unit for enabling the floating point unit. This register is located in address 0xE000ED88 (privileged accesses only). In C language programming you can access this register using the “SCB->CPACR” symbol. By default the floating point unit is turned off to reduce the power consumption. The encoding for CP10 and CP11 is shown in Table 9.16, and the value 01 or 11 must be set to use the floating point unit. The settings for CP10 and CP11 must be identical. Usually, when the floating point unit is needed, you can enable the floating point unit using the following code:
+		SCB->CPACRj= 0x00F00000; // Enable the floating point unit for full access
+	This step is typically carried out inside the SystemInit() function provided in the device-specific software package file. It is executed by the reset handler.

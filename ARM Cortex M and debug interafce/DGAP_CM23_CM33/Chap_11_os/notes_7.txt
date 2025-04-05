@@ -1,0 +1,39 @@
+When looking at the various OS support features that are available in Armv8-M architecture, many experienced software developers might notice that a number of OS support features are banked between security states, and that, as a result, there are multiple ways to run
+an RTOS on an Armv8-M processor with the TrustZone security extension. For example:
+• An RTOS running in Secure state––application threads/tasks can either be Secure or Nonsecure
+• An RTOS running in Non-secure state––application threads/tasks can only be Non-secure
+To enable better IoT security across the ecosystem, Arm has started an initiative called Platform Security Architecture (PSA) [3]. Through the PSA project, Arm liaises with various
+parties in the industry to define the specifications for secure IoT platforms. In addition,
+the initiative also provides recommendations, as well as delivering reference security firmware (e.g., Trusted Firmware-M for Cortex-M processors). During this initiative, Arm
+researched the requirements of a range of applications and, by so doing, was able to provide
+guidelines for designing security software for, for example, the RTOS. Based on the PSA’s
+recommendations, it was decided that the RTOS in Armv8-M processors should run in a
+Non-secure state.
+By running the RTOS in the Non-secure state:
+• Software developers can select their choice of RTOS for their projects and customize them,
+even when the Secure firmware has been locked down.
+• The RTOS can be easily updated during the product’s life cycle by way of a standard
+firmware update.
+• The IoT device would not, even when there are vulnerabilities in the RTOS codes, be
+completely compromised. This aligns with the “least privilege” approach which is strongly
+recommended by the IoT security industry.
+When an RTOS and its application tasks/threads are running in the Non-secure world,
+there is a deal of complexity when dealing with the access of secure APIs. Consider a simple
+case where there are two application threads in the Non-secure world and each of them call a
+Secure API. In this scenario, context switching in both the Non-secure and the Secure worlds
+would be needed at the same time (Fig. 11.19).
+As shown in Fig. 11.19, the switching from application #1 to application #2 also requires the
+switching of the PSP_S and, potentially, the Secure MPU configurations (if used by the Secure Partition Manager inside the Trusted Firmware-M). In order to support this coordinated
+switching, Trusted Firmware-M include OS helper APIs which interact with the Non-secure
+RTOS to facilitate the context switching operations. The OS helper APIs, as well as the Trusted
+Firmware-M source code, are all open-sourced.
+Further information on this topic is covered in a paper published in Embedded World
+“How should an RTOS work in a TrustZone for Armv8-M environment” [4] (https://
+pages.arm.com/rtos-trustzone-armv8m). For more information about Trusted FirmwareM, including how to get access to Trusted Firmware-M source code, please visit https://
+www.trustedfirmware.org/ [1].
+
+( read and compare 11.9 Concepts of RTOS operations in Cortex-M processors )
+
+( very imp: FIG. 11.22 Saving additional registers in the process stack during context switching. )
+( very imp: FIG. 11.23 The data inside the stack frame when the SVC starts the first thread. )
+

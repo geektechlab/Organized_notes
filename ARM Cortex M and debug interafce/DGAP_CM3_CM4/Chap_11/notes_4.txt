@@ -1,0 +1,29 @@
+Using sub-region disable
+The Sub-Region Disable (SRD) feature is used to divide an MPU region into eight equal parts and set each of them enabled or disabled individually. This feature can be  used in a number of ways, as discussed in the following sections.
+
+Allow efficient memory separation
+The SRD enables more efficient memory usage while allowing protection to be implemented. For example, assuming that task A needs 5KB of stack and task B needs 3KB of stack, and the MPU is used to separate the stack space, the memory arrangement without the SRD feature will need 8KB for task A’s stack and 4KB for task B’s stack, as shown in Figure 11.5. With the SRD, we can reduce the memory usage by overlapping the two memory regions, and use SRD to prevent the application task from accessing the other task’s stack space, as shown in Figure 11.6.
+
+Reduce the total number of regions needed
+When defining peripheral access permissions, very often you might find that some peripherals need to be accessed by unprivileged tasks and some must be protected and have to be privileged access only. To implement the protection without SRD, we might need to use a large number of regions. Since the peripherals usually have the same address size, we can easily apply SRD to define the access permissions. For example, we can define a region (or use the background region feature) to enable privileged accesses to all peripherals.
+
+( FIGURE 11.7 using SRD to control access rights to separate peripherals )
+
+Considerations when using MPU
+A number of aspects need to be considered when using the MPU. In many cases, when the MPU is used with an embedded OS, the OS being used needs to have MPU support built in.
+
+In most cases, it can be impractical to try to partition the program memory into different MPU regions for different tasks because the tasks can share various functions, including run-time library functions and device-driver library functions. Also, if the application tasks and the OS are compiled together, it can be difficult to have clear and well-aligned address boundaries between each of the application tasks and the OS kernel, which is needed for setting up the MPU regions. Typically the program memory (e.g., flash) will be defined as just one region, and might be configured with read-only access permission.
+
+If an SRAM location is to be accessed by normal addressing as well as bit-band alias addresses, the MPU configuration needs to cover both address ranges.
+
+If the application tasks and OS are compiled together in one go, it is likely that some of the data used by the application tasks and the OS will be mixed together. It is then impossible to isolate the access permissions of individual data elements. You might need to compile  the tasks separately and then use linker scripts or other  methods to place the data sections in the RAM manually. However, heap memory space might needed to be shared and cannot be protected using MPU.
+
+Isolation of stack memory is usually easier to handle. You can reserve memory space in the linking stage and force the application tasks to use the reserved space for stack operations. Different embedded OSs and toolchains have different ways to allocate stack spaces.
+
+Similar to data memory: if a peripheral is to be accessed by normal addressing as well as bit-band alias addresses, the MPU configuration needs to cover both address ranges.
+
+Besides memory protection, the MPU can also be used for the following purposes:
+• Disabling the write buffer inside the processor e in some cases, the write buffer inside the processor could make it a bit more difficult to identify software bugs because when a bus fault happen with a buffered write, the processor could have executed a number of instructions before the fault is detected. The MPU can be used to disable the internal write buffer by setting the Bufferable attribute to 0. (Note: You can use the Auxiliary Control Register to achieve this; see section 9.9.)
+• Making a RAM memory space non-executable e in some applications, an external interface (e.g., Ethernet) can inject data into the buffer space allocated in RAM. The data could potentially contain malicious code and if the design contains other vulnerabilities, the malicious code injected into the system could be executed. The MPU can be used to force the RAM space to be eXecute Never (XN), which prevents data injected to the buffer from getting executed.
+
+The Cortex-M0+ processor has an optional MPU that is almost the same as the MPU in the Cortex-M3 and Cortex-M4 processors. There are a few differences, so if the MPU configuration software has to be used on Cortex-M0+ as well as on Cortex-M3 and Cortex-M4, the areas shown in Table 11.12 need to be taken  care of. The MPU memory attributes in ARMv6-M only support one level of cache policy. Therefore the TEX field is not available in the Cortex-M0+ processor. Overall the MPUs support mostly the same level of memory protection features, and the software porting between the two MPU types should be straightforward.
