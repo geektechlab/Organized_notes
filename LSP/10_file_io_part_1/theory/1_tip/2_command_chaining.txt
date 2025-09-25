@@ -1,0 +1,33 @@
+How to Run Multiple Commands at once in Linux
+==============================================
+
+Combining two or more commands on the command line is also known as “command chaining”.
+
+It is used to increase productivity.
+
+Option One: The Semicolon (;) Operator
+=======================================
+
+pwd ; ls -l ; whoami
+
+In this case the second command will run regardless of whether the first command is successful or not
+
+You don’t have to put spaces between the semicolons and the commands, either.
+
+Option Two: Logical AND (&&) operator
+=======================================
+
+mkdir linux && cd linux
+
+The second command will run only when the first command is successful. Exit status of the first command should be 0.
+
+You can verify the exit status by $?
+
+Option Three: Logical OR (||) operator
+=======================================
+
+pwd || ls -l
+
+The second command will run only when the first command is failed
+
+ping -c1 www.google.com > /dev/null || echo “Problem with your network, Please connect to Network Administrator”

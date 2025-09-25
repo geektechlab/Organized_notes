@@ -1,0 +1,33 @@
+How are busy loops implemented?
+---------------------------------
+
+kernel provides three functions for microsecond, nanosecond, and millisecond delays, defined in <linux/delay.h> and <asm/delay.h>
+
+void udelay(unsigned long usecs); //delays execution by busy looping for specified number of microseconds
+void ndelay(unsigned long nsecs); //delays execution by busy looping for specified number of nanoseconds
+void mdelay(unsigned long msecs); //delays execution by busy looping for specified number of milliseconds
+
+We know,
+1 second = 1,000 milliseconds = 1,000,000 microseconds
+
+How is udelay implemented?
+----------------------------
+They cannot use jiffies, as jiffies provide resolution in millisecond
+
+On boot, kernel runs a function calibrate_delay() present in init/calibrate.c file
+
+This function calculates and prints the value of "BogoMips"
+
+BogoMips value is the number of busy loop iterations the processor can perform in a given period.
+
+This value is stored in the loops_per_jiffy variable
+
+$ cat /proc/cpuinfo | grep bogomips
+
+$ dmesg | grep -i bogo
+
+udelay() uses the loops_per_jiffy value to figure out how many busy loop iterations they need to execute to provide the required delay
+
+mdelay() is then implemented  in terms of udelay()
+
+Note: BogoMIPS have little to nothing to do with actual processor performance

@@ -1,0 +1,6 @@
+Types of sleeping processes
+==============================
+
+	1. Exclusive Process: Processes are selectively woken up by the kernel when the event happens
+
+	2. Non Exclusive Process: All the processes present in the wait queue are woken up by the kernel on event.

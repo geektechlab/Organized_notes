@@ -1,0 +1,1 @@
+this will not work. Because it will copy contents from user/kernel space to kernel/space of structure. Not the reference of memory pointed to user space. Good interview question ? 

@@ -1,0 +1,105 @@
+Theory0:
+GCC specific syntaxes :
+
+ __attribute__((constructor)) syntax : This particular GCC syntax, when used with a function, executes the same function at the startup of the program, i.e before main() function.
+
+__attribute__((destructor)) syntax : This particular GCC syntax, when used with a function, executes the same function just before the program terminates through _exit, i.e after main() function.
+
+Theory1;
+Libraries
+====================
+
+Functions are blocks of code that are reusable throughout a program.
+
+Using them saves time, removing the need to rewrite code multiple times.
+
+Libraries, like functions also save time in that they make functiones reusable in multiple programs.
+
+A library is exactly like an executable, except instead of running directly, the library functions are invoked with parameters from your executable.
+
+Advantages:
+=============
+
+	save much time by reusing work someone else has already done
+
+	it has fewer bugs (since probably many other people use the libraries too, and you benefit from having them finding and fixing bugs).
+
+Linux Library Types:
+========================
+
+There are two Linux C/C++ library types which can be created:
+
+	1. Static libraries (.a): Library of object code which is linked with, and becomes part of the application.
+
+	2. Dynamically linked shared object libraries (.so): There is only one form of this library but it can be used in two ways.
+
+		1. Dynamically linked at run time. 
+			The libraries must be available during compile/link phase. 
+			The shared objects are not included into the executable component but are tied to the execution.
+		2. Dynamically loaded/unloaded and linked during execution
+			using the dynamic linking loader system functions.
+
+Library naming conventions:
+===============================
+
+Libraries are typically named with the prefix "lib".
+This is true for all the C standard libraries. 
+When linking, the command line reference to the library will not contain the library prefix or suffix.
+	eg. gcc src-file.c -lm -lpthread 
+
+
+How to static link c library
+=============================
+
+$ gcc hello.c -o hello --static
+$ size ./hello
+
+--------------
+$ gcc hello.c -o statichello --static
+run [ ldd ./statichello ] and will give you a output that it is not a dynamic executable.
+[ size statichello ] will give different section sizes. compared to dynamic library, size is huge.
+this means statichello is static library.
+[ strace statichello ] will list all system calls made and those are less compared to dynamic library.
+--------------
+$ gcc hello.c -o dynamichello
+run [ ldd dynamichello ] and it will give list of libraries dependent on
+[ size dynamichello ] will give different section sizes
+this means dynamichello is shared library
+[ strace dynamichello ] will list all system calls made and those are large.
+--------------
+nm lists symbols ( variables and functions ) from object files.
+--------------
+if we do [ nm -C dynamichello ] then we will get many U, which means undefined untill particular library is loaded.
+--------------
+whereas, if we do [ nm -C statichello ] then we will get many weak, which means definition of function is present in library.
+--------------
+
+Theory2:
+What is Static Linking?
+=======================
+
+Static linking is the process of copying all library modules used in the program into the final executable image.
+
+This is performed by the linker and it is done as the last step of the compilation process. 
+
+The linker combines library routines with the program code in order to resolve external references, and to generate an executable image suitable for loading into memory.
+
+Advantages:
+==================
+
+Faster than shared libraries because a set of commonly used object files is put into a single library executable file
+
+Once everything is bundled into your application, you don’t have to worry that the client will have the right library (and version) available on their system.
+
+Disadvantages:
+=====================
+
+Executable size is larger
+
+If any changes have to be made to the static library (any bug in the static library), it has to be recompiled and relinked back to the application
+
+When to use static libraries
+===============================
+
+1. When  you aren't sure whether the correct version of a library will be available at runtime
+2. You were testing a new version of a library that you don't yet want to install as shared.

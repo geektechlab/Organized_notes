@@ -1,0 +1,27 @@
+clocks
+------------
+
+Every hrtimer is bound to a specific clock.
+
+The system currently supports two clocks:
+
+1. CLOCK_MONOTONIC:
+	a clock which is guaranteed always to move forward in time
+	it starts at zero when the system boots and increases monotonically from there
+
+2. CLOCK_REALTIME:
+	matches the current real-world time
+
+The difference between the two clocks can be seen when the system time is adjusted
+	 as a result of administrator action
+	 tweaking by the network time protocol code
+	  suspending and resuming the system.
+
+In any of these situations, 
+	CLOCK_MONOTONIC will tick forward as if nothing had happened
+	CLOCK_REALTIME may see discontinuous changes.
+
+Which clock to be used?
+--------------------------
+
+Depends mainly on whether the timer needs to be tied to time as the rest of the world sees it or not

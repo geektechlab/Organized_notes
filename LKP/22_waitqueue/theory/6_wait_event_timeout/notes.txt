@@ -1,0 +1,10 @@
+wait_event_timeout(queue, condition, timeout)
+
+	The process is put to sleep (TASK_UNINTERRUPTIBLE) until the condition evaluates to true. 
+	The condition is checked each time the waitqueue is woken up.
+
+Return Value:
+
+	0 if the condition evaluated to false after the timeout elapsed
+	1 if the condition evaluated to true after the timeout elapsed
+	remaining jiffies (at least 1) if the condition evaluated to true before the timeout elapsed.

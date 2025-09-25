@@ -1,0 +1,11 @@
+A SIGALRM signal is delivered by the Operating System via a request from the user occuring after some amount of time.
+
+To request an alarm, use the alarm() system call:
+
+unsigned int alarm(unsigned int seconds);
+
+After seconds have passed since requesting the alarm(), the SIGALRM signal is delivered. 
+
+The default behavior of SIGALRM is to terminate, so we can catch and handle the signal, leading to a nice hello world program
+
+The pause() call will "pause" the program until a signal is delivered and handled. Pausing is an effective way to avoid busy waiting, e.g., while(1);, because the process is suspended during a pause and awoken following the return of the signal handler.

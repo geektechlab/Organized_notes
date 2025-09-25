@@ -1,0 +1,2 @@
+Does executing CLI instruction disable interrupts on other processors
+------------------------------------------------------------------------

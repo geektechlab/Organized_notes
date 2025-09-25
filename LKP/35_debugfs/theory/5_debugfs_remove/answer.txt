@@ -1,0 +1,6 @@
+What happens if i forget to delete call debugfs_remove?
+======================================================
+
+There is no automatic cleanup of any directories created in debugfs.
+
+If a module is unloaded without explicitly removing debugfs entries, the result will be a lot of stale pointers

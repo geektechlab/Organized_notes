@@ -1,0 +1,39 @@
+Thread-Specific Data
+====================
+
+In the thread-specific data (TSD) mechanism, we have notions of keys and values.
+
+Each key has a name, and pointer to some memory area.
+
+Keys with the same name in two separate threads always point to different memory locations - this is handled by the library functions that allocate memory blocks to be accessed via these keys.
+
+We have a function to
+	create a key (invoked once per key name for the whole process)
+	a function to allocate memory (invoked separately in each thread)
+	and functions to de-allocate this memory for a specific thread
+	and a function to destroy the key, again, process-wide
+	functions to access the data pointed to by a key, either setting its value, or returning the value it points to
+
+The pthread_key_create() function is used to allocate a new key. 
+This key now becomes valid for all threads in our process. 
+When a key is created, the value it points to defaults to NULL
+
+/* rc is used to contain return values of pthread functions */
+int rc;
+/* define a variable to hold the key, once created.         */
+pthread_key_t list_key;
+/* cleanup_list is a function that can clean up some data   */
+/* it is specific to our program, not to TSD                */
+extern void* cleanup_list(void*);
+
+/* create the key, supplying a function that'll be invoked when it's deleted. */
+rc = pthread_key_create(&list_key, cleanup_list);
+
+After we have created a key, we may access its value using two pthread functions
+	pthread_getspecific()
+	pthread_setspecific()
+
+The first is used to get the value of a given key, and the second is used to set the data of a given key.
+A key's value is simply a void pointer (void*), so we can store in it anything that we want.
+
+The pthread_key_delete() function may be used to delete keys.

@@ -1,0 +1,8 @@
+Tips
+==============
+
+1. Pressing Ctrl-b allows you to search for previous search terms again.
+
+2. cscope -p4 causes Cscope to prepend the directories (upto 4) leading to a source file in your tree when displaying its results.
+
+3. cscope -C disables case-sensitive search

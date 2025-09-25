@@ -1,0 +1,17 @@
+-Wall
+============
+
+The option -Wall enables all compiler’s warning messages. This option is recommended to generate better code.
+
+--save-temps
+==============
+
+We know our C Code goes through four stages: Preprocessing, compiling, assembling and linking
+gcc creates many intermediate files for each stage
+By default gcc deletes these intermediate files. 
+You can instruct gcc to avoid deleting intermediate files passing '--save-temps' option to it. So, it will save all these files and won't delete those.
+
+-g
+================
+
+Adds debugging symbols

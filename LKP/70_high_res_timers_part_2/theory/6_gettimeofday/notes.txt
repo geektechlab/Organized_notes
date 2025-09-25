@@ -1,0 +1,6 @@
+gettimeofday
+---------------------
+
+Defined in: kernel/time/time.c
+
+Calls ktime_get_real_ts64

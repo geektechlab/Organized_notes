@@ -1,0 +1,3 @@
+How do you find out how many times your driver code is used by application
+
+we can maintain a static counter variable in open system call and later print it.

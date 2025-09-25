@@ -1,0 +1,27 @@
+Kernel Timers
+--------------------
+
+Used to schedule execution of a function at a particular time in the near future
+
+Usages
+-----------
+
+	1. Implementations of timeouts (schedule_timeout)
+	2. Wait timeouts in TCP Implementation
+
+A timer is easy to use.
+
+	1. Perform initialization
+	2. Specify an expiration time
+	3. A function to execute upon said expiration
+	4. Activate the timer
+
+The given function runs after the timer expires
+
+Note: Timers are not cyclic. The timer is destroyed after it expires
+
+Types of Timers
+-----------------
+
+1. Low Resolution Timer
+2. High Resolution Timer

@@ -1,0 +1,7 @@
+What happens when you call queue_work?
+--------------------------------------
+
+Use cscope/ctags to find out
+
+----
+IMP: watch video https://youtu.be/Ew3KI0-ybGc?list=PLCFZYUMGKxqCOP3tSrSW1XgNUI8RBOxCH at 20:00

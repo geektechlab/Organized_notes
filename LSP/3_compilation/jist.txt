@@ -1,0 +1,368 @@
+Theory0:
+GCC Compilation Process
+=============================
+
+GCC compiles a C/C++ program into executable in 4 steps
+
+For example, a "gcc -o hello hello.c" is carried out as follows:
+
+1. Pre-processing:
+==================================
+    The first stage of compilation is called preprocessing
+
+    In this stage, lines starting with a # character are interpreted by the preprocessor as preprocessor commands.
+        joining continued lines (lines ending with a \)
+        Removal of Comments
+        Expansion of Macros
+        Expansion of the included files.
+
+    The output of this step is a "pure" C file without pre-processor directives.
+
+    $ cpp hello.c > hello.i
+    $ gcc -E hello.c > hello.i
+
+2. Compilation:
+==================================
+
+    The second stage of compilation is confusingly enough called compilation.
+
+    In this stage, the preprocessed code is translated to assembly instructions specific to the target processor architecture.
+
+        Check C program for syntax errors.
+        Translate the file into intermediate code i.e. in assembly language.
+        Optionally optimize the translated code for better performance.
+            Removing unused variables and subroutines;
+
+    $  gcc -S hello.i
+----------
+gcc generates assembly instruction for x86.
+for ARM, run arm-linux-gnueabihf-gcc -S hello.in. It is cross compiler and will generate ARM assembly instruction.
+----------
+
+3. Assembly:
+====================================
+
+    During this stage, an assembler is used to translate the assembly instructions to object code.
+
+    The output consists of actual instructions to be run by the target processor.
+
+    $ as -o hello.o hello.s
+    $ gcc -c hello.s
+
+    The contents of this file is in a binary format and can be inspected using hexdump or od by running either one of the following commands:
+
+    $hexdump hello.o
+    $od -c hello.o
+
+    At this phase, only existing code is converted into machine language, the function calls like printf() are not resolved
+
+4. Linker:
+====================================
+
+    The object code generated in the assembly stage is composed of machine instructions that the processor understands but some pieces of the program are out of order or missing.
+
+    To produce an executable program, the existing pieces have to be rearranged and the missing ones filled in. This process is called linking
+
+    The result of this stage is the final executable program
+
+    An object and executable come in several formats
+         ELF (Executable and Linking Format) is used on Linux. ELF is format used by Linux to store object, executable, shared library and kernel object files.
+         COFF (Common Object-File Format) is used on Windows systems.
+
+---------------
+[ file hello ] will give info about actual executable.
+
+Theory1:
+Create the object file for func.c
+
+$ gcc -c func.c
+
+Similarly create the object file for main.c
+
+$ gcc -c main.c
+
+Now generate the executable
+
+$ gcc func.o main.o -o main
+
+Execute the main program
+
+$ ./main
+Inside main()
+Inside func()
+
+
+when we link the two object files func.o and main.o,
+    linker will combine all files' .data .txt etc sections in one executable file as combined sections
+    the gcc linker is able to resolve the function call to func()
+
+Where did the linker find the definition of the function printf()?
+=====================================================================
+
+printf() is a function which is declared in stdio.h and defined as a part of standard shared library (libc.so)
+
+=====================================================================
+ldd tool will print the shared libraries required by each program
+
+$ ldd main
+    linux-vdso.so.1 =>  (0x00007ffd241f8000)
+    libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fd939b4c000)
+    /lib64/ld-linux-x86-64.so.2 (0x000055ab46461000)
+
+The above output indicates that the main executable depends on three libraries.
+    The first library is required for making system calls
+    The second library is C Library
+    The third shared library is the one which loads all the other shared libraries required by the executable.
+
+Theory2:
+Extracting Information from .o and executable binary files
+==============================================================
+
+gcc produces executable files in the ELF file format. 
+
+you can use readelf and objdump to read parts of an elf file
+
+$ readelf -h hello.o
+	Type: Relocatable file
+
+$ readelf -h exec 
+	Type: Executable
+
+-h will print ELF Header
+
+$ readelf --symbols hello.o
+will show us symbols in the object file
+
+----------------
+objdump can also be used
+----------------
+
+In the ELF [ readelf --symbols hello.o ],
+i variable is said LOCAL
+	That is because we declared it static and as such it has been flagged as being local to this object file.
+
+global is GLOBAL
+	meaning that it is visible outside this file
+
+Similarly the main() function is externally visible
+
+function is UND (undefined)
+	This means that it has been left for the linker to find the address of the function
+
+----------------
+[ objdump -D hello.o ] dissassembles the file
+[ objdump --section-headers hello.ko ] gives different section related info such as .text .bss .rodata .data etc.
+----------------
+----------------
+use [ objdump -D hello.o ] ( object file ) and [ objdump -D hello ] ( executable ) to dissassemble the file and then try to match with following
+----------------
+
+Difference between Relocatable Code and Machine Executable Code
+================================================================
+
+1. Instructions of Relocatable Code are bound to offset address assigned as per the position of the instruction within the procedure
+Eg. 00000000 <main>
+    0:  55  push %ebp
+Executable binary code bounds to platform specific load address
+Eg. 0804312d <main>
+    0804312d:   55  push %ebp
+
+2. Function call instructions in relocatable object files referred to called functions offset position
+Eg. call 12 <main+0x12>
+Call instructions in executable binaries referred to functions base address
+Eg. call 8048300<printf@plt>
+
+3. Relocatable object files only contains instructions that appear in the source file
+Machine Executable code contains functionality plus run time code.
+
+----------------
+Linux generated executable will not work on Windows even if machine architecture is same. Because, Linux executable file format is ELF but Windows executable file format is COFF.
+----------------
+
+Theory3:
+Every ELF file have a ELF header where there is a e_entry field which contains the program memory address from which the execution of executable will start. 
+
+This memory address point to the _start()
+
+$ objdump -f ./1
+
+OR
+
+$ This memory address point to the _start()
+
+This outputs following critical information of executable on my machine.
+
+Have a look at start address below, this is the address pointing to _start() function.
+
+./1:     file format elf64-x86-64
+architecture: i386:x86-64, flags 0x00000112:
+EXEC_P, HAS_SYMS, D_PAGED
+start address 0x0000000000400400
+
+We can cross check this address by deassembling the executable
+
+$ objdump --disassemble ./1
+
+
+The role of _start() function
+====================================
+
+The _start() function prepare the input arguments for another function _libc_start_main() which will be called next. 
+
+__libc_start_main is a function in libc.so.6
+
+If you look for __libc_start_main in glibc source code, the prototype looks like this.
+
+int __libc_start_main(int (*main) (int, char * *, char * *), int argc, /* number of command line args*/
+char ** ubp_av, /* command line arg array*/
+void (*init) (void), /* address of init function*/
+void (*fini) (void), /* address of fini function*/
+void (*rtld_fini) (void), /* address of dynamic linker fini function */
+void (* stack_end) /* end of the stack address*/
+);
+
+
+void (*init)(void)	Constructor of this program.
+
+void (*fini)(void)	Destructor of this program
+
+__libc_start_main initializes necessary stuffs, especially C library(such as malloc) and thread environment and calls our main. 
+
+The role of _libc_start_main() function
+============================================
+
+The role of _libs_start_main() function is following 
+
+	Preparing environment variables for program execution
+
+	Calls _init() function which performs initialization before the main() function start.
+
+	Register _fini() and _rtld_fini() functions to perform cleanup after program terminates
+
+Theory4:
+Writing program without main()
+=================================
+
+Now we know how the call to the main() is made.
+
+As _start() function by default calls main(), we have to change it if we want to execute our custom startup code. 
+
+We can override the _start() function to make it call our custom startup code not main(). 
+
+$ gcc -nostartfiles -o nomain nomain.c
+
+Now we have to force compiler to not use its own implementation of _start().In GCC we can do this using -nostartfiles
+
+Theory5:
+Instruction Set Architecture
+=============================
+
+We know gcc converts C code to Machine code.
+
+The compiler to convert uses Instruction Set Architecture to convert source code to machine code
+
+	Instruction set Architecture provides the software below information
+
+		-->	What instructions are available?
+
+			For example, every architecture has its own way of coding for an instruction that adds two integers.
+
+
+		--> How many and what kind of registers are available?
+
+		--> Memory: How to access contents
+
+Different CPUs implement different sets of instructions. 
+
+	Examples: ARM, Intel x86, IBM/Motorola PowerPC (Macintosh), MIPS
+
+Software compiled for one ISA will not run on hardware with a different ISA
+
+Application Binary Interface (ABI)
+======================================
+
+	ABI = ISA + More
+
+	ABI Handles the following:
+
+		Calling Conventions
+
+			How function arguments are passed
+
+			How function return values are retrieved
+
+			 for example, whether all parameters are passed on the stack or some are passed in registers
+
+			 which registers are used for which function parameters
+			
+			whether the first function parameter passed on the stack is pushed first or last onto the stack
+		
+		Data Type
+
+			the sizes, layouts, and alignments of basic data types that the processor can directly access
+
+		Binary format of object files
+
+	It defines a standard for binary portability across computers
+Accessing a register's content via inline assembly
+==================================================
+
+x86_64 has several registers; let's just go with the ordinary RCX register for this example.
+
+the x86 ABI calling convention states that the return value of a function will be the value placed in the accumulator, that is, RAX for the x86_64.
+
+Using this knowledge, we write a function that uses inline assembly to place the content of the register we want into RAX.
+
+This ensures that this is what it will return to the caller!
+
+Theory6:
+panther2@ubuntu:~/Linux_System_Prog/day1/compilation_steps/7$ ./getreg_cr0 
+Segmentation fault (core dumped)
+
+It crashes
+
+the essential job of the CPU is to read in machine instructions from memory, decipher, and execute them.
+
+In the early days of computing, this is pretty much all the processor did.
+
+But then, engineers, thinking deeper on it, realized that there is a critical issue with this: if a programmer can feed an arbitrary stream of machine instructions to the processor, which it, in turn, blindly and obediently executes, herein lies scope to do damage, to hack the machine!
+
+Intel processor's CR0 control register: Contains system control flags that control operating mode and states of the processor. If one has unlimited (read/write) access to the CR0 register, one could toggle bits that could do the following:
+
+	Turn hardware paging on or off 
+	Disable the CPU cache 
+	Change caching and alignment attributes 
+	Disable WP (write protect) on memory (technically, pages) marked as read-only by the OS
+
+only the OS should be allowed this kind of access.
+
+Precisely for reasons such as the security, robustness, and correctness of the OS and the hardware resources it controls, all modern CPUs include the notion of privilege levels
+
+The modern CPU will support at least two privilege levels, or modes, which are generically called the following:
+
+	Supervisor -- OS Code Runs here -- Kernel Space
+
+	User	--	Application Code Runs here -- User space
+
+--------------
+We can access normal registers from user space, but control and other priviledged regsiters can be accessed only through kernel space. So, we can access those using kernel modules.
+--------------
+
+Theory7:
+-Wall
+============
+
+The option -Wall enables all compiler’s warning messages. This option is recommended to generate better code.
+
+--save-temps
+==============
+
+We know our C Code goes through four stages: Preprocessing, compiling, assembling and linking
+gcc creates many intermediate files for each stage
+By default gcc deletes these intermediate files. 
+You can instruct gcc to avoid deleting intermediate files passing '--save-temps' option to it. So, it will save all these files and won't delete those.
+
+-g
+================
+
+Adds debugging symbols

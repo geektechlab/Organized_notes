@@ -1,0 +1,10 @@
+ktime_t conversion functions
+----------------------------------
+
+ktime_t timespec_to_ktime(struct timespec tspec);
+
+static inline ktime_t timespec_to_ktime(struct timespec ts)
+{
+        return ktime_set(ts.tv_sec, ts.tv_nsec);
+}
+

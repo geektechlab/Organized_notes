@@ -1,0 +1,3 @@
+we want to add a snooze function to our alarm. If the user enters Ctrl-c then we want to reset the alarm to 5 seconds before buzzing again, like snooze. We can easily add a signal handler to do that.
+
+what happens if I type Ctrl-C multiple times, how long will it snooze? The anser is, only one alarm may be schedule at one time. Calling alarm() again will reset any previous alarms, so the answer to the questions is that the previous alarm is replaced and subsequent snoozes only resets the previous snooze back to 5 seconds.

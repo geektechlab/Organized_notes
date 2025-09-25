@@ -1,0 +1,22 @@
+HZ
+--------
+
+We know Linux works with timer interrupt.
+
+But how often should the interrupt trigger?
+------------------------------------------
+
+The frequency of the timer interrupt is programmed on system boot based on static preprocessor define HZ.
+
+Example: If HZ = 100, Frequency = 100 hz, interrupt happens every 1/100 of second = 10ms
+
+The value of HZ differs for each supported architecture.
+
+Kernel defines the value in <asm/param.h>
+
+$ vi include/asm-generic/param.h
+
+How to check the value of HZ in the terminal?
+=================================================
+
+$ grep 'CONFIG_HZ=' /boot/config-$(uname -r)

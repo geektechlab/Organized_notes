@@ -1,0 +1,14 @@
+F_DUPFD
+=================
+
+Duplicate the file descriptor fd.
+
+The new file descriptor is returned as the value of the function.
+
+It is the lowest-numbered descriptor that is not already open, and that is greater than or equal to the third argument (taken as an integer).
+
+The new descriptor shares the same file table entry as fd.
+
+The dup() function provides an alternative interface to the service provided by fcntl() using the F_DUPFD command. The call dup(fildes) shall be equivalent to:
+
+fcntl(fildes, F_DUPFD, 0);

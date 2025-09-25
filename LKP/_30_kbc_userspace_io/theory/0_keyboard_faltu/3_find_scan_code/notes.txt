@@ -1,0 +1,9 @@
+How to find out the scan code of each key?
+===========================================
+
+1. Switch to Virtual Console (CTRL+ALT+F3)
+2. Type showkey --scancodes
+3. Type any key, it'll print its scancode in hexadecimal
+4. To exit, just wait for 10 seconds
+
+Note: you must switch to virtual console for this to work. Normal terminal won't work.

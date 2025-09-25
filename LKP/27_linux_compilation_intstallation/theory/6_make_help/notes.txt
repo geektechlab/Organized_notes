@@ -1,0 +1,13 @@
+make help
+==============
+
+	gives a quick listing of all of the make targets
+
+help is divided into two parts
+
+	1. First part is hard coded
+	2. Second part changes based on the architecture
+
+$ make ARCH=arm help
+$ make ARCH=powerpc help
+$ make ARCH=blackfin help

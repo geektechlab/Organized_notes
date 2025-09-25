@@ -1,0 +1,10 @@
+same as previous but with use of malloc. also check how kernel module gets attached to user space and device
+
+steps:
+build kernel module
+load using insmod
+then do sudo chmod 666 /dev/mydevice
+run userapp
+check logs as well as dmesg
+
+check what type of device it is ? charactor or block ?

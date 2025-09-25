@@ -1,0 +1,23 @@
+Waiting for Completion
+==========================
+
+For a thread to wait for some concurrent activity to finish, it calls wait_for_completion() on the initialized completion structure
+
+    void wait_for_completion(struct completion *done);
+
+When some other part of your code has decided that the completion has happened, it can wake up anybody
+
+    void complete(struct completion *comp);
+
+A typical usage scenario is:
+
+    CPU#1                                   CPU#2
+
+    struct completion setup_done;
+
+    init_completion(&setup_done);
+    initialize_work(...,&setup_done,...);
+
+    /* run non-dependent code */            /* do setup */
+
+    wait_for_completion(&setup_done);       complete(setup_done);

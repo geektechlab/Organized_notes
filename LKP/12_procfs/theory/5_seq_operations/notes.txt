@@ -1,0 +1,39 @@
+seq_file
+=============
+
+It is not that hard to make a /proc file which returns a string ( e.g. /proc/uptime )
+
+But life gets trickier if the output is long - anything greater than an application is likely to read in a single operation.
+
+Handling multiple reads (and seeks) requires careful attention to the reader's position within the virtual file - that position is, likely as not, in the middle of a line of output.
+
+So to help people writing /proc file, there is an API named seq_file that helps formating a /proc file for output.
+
+Header File: #include <linux/seq_file.h>
+
+the seq file interface views the contents of /proc files as a sequence of objects
+
+Programming interfaces are provided to iterate through this object sequence:
+	start(), 
+	next(), and 
+	stop().
+
+1.start() is called first by the seq interface. This iterator method initializes the position within the iterator sequence and returns the first iterator object of interest.
+
+2.next() increments the iterator position and returns a pointer to the next iterator. This function is agnostic to the internal structure of the iterator and considers it opaque.
+
+3.show() interprets the iterator passed to it and generates output strings to be displayed when a user reads the corresponding /proc file. This method makes use of helpers like seq_printf(), seq_putc() and seq_puts() to format the output.
+
+4.stop(), which is called at the end to clean up.
+
+The seq file interface automatically invokes these iterator methods to produce output in response to user operations on related /proc files. Using the seq file interface, you do not have to worry about page-sized buffers and signaling end of data.
+
+seq_printf(), which works pretty much like printk(), but which requires the seq_file pointer as an argument.
+
+1. A sequence begins with the call of the function start().
+2. If the return is a non NULL value, the function next() is called
+3. This function is an iterator, the goal is to go thought all the data. 
+4. Each time next() is called, the function show() is also called.
+5. It writes data values in the buffer read by the user.
+6. The function next() is called until it returns NULL. 
+7. The sequence ends when next() returns NULL, then the function stop() is called.

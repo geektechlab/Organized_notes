@@ -1,0 +1,6 @@
+complete_all
+===============
+
+void complete_all(struct completion *);
+
+complete_all, wakes up all processing waiting for the completion.

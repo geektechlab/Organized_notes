@@ -1,0 +1,18 @@
+Where i can find the list of X86 I/O ports?
+============================================
+
+You can find them in the chipset documentation.
+
+Port I/O access are handled by the Controller Hub (ICH/PCH) 
+
+Example: Intel® 7 Series Chipset Family PCH Datasheet (Section 9.3 I/O Map)
+
+I/O Address space consists of two ranges or types of access
+
+1. Fixed:
+
+	Addresses/peripherals cannot be relocated
+
+2. Variable:
+
+	These addresses can be relocated (The BIOS (and/or other PCI devices or ACPI) can adjust these values)

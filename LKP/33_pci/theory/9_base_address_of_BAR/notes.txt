@@ -1,0 +1,10 @@
+Get the Base Address of BAR:
+============================
+
+When you want to retrieve the actual base address of a BAR, be sure to mask the lower bits
+
+For 32-Bit Memory Space BARs, you calculate (BAR[x] & 0xFFFFFFF0)
+
+For 64-Bit Memory Space BARs, you calculate ((BAR[x] & 0xFFFFFFF0) + ((BAR[x+1] & 0xFFFFFFFF) << 32))
+
+For I/O Space BARs, you calculate (BAR[x] & 0xFFFFFFFC)

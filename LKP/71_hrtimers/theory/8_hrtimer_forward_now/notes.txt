@@ -1,0 +1,7 @@
+hrtimer_forward_now
+---------------------
+
+Forward the timer expiry so it will expire after the current time of the hrtimer clock base. Returns the number of overruns
+
+static inline u64 hrtimer_forward_now(struct hrtimer *timer,
+                                      ktime_t interval);

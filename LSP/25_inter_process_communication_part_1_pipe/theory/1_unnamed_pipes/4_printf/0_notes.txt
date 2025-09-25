@@ -1,0 +1,8 @@
+Want to use pipes with printf and scanf? Use fdopen!
+======================================================
+
+POSIX file descriptors are simple integers 0,1,2,3...
+
+At the C library level, C wraps these with a buffer and useful functions like printf and scanf, so we that we can easily print or parse integers, strings etc. 
+
+If you already have a file descriptor then you can 'wrap' it yourself into a FILE pointer using fdopen

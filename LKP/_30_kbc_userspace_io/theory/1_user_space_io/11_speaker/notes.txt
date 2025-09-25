@@ -1,0 +1,8 @@
+Speaker
+============
+
+Port 0x61: Speaker
+
+Enabling the speaker
+=========================
+Switch on bit 0 and 1 on port 0x61

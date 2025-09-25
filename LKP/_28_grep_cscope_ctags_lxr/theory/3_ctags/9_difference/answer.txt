@@ -1,0 +1,12 @@
+Differences between ctags and cscope
+======================================
+
+Differences between two are small
+
+1. With ctags, you can use autocomplete for function/variable names. cscope doesn't provide this feature
+
+2. ctags allows you to jump from function calls to their definitions using ctrl + ]. There are no key bindings for cscope by default, you need to add it manually in ~/.vimrc file
+
+3. cscope allows you to list all the instances where a function is called.
+
+4. Cscope is great for bigger, unknown code bases.

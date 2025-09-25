@@ -1,0 +1,18 @@
+Thundering Herd Problem
+==============================
+
+	When a process calls wake_up on a wait queue, all processes waiting on the wait queue are made runnable.
+
+	Consider a scenario in which a set of processes are sleeping on wait queue, wanting to acquire lock.
+
+	--->	The process that has acquired the lock is done with it, releases the lock
+
+	--->	All the processes that are sleeping for it will wake up
+
+	--->	All processes try to grab lock
+
+	--->	Only one of these acquires the lock and the rest goes back to sleep
+
+	If the number of procesess in the wait queue is large, it seriously degrades the performance of system.
+
+	As, it consumes valuable CPU cycles and incur context-switching overheads.

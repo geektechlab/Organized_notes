@@ -1,0 +1,38 @@
+What is a thread?
+=====================
+
+A thread is a sequence of instructions within a process that can be executed independently of other code. 
+
+Multiple threads within one process share
+	Heap
+	Data 
+	Code
+	open files (descriptors)
+	signals and signal handlers
+	current working directory
+	User and group id
+
+Each thread will have its own
+	Thread ID
+	set of registers, stack pointer
+	stack for local variables, return addresses
+	signal mask
+	priority
+
+Advantages of Threads
+======================
+
+--->	Useful when you want to make a program appear to do two things at once
+	E.g. Real time word count on a document while still editing the text. One thread can manage the user's input and perform editing. The other thread will continuously update a word count variable
+
+--->	Better utilization of hardware resources
+	We have laptops and desktops containing CPU's with multiple cores, using multiple threads inside a process can better utilize the hardware resources.
+
+--->	Context switch between threads is faster when compared to the context switch between processes ( add reason from Divy's message )
+
+Drawbacks of Threads
+=====================
+
+--->	We should carefully design multithreaded programs as most of the resources of the process are shared
+
+--->	Debugging a multithreaded program is much, much harder than debugging a single-thread program.

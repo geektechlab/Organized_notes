@@ -1,0 +1,88 @@
+Blocking Signals
+=================
+
+Blocking a signal means telling the operating system to hold it and deliver it later when it is unblocked
+
+Between the time when it is generated and when it is delivered a signal is said to be pending.
+
+Generally, a program does not block signals indefinitely - it might as well ignore them by setting their actions to SIG_IGN.
+
+Is Blocking a signal similar to Ignoring a signal ?
+===================================================
+
+No, blocking a signal is different from ignoring a signal. 
+
+When a process blocks a signal, the operating system does not deliver the signal until the process unblocks the signal
+
+A process blocks a signal by modifying its signal mask with sigprocmask. 
+
+But when a process ignores a signal, the signal is delivered and the process handles it by throwing it away.
+
+How Blocking Signals is Useful ?
+==================================
+
+Temporary blocking of signals with sigprocmask gives you a way to prevent interrupts during critical parts of your code. 
+
+If signals arrive in that part of the program, they are delivered later, after you unblock them.
+
+All signal blocking functions use a data structure called a signal set to specify what signals are affected. 
+
+Thus, every activity involves two stages: 
+	1. creating the signal set, and
+	2. then passing it as an argument to a library function.
+
+Header File: signal.h
+
+The sigset_t data type is used to represent a signal set.
+
+#include <signal.h>
+
+int sigemptyset(sigset_t *set);
+sigemptyset function initializes the signal set given by set to empty, with all signals excluded from the set.
+
+int sigfillset(sigset_t *set);
+sigfillset function initializes set to full, including all signals.
+
+int sigaddset(sigset_t *set, int signum);
+
+int sigdelset(sigset_t *set, int signum);
+sigaddset and sigdelset functions add and delete respectively signal signum from set.
+
+int sigismember(const sigset_t *set, int signum);
+sigismember function tests whether signum is a member of set.
+
+Objects of type sigset_t must be initialized by a call to either sigemptyset or sigfillset before being passed to the functions sigaddset, sigdelset and sigismember.
+
+For more information : man 3 sigsetops
+
+Signal Mask
+===============
+The collection of signals that are currently blocked is called the signal mask. 
+
+Each process has its own signal mask. When you create a new process, it inherits its parent's mask. 
+
+You can block or unblock signals with total flexibility by modifying the signal mask.
+
+#include <signal.h>
+
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+
+int how  
+	defines if we want to 
+		SIG_BLOCK - block the signals in the set list
+		SIG_UNBLOCK - unblock the signals in the set list or 
+		SIG_SETMASK - blocks the signals in the list, and unblocks the ones that aren't set in the list
+
+const sigset_t *set
+	The set of signals to be blocked, or to be added to the current mask, or removed from the current mask (depending on the 'how' parameter)
+
+sigset_t *oldset
+	If this parameter is not NULL, then it'll contain the previous mask. We can later use this set to restore the situation back to how it was before we called sigprocmask().
+
+sigprocmask system call can be used to fetch and/or manipulate the signal mask of the calling thread.
+
+how determines what operation to be performed on the signal mask.
+If oldset is non-null, the previous value of the signal mask is stored in oldset.
+set determines list of signals to be set in blocking state.
+
+Signals, such as SIGSTOP and SIGKILL, cannot be blocked. If an attempt is made to block these signals, the system ignores the request without reporting an error.

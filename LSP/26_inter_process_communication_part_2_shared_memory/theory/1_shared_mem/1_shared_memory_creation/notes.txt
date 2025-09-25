@@ -1,0 +1,31 @@
+shm_open
+==============
+
+shm_open() is the shared memory object anology of open()
+
+It creates a shared memory object with the specified name or opens an existing shared memory object from the specified name
+
+int shm_open(const char *name, int flag, mode_t mode);
+
+The first argument name must start with a slash / character and continue with several non-slash characters. 
+
+The second argument flag can be the combination of O_RDONLY, O_RDWR, O_CREAT, and/or O_EXCL.
+
+The third argument mode is the file permission of the created shared memory object.
+
+If O_CREAT is not specified or the shared memory object exists, then mode is ignored.
+
+shm_unlink
+==============
+
+Shared memory objects are kernel persistent. 
+
+Unless they are deleted, they are kept until the computer reboots.
+
+shm_unlink() is the shared memory object anology of unlink()
+
+int shm_unlink(const char *name);
+
+The first argument name is the name of the shared memory object which you would like to delete.
+
+Compile and link the code with -lrt

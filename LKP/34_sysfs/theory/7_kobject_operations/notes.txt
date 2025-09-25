@@ -1,0 +1,33 @@
+kobject Operations
+===================
+
+kobject_init
+------------
+
+void kobject_init(struct kobject *kobj, struct kobj_type *ktype);
+
+Initialize a kobject structure.
+
+kobj --> kobject to initialize
+
+Before calling this function, the kobject must be zeroed.
+
+struct kobject *kobj;
+kobj = kmalloc(sizeof (*kobj), GFP_KERNEL);
+if (!kobj)
+	return -ENOMEM;
+memset(kobj, 0, sizeof (*kobj));
+kobj->kset = my_kset;
+kobject_init(kobj, my_ktype);
+
+kobject_create
+---------------
+
+The above multistep effort is handled by kobject_create()
+
+struct kobject * kobject_create(void);
+
+struct kobject *kobj;
+kobj = kobject_create();
+if (!kobj)
+	return –ENOMEM;

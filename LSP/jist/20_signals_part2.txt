@@ -1,0 +1,276 @@
+Theory0:
+The default action for things like SIGSEGV is to terminate your process but as you've installed a handler for it, it'll call your handler overriding the default behavior. 
+
+But the problem is segfaulting instruction may be retried after your handler finishes and if you haven't taken measures to fix the first seg fault, the retried instruction will again fault and it goes on and on. So, in this program when we execute, it continously goes into sighandler.
+
+Can multiple signals be queued?
+=================================
+
+No - however it is possible to have signals that are in a pending state.
+
+If a signal is pending, it means it has not yet been delivered to the process.
+
+The most common reason for a signal to be pending is that the process (or thread) has currently blocked that particular signal.
+
+If a particular signal, e.g. SIGINT, is pending then it is not possible to queue up the same signal again.
+
+It is possible to have more than one signal of a different type in a pending state. For example SIGINT and SIGTERM signals may be pending (i.e. not yet delivered to the target process)
+
+The signal() function returns a pointer to the previous signal handler, which means that here, again, is a system call that we cannot error check in the typical way, by checking if the return value is less than 0. This is because a pointer type is unsigned, there is no such thing as negative pointers.
+
+Instead, a special value is used SIG_ERR which we can compare the return value of signal(). 
+
+Theory1:
+A SIGALRM signal is delivered by the Operating System via a request from the user occuring after some amount of time.
+
+To request an alarm, use the alarm() system call:
+
+unsigned int alarm(unsigned int seconds);
+
+After seconds have passed since requesting the alarm(), the SIGALRM signal is delivered. 
+
+The default behavior of SIGALRM is to terminate, so we can catch and handle the signal, leading to a nice hello world program
+
+The pause() call will "pause" the program until a signal is delivered and handled. Pausing is an effective way to avoid busy waiting, e.g., while(1);, because the process is suspended during a pause and awoken following the return of the signal handler.
+
+Theory2:
+Alarm can be set continually, but only one alarm is allowed per process. 
+Subsequent calls to alarm() will reset the previous alarm. 
+
+Suppose, now, that we want to write a program that will continually alarm every 1 second, we would need to reset the alarm once the signal is delivered. The natural place to do that is in the signal handler
+
+Theory3:
+we want to add a snooze function to our alarm. If the user enters Ctrl-c then we want to reset the alarm to 5 seconds before buzzing again, like snooze. We can easily add a signal handler to do that.
+
+what happens if I type Ctrl-C multiple times, how long will it snooze? The anser is, only one alarm may be schedule at one time. Calling alarm() again will reset any previous alarms, so the answer to the questions is that the previous alarm is replaced and subsequent snoozes only resets the previous snooze back to 5 seconds.
+
+Theory4:
+how might we unschedule a previously scheduled alarm. The way to do that is by scheduling an alarm for 0 seconds, alarm(0). For example, we can finish our alarm clock by adding an "off" switch that listens for Ctrl-\ or SIGQUIT, which will unschedule the alarm and reset the signal handler for Ctrl-c back to the default.
+
+Theory5:
+Blocking Signals
+=================
+
+Blocking a signal means telling the operating system to hold it and deliver it later when it is unblocked
+
+Between the time when it is generated and when it is delivered a signal is said to be pending.
+
+Generally, a program does not block signals indefinitely - it might as well ignore them by setting their actions to SIG_IGN.
+
+Is Blocking a signal similar to Ignoring a signal ?
+===================================================
+
+No, blocking a signal is different from ignoring a signal. 
+
+When a process blocks a signal, the operating system does not deliver the signal until the process unblocks the signal
+
+A process blocks a signal by modifying its signal mask with sigprocmask. 
+
+But when a process ignores a signal, the signal is delivered and the process handles it by throwing it away.
+
+How Blocking Signals is Useful ?
+==================================
+
+Temporary blocking of signals with sigprocmask gives you a way to prevent interrupts during critical parts of your code. 
+
+If signals arrive in that part of the program, they are delivered later, after you unblock them.
+
+All signal blocking functions use a data structure called a signal set to specify what signals are affected. 
+
+Thus, every activity involves two stages: 
+	1. creating the signal set, and
+	2. then passing it as an argument to a library function.
+
+Header File: signal.h
+
+The sigset_t data type is used to represent a signal set.
+
+#include <signal.h>
+
+int sigemptyset(sigset_t *set);
+sigemptyset function initializes the signal set given by set to empty, with all signals excluded from the set.
+
+int sigfillset(sigset_t *set);
+sigfillset function initializes set to full, including all signals.
+
+int sigaddset(sigset_t *set, int signum);
+
+int sigdelset(sigset_t *set, int signum);
+sigaddset and sigdelset functions add and delete respectively signal signum from set.
+
+int sigismember(const sigset_t *set, int signum);
+sigismember function tests whether signum is a member of set.
+
+Objects of type sigset_t must be initialized by a call to either sigemptyset or sigfillset before being passed to the functions sigaddset, sigdelset and sigismember.
+
+For more information : man 3 sigsetops
+
+Signal Mask
+===============
+The collection of signals that are currently blocked is called the signal mask. 
+
+Each process has its own signal mask. When you create a new process, it inherits its parent's mask. 
+
+You can block or unblock signals with total flexibility by modifying the signal mask.
+
+#include <signal.h>
+
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+
+int how  
+	defines if we want to 
+		SIG_BLOCK - block the signals in the set list
+		SIG_UNBLOCK - unblock the signals in the set list or 
+		SIG_SETMASK - blocks the signals in the list, and unblocks the ones that aren't set in the list
+
+const sigset_t *set
+	The set of signals to be blocked, or to be added to the current mask, or removed from the current mask (depending on the 'how' parameter)
+
+sigset_t *oldset
+	If this parameter is not NULL, then it'll contain the previous mask. We can later use this set to restore the situation back to how it was before we called sigprocmask().
+
+sigprocmask system call can be used to fetch and/or manipulate the signal mask of the calling thread.
+
+how determines what operation to be performed on the signal mask.
+If oldset is non-null, the previous value of the signal mask is stored in oldset.
+set determines list of signals to be set in blocking state.
+
+Signals, such as SIGSTOP and SIGKILL, cannot be blocked. If an attempt is made to block these signals, the system ignores the request without reporting an error.
+
+For instance, assume that the old blocking list was {SIGSEGV, SIGSUSP} and you call sigprocmask with these arguments:
+
+sigset_t x;
+sigemptyset (&x);
+sigaddset(&x, SIGUSR1);
+sigprocmask(SIG_BLOCK, &x, NULL)
+
+The new blocking list will now be {SIGSEGV, SIGSUSP, SIGUSR1}.
+
+If you call sigprocmask with these arguments now:
+
+sigprocmask(SIG_UNBLOCK, &x, NULL)
+
+The new blocking list will go back to being {SIGSEGV, SIGSUSP}.
+
+If you call sigprocmask with these arguments now:
+
+sigprocmask(SIG_SETMASK, &x, NULL)
+
+The new blocking list will now be set to {SIGUSR1}.
+
+The oldset argument tells you what the previous blocking list was. If we have this declaration:
+
+sigset_t y;
+
+and we call the code in the previous examples like this:
+
+    sigprocmask(SIG_BLOCK, &x, &y)
+now we have:
+
+y == {SIGSEGV, SIGSUSP}
+
+If we now do:
+
+    sigprocmask(SIG_UNBLOCK, &x, &y)
+
+we'll get
+
+y == {SIGSEGV, SIGSUSP, SIGUSR1}
+
+and if we do:
+
+sigprocmask(SIG_SET, &x, &y)
+
+we'll get this:
+
+y == {SIGSEGV, SIGSUSP}
+
+because this is the previous value of the blocking set.
+
+Theory6:
+Can multiple signals be queued?
+=================================
+
+No - however it is possible to have signals that are in a pending state.
+
+If a signal is pending, it means it has not yet been delivered to the process.
+
+The most common reason for a signal to be pending is that the process (or thread) has currently blocked that particular signal.
+
+If a particular signal, e.g. SIGINT, is pending then it is not possible to queue up the same signal again.
+
+It is possible to have more than one signal of a different type in a pending state. For example SIGINT and SIGTERM signals may be pending (i.e. not yet delivered to the target process)
+
+What happens during fork?
+=========================
+
+The child process inherits a copy of the parent process's signal disposition and a copy of the parent's signal mask.
+
+For example if SIGINT is blocked in the parent it will be blocked in the child too. For example if the parent installed a handler (call-back function) for SIG-INT then the child will also perform the same behavior.
+
+Pending signals however are not inherited by the child.
+
+What happens during exec?
+=============================
+
+Both the signal mask and the signal disposition carries over to the exec-ed program. 
+
+Pending signals are preserved as well. Signal handlers are reset, because the original handler code has disappeared along with the old process.
+
+Theory7:
+#include <signal.h>
+
+int sigpending(sigset_t *set);
+
+sigpending()  returns  the set of signals that are pending for delivery to the calling thread (i.e., the signals which have been raised while blocked).  The mask of pending signals is returned in set.
+
+Theory8:
+The main problem with this program is that, there is a time window, between unblocking of signal and pause, in which the signal can be received. 
+
+sigprocmask(SIG_SETMASK,&mask2,NULL);
+
+//window in which the signal could be received 
+
+pause();
+
+To test this problem, send the SIGINT from the terminal before the critical section 1 ends, i.e. when the process is in sleep inside first critical section
+
+We are passing original process mask, which doesn't mask SIGINT,  in sigsuspend function. 
+
+sigsuspend pauses the process and can only return if any of the signal, which is not in mask2, is received and its signal handler is executed. 
+
+So, sigsuspend will return upon receival of SIGINT . 
+
+When sigsuspend returns it resets the sigmask for the process to the mask just before when sigsuspend executed. In this case the SIGINT will be blocked again before execution of second critical section starts.
+
+#include <signal.h>
+
+int sigsuspend(const sigset_t *mask);
+
+sigsuspend() temporarily replaces the signal mask of the calling process with the mask given by mask and
+then suspends the process until delivery of a signal whose action is to invoke a signal  handler  or  to
+terminate a process.
+
+In other words, the program is effectively suspended until one of the signals that is not a member of set arrives.
+
+Pause vs Sigsuspend
+======================
+
+sigsuspend and pause, both do the same work, they pause or temporarily stops the process until they receive some signal. 
+
+These functions return, once the signal handling of the signal is complete.
+
+A small difference between these functions is that, in sigsuspend, we can specify the signal mask to which the function should not listen. 
+
+Suppose we implement the sigsuspend in the following manner
+
+sigset_t tempmask; sigemptyset(&tempmask); sigaddset(&tempmask,SIGINT); sigsuspend(&tempmask);
+
+Now, in the above code, we have specified the sigsuspend function to listen for every signal except SIGINT.
+
+When sigsuspend receives any other signal than SIGINT, it returns.
+
+Theory9:
+What happens when a signal is received while already in a signal handler?
+=========================================================================
+the signal is delivered after the signal handler has finished 

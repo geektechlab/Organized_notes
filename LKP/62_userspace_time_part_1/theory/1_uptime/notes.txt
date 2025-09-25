@@ -1,0 +1,29 @@
+How to find out how long your system is up?
+============================================
+
+Command : uptime 
+
+$ uptime
+ 19:33:25 up  2:52,  1 user,  load average: 0.08, 0.05, 0.01
+
+Output Explanation
+===================
+
+19:33:25 --- is the current UNIX time
+
+up 2:52 --- how long the system has been running
+
+1 user  --- number of users currently logged in
+
+load average: 0.08, 0.05, 0.01 --- the average CPU load (average number of jobs in your system's run queue)for the 1, 5 and 15 minutes
+
+Interpreting load average
+============================
+
+If the averages are 0.0, then your system is idle.
+
+If the 1 minute average is higher than the 5 or 15 minute averages, then load is increasing.
+
+If the 1 minute average is lower than the 5 or 15 minute averages, then load is decreasing.
+
+If they are higher than your CPU count, then you might have a performance problem

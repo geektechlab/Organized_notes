@@ -1,0 +1,117 @@
+Theory0:
+/* workqueue runs in process context. tasklet and softirq runs interrupt context */
+
+Theory1:
+/* irqs are not disable in workqueue because it runs in process context */
+
+Theory2:
+Cancelling work
+----------------
+
+Work items can not be enabled/disabled but they can be canceled by calling cancel_work_sync()
+
+bool cancel_work_sync(struct work_struct *work);
+
+The call only stops the subsequent execution of the work item.
+
+If the work item is already running at the time of the call, it will continue to run
+
+Return
+-------
+	true	-	if work was pending
+	false	-	otherwise
+
+Theory3:
+/* adding sleep will cause waiting */
+
+Theory4:
+/* work queues will get executed in same order in which those got queued */
+
+Theory5:
+Flushing work
+--------------------
+
+bool flush_work(struct work_struct *work)
+
+	wait for a work to finish executing the last queueing instance
+
+returns true if waited for the work to finish execution, false if it was already idle
+
+Theory6:
+Delayed work
+--------------
+
+Workqueue API allows you to queue work tasks whose execution is guaranteed to be delayed at least until a specified timeout.
+
+This is achieved by binding a work task with a timer, which can be initialized with an expiry timeout, until which time the work task is not scheduled into the queue
+
+struct delayed_work {
+        struct work_struct work;
+        struct timer_list timer;
+
+        /* target workqueue and CPU ->timer uses to queue ->work */
+        struct workqueue_struct *wq;
+        int cpu;
+};
+
+timer is an instance of a dynamic timer descriptor, which is initialized with the expiry interval and armed while scheduling a work task
+
+Initialization
+---------------
+
+Static:
+----------
+
+DECLARE_DELAYED_WORK(name, void(*function)(struct work_struct *));
+
+Dynamic:
+-----------
+
+INIT_DELAYED_WORK(struct delayed_work *work, void(*function)(struct work_struct *));
+
+Scheduling
+------------
+
+bool schedule_delayed_work(struct delayed_work *dwork,
+                                         unsigned long delay);
+
+bool schedule_delayed_work_on(int cpu, struct delayed_work *dwork,
+                                            unsigned long delay);
+
+delay needs to be provided in jiffies
+
+Theory7:
+bool flush_delayed_work(struct delayed_work *dwork);
+
+delayed timer is cancelled and the pending work is queued for immediate execution
+
+Theory8:
+cancel delayed work
+------------------
+
+bool cancel_delayed_work(struct delayed_work *dwork)
+
+Theory9:
+Differences between Tasklets, softirqs and Workqueues
+========================================================
+              ------------------------------------------------------------------------------
+              Softirqs                        Tasklets                           Workqueues
+              -----------------------------------------------------------------------------
+Execution     Interrupt context               Interrupt Context                  Process Context
+Context
+----------------------------------------------------------------------------------------------------------------
+Reentrancy    Yes(can run simultaneously      Cannot run same tasklets           Yes (can run simultaneously
+              on different CPUs)              on different CPUs. Different       on different CPUs)
+                                              CPUs can run different tasklets
+--------------------------------------------------------------------------------------------------------------
+Sleep         Cannot sleep                    Cannot Sleep                       Can Sleep
+--------------------------------------------------------------------------------------------------------------
+Preemption    Cannot be preempted/scheduled   Cannot be preempted/scheduled      May be preempted/scheduled
+-----------------------------------------------------------------------------------------------------------
+Ease of use   Not easy to use                 Easy to use                        Easy to use
+-------------------------------------------------------------------------------------------------------------
+When to use   If deferred work will not       If deferred work will not go       If deferred work needs to sleep
+              go to sleep and have crucial    to sleep
+              scalability or speed
+              requirements
+----------------------------------------------------------------------------------------------------------------

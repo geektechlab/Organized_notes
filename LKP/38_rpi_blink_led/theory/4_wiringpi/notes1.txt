@@ -1,0 +1,31 @@
+Setting pin as input/output
+===========================
+
+GPFSEL register allows you to set a particular functionality of GPIO Pin.(input/output/alternate functionality)
+
+GPFSEL registers are organised per 10 pins.
+
+So one 32-bit register contains the setup bits for 10 pins.
+
+GPFSEL0 -- GPIO0  -  GPIO9
+GPFSEL1 -- GPIO10 -  GPIO19
+...
+...
+...
+GPFSEL5 -- GPIO50 - GPIO53
+
+To get the gpf address of a particular pin = GPFSEL0 Address + (pin/10)
+Example for GPI012 = GPFSEL0 Address + 1 = GPFSEL1 Address
+
+There are three GPFSEL bits per pin
+000 = GPIO Pin x is an input
+001 = GPIO Pin x is an output
+100 = GPIO Pin x takes alternate function 0
+101 = GPIO Pin x takes alternate function 1
+110 = GPIO Pin x takes alternate function 2
+111 = GPIO Pin x takes alternate function 3
+011 = GPIO Pin x takes alternate function 4
+010 = GPIO Pin x takes alternate function 5
+
+Location of these three bits for each GPIO Pin can be calculated by (pin%10)*3
+Example for GPIO12 = (12%10)*3 = 2 * 3 = 6 (Bits 6 to 8)

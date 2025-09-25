@@ -1,0 +1,6 @@
+Autobind
+=============
+
+Autobind feature If a bind(2) call specifies addrlen as sizeof(sa_family_t),or the SO_PASSCRED socket option was specified for a socket that was not explicitly bound to an address,then the socket is autobound to an abstract address. 
+
+The address consists of a null byte followed by 5 bytes in the character set [0-9a-f].

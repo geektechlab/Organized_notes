@@ -1,0 +1,5 @@
+The Timestamp Counter is a 64-bit internal register which is present in all Intel processors after the Pentium.
+
+It stores the number of cycles executed by the CPU after the latest reset.
+
+The time-stamp counter can be read by software using the RDTSC instruction

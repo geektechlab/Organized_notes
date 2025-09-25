@@ -1,0 +1,8 @@
+static inline void reinit_completion(struct completion *x)
+{
+        x->done = 0;
+}
+
+This inline function should be used to reinitialize a completion structure so it can be reused. This is especially important after complete_all() is used.
+
+Calling init_completion() on the same completion object twice is most likely a bug

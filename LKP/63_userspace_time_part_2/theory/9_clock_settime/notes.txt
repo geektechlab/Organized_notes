@@ -1,0 +1,6 @@
+clock_settime
+================
+
+The function clock_settime() sets the the time of the specified clock clk_id
+
+int clock_settime(clockid_t clk_id, const struct timespec *tp);

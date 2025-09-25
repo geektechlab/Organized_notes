@@ -1,0 +1,25 @@
+xconfig	  - Update current config utilising a Qt based front-end
+gconfig	  - Update current config utilising a GTK+ based front-end
+nconfig   - Update current config utilising a ncurses menu based program
+allnoconfig	  - New config where all options are answered with no
+allyesconfig	  - New config where all options are accepted with yes
+allmodconfig	  - New config selecting modules when possible
+alldefconfig    - New config with all symbols set to default
+randconfig	  - New config with random answer to all options
+savedefconfig     - Save current config as ./defconfig (minimal config)
+localmodconfig  - Update current config disabling modules not loaded
+localyesconfig  - Update current config converting local mods to core
+
+diffconfig
+=============
+
+Diffconfig is a simple utility for comparing two .config files
+
+diffconfig .config config_with_changes
+
+./scripts/diffconfig .config.old .config
+
+.config.old
+============
+
+.config.old is created when you run the make *config second time, kbuild copies the current .config into .config.old, then update .config

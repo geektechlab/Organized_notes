@@ -1,0 +1,36 @@
+Header File: <linux/completion.h>
+
+Data Structure: struct completion
+
+struct completion {
+        unsigned int done;
+        wait_queue_head_t wait;
+};
+
+wait --> wait queue to place tasks on for waiting
+
+done --> indicating whether it is completed or not
+
+Usage:
+------------
+
+There are three main parts to using completions:
+
+1. the initialization of the 'struct completion' synchronization object
+
+2. the waiting part through a call to one of the variants of wait_for_completion(),
+
+3. the signaling side through a call to complete() or complete_all().
+
+Initialization
+=================
+
+Static:		DECLARE_COMPLETION(my_comp);
+
+Dynamic:	init_completion(&my_comp);
+
+In initialization:
+
+	1. we initialize the waitqueue
+
+	2. set done to 0, i.e. "not completed" or "not done".

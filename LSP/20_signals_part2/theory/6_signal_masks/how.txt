@@ -1,0 +1,49 @@
+For instance, assume that the old blocking list was {SIGSEGV, SIGSUSP} and you call sigprocmask with these arguments:
+
+sigset_t x;
+sigemptyset (&x);
+sigaddset(&x, SIGUSR1);
+sigprocmask(SIG_BLOCK, &x, NULL)
+
+The new blocking list will now be {SIGSEGV, SIGSUSP, SIGUSR1}.
+
+If you call sigprocmask with these arguments now:
+
+sigprocmask(SIG_UNBLOCK, &x, NULL)
+
+The new blocking list will go back to being {SIGSEGV, SIGSUSP}.
+
+If you call sigprocmask with these arguments now:
+
+sigprocmask(SIG_SETMASK, &x, NULL)
+
+The new blocking list will now be set to {SIGUSR1}.
+
+The oldset argument tells you what the previous blocking list was. If we have this declaration:
+
+sigset_t y;
+
+and we call the code in the previous examples like this:
+
+    sigprocmask(SIG_BLOCK, &x, &y)
+now we have:
+
+y == {SIGSEGV, SIGSUSP}
+
+If we now do:
+
+    sigprocmask(SIG_UNBLOCK, &x, &y)
+
+we'll get
+
+y == {SIGSEGV, SIGSUSP, SIGUSR1}
+
+and if we do:
+
+sigprocmask(SIG_SET, &x, &y)
+
+we'll get this:
+
+y == {SIGSEGV, SIGSUSP}
+
+because this is the previous value of the blocking set.

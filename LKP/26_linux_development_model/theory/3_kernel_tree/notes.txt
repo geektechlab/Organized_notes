@@ -1,0 +1,46 @@
+Linux Kernel Trees
+=====================
+
+What is Linux Kernel Tree?
+=============================
+
+The Linux Kernel source-tree is a directory which contains all of the kernel source.
+You could build a new kernel, install that, and reboot your machine to use the rebuilt kernel. 
+
+There are several main and susbsystem git repositories of Linux Trees.
+
+https://git.kernel.org/pub/scm/linux/kernel/git/
+
+The above link lists all the trees present.
+
+Mainline Kernel Tree
+=====================
+
+Maintained by Linus Torvalds.
+This is the tree where Linux releases mainline kernels and RC releases
+
+Stable Tree
+==============
+
+Maintained by Greg Kroah-Hartman.
+This tree consists of stable release branches.
+Stable releases are based on this tree.
+
+linux-next Tree
+===============
+
+Maintained by Stephen Rothwell
+Before updates from subsystem trees are merged into the mainline tree, they need to be integration-tested.
+This tree is used for integration testing.
+
+Staging Tree
+===========
+
+Used to hold stand-alone drivers and filesystems that are not ready to be merged into main portion of
+Linux Kernel tree at this point due to coding standards or quality issues.
+
+Resolves the "hundreds of different download sites" problem that most out-of-tree drivers had in past
+
+Location: drivers/staging folder
+
+the linux-next tree contains the latest version of the staging tree

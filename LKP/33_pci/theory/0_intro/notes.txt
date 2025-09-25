@@ -1,0 +1,17 @@
+Early PC's
+=============
+
+Peripheral devices in the early PCs used fixed i/o-ports and fixed memory-addresses
+
+Video memory address-range: 0xA0000-0xBFFFF 
+Programmable timer i/o-ports:  0x40-0x43
+Keyboard and mouse i/o-ports:  0x60-0x64
+Real-Time Clock’s i/o-ports:	0x70-0x71
+Hard Disk controller’s i/o-ports:  0x01F0-01F7
+Graphics controller’s i/o-ports:  0x03C0-0x3CF
+Serial-port controller’s i/o-ports: 0x03F8-0x03FF
+Parallel-port controller’s i/o-ports: 0x0378-0x037A 
+
+Intel introduced a new bus standard PCI (Peripheral Component InterConnect) in the early 1990'S
+
+To avoid contention among equipment vendors for fixed I/O Addresses (0x0000 - 0xFFFF), one of the goals of PCI wasto create a flexible scheme for allocating addresses that future peripherals could use.

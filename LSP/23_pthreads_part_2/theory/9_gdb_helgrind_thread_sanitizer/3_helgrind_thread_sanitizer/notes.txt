@@ -1,0 +1,13 @@
+Helgrind
+=============
+
+Helgrind is a Valgrind tool for detecting synchronisation errors in C, C++ and Fortran programs that use the POSIX pthreads threading primitives.
+
+Helgrind can detect three classes of errors
+	1.Misuses of the POSIX pthreads API.
+
+	2.Potential deadlocks arising from lock ordering problems.
+
+	3.Data races -- accessing memory without adequate locking or synchronisation.
+
+$ valgrind --tool=helgrind ./app

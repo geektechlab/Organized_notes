@@ -1,0 +1,9 @@
+hrtimer_callback_running
+------------------------
+
+static inline int hrtimer_callback_running(struct hrtimer *timer);
+
+Helper function to check, whether the timer is running the callback function
+
+Return: 1 if the callback is running
+	0 if the callback is not running

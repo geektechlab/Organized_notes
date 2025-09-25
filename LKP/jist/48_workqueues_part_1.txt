@@ -1,0 +1,141 @@
+Theory0:
+Work Queues
+-----------
+
+Introduced in Linux 2.6
+
+They allow kernel functions to be activated and later executed by special kernel threads called worker threads.
+
+Worker threads run in process context. ( softirq and tasklet runs interrupt context. )
+
+It is the only choice when you need to sleep in your bottom half (I/O data, hold mutexes/semaphores and all other functions that internally sleep)
+
+Implementation: kernel/workqueue.c
+
+Design
+-----------
+
+work item: struct which hold the pointer to the function to be executed asynchronously
+
+work queue: a queue of work items
+
+Drivers add work item into the work queue
+
+Worker Threads: Special purpose threads which execute the functions from the queue, one after the other
+
+		If no work is queued, the worker threads become idle,
+
+		ps -ef | grep kworker
+
+Worker Pools:	A thread pool that is used to manage the worker threads
+
+		There are two worker-pools, 
+			one for normal work items and 
+			the other for high priority ones,
+			some extra worker-pools to serve work items queued on unbound workqueues
+
+		create_worker is the function where kthreads are created
+
+Legacy Workqueues
+------------------
+
+Legacy workqueues have dedicated threads associated with them.
+
+The new workqueues do away with that. There are no threads dedicated to any specific workqueue
+
+Instead, there is a global pool of threads attached to each CPU in the system
+
+When a work item is enqueued, it will be passed to one of the global threads at the right time
+
+Theory1:
+How a target worker pool is determined when work item is queued into workqueue?
+-------------------------------------------------------------------------------
+
+According to the queue parameters and workqueue attributes
+
+Theory2:
+Data structures
+------------------
+
+workqueue 		--	struct workqueue_struct
+work items		-- 	struct work_struct
+
+struct work_struct {
+        atomic_long_t data;
+        struct list_head entry;
+        work_func_t func;
+};
+
+func is a pointer that takes the address of the deferred routine
+
+typedef void (*work_func_t)(struct work_struct *work);
+
+Initialization of Work Items
+-----------------------------
+
+Header File: <linux/workqueue.h>
+
+Static: declare and initialize a work item
+-------
+DECLARE_WORK(name, void (*function)(void *), void *data);
+
+Dynamic: initialize an already declared work item.
+--------
+INIT_WORK(struct work_struct *work, void(*function)(struct work_struct *));
+
+Theory3:
+API's to queue Work
+--------------------
+
+This function enqueues the given work item on the local CPU workqueue, but does not guarantee its execution on it
+
+bool queue_work(struct workqueue_struct *wq, struct work_struct *work);
+
+Once queued, the function associated with the work item is executed on any of the available CPUs by the relevant
+kworker thread.
+
+To queue work on a specific CPU
+-----------------------------------
+bool queue_work_on(int cpu, struct workqueue_struct *wq,
+		struct work_struct *work)
+
+    cpu: CPU number to execute work on
+
+Return: false if work was already on a queue,
+        true otherwise.
+~                         
+
+Theory4:
+Workqueues
+--------------
+
+Workqueue API provides two types of function interfaces to
+	a) Create own workqueue
+	b) Use System Workqueue (extern struct workqueue_struct *system_wq;)
+		Header File: <linux/workqueue.h>
+
+	System workqueue is shared by all kernel subsystems and services
+
+/* workqueue doesn't guarantee that it will get scheduled on same processor */
+/* since work item is already queued, adding second time will fail */
+
+Theory5:
+Inline functions
+-----------------
+
+schedule_work - put work task in global workqueue
+
+schedule_work_on - put work task on a specific cpu
+
+static inline bool schedule_work(struct work_struct *work)
+{
+        return queue_work(system_wq, work);
+}
+
+static inline bool schedule_work_on(int cpu, struct work_struct *work)
+{
+        return queue_work_on(cpu, system_wq, work);
+}
+
+Theory6:
+Usually a work is enclosed in a larger structure (for driver private data)

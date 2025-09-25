@@ -1,0 +1,28 @@
+What is Static Linking?
+=======================
+
+Static linking is the process of copying all library modules used in the program into the final executable image.
+
+This is performed by the linker and it is done as the last step of the compilation process. 
+
+The linker combines library routines with the program code in order to resolve external references, and to generate an executable image suitable for loading into memory.
+
+Advantages:
+==================
+
+Faster than shared libraries because a set of commonly used object files is put into a single library executable file
+
+Once everything is bundled into your application, you don’t have to worry that the client will have the right library (and version) available on their system.
+
+Disadvantages:
+=====================
+
+Executable size is larger
+
+If any changes have to be made to the static library (any bug in the static library), it has to be recompiled and relinked back to the application
+
+When to use static libraries
+===============================
+
+1. When  you aren't sure whether the correct version of a library will be available at runtime
+2. You were testing a new version of a library that you don't yet want to install as shared.

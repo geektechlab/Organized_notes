@@ -1,0 +1,59 @@
+Parsing the Entry Point Table
+===============================
+
+The entry point table has the following structure for SMBIOS 2 and below (the structure is different for SMBIOS 3):
+
+ struct SMBIOSEntryPoint {
+ 	char EntryPointString[4];    //This is _SM_
+ 	uchar Checksum;              //This value summed with all the values of the table, should be 0 (overflow)
+ 	uchar Length;                //Length of the Entry Point Table. Since version 2.1 of SMBIOS, this is 0x1F
+ 	uchar MajorVersion;          //Major Version of SMBIOS
+ 	uchar MinorVersion;          //Minor Version of SMBIOS
+ 	ushort MaxStructureSize;     //Maximum size of a SMBIOS Structure (we will se later)
+ 	uchar EntryPointRevision;    //...
+ 	char FormattedArea[5];       //...
+ 	char EntryPointString2[5];   //This is _DMI_
+ 	uchar Checksum2;             //Checksum for values from EntryPointString2 to the end of table
+ 	ushort TableLength;          //Length of the Table containing all the structures
+ 	uint TableAddress;	     //Address of the Table
+ 	ushort NumberOfStructures;   //Number of structures in the table
+ 	uchar BCDRevision;           //Unused
+ };
+
+TableAddress contains the address of the table that contains all the structures with information about the PC.
+
+All of the structures are located from [TableAddress] to [TableAddress + TableLength]. 
+
+The structures are located directly adjacent to each other in memory, with a new structure beginning as soon as another one ends.
+
+ Each structure is composed of a header, a structure specific table, and a string table.
+
+The format of the header is as follows.
+
+ struct SMBIOSHeader {
+ 	uchar Type;
+ 	uchar Length;
+ 	ushort Handle;
+ };
+
+Located at TableAddress is a SMBIOS header. 
+
+The value of Type indicates what element the structure contains information about.
+
+Length indicates the size of header + data table.
+
+The strings are not included in the length.
+
+Immediately after the end of the header is the data.
+
+At the end of the data table (Address + Length), the strings section starts.
+
+Each string is NULL terminated and is limited to 64 characters. 
+
+Strings are referenced within tables by using an index into the string table 
+
+The first string begins immediately after the data, and the second string begins immediately after that, etc.
+
+The string section itself is terminated by two consecutive zero bytes. 
+
+The next table begins immediately after the end of the string section.

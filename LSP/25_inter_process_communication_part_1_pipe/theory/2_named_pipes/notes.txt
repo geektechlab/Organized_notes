@@ -1,0 +1,29 @@
+Named Pipes/FIFO
+==================
+
+Unnamed pipes (the kind we've seen up to this point) live in memory (do not take up any disk space) and are a simple and efficient form of inter-process communication (IPC) that is useful for streaming data and simple messages. 
+
+Once all processes have closed, the pipe resources are freed.
+
+Unnamed pipes can be used only between related processes when a common ancestor has created the pipe.
+
+An alternative to unamed pipes is named pipes created using mkfifo.
+
+FIFOs are sometimes called named pipes.
+
+With FIFOs, however, unrelated processes can exchange data
+
+a FIFO is a type of file. One of the encodings of the st_mode member of the stat structure indicates that a file is a FIFO. We can test for this with the S_ISFIFO macro.
+
+Creating a FIFO is similar to creating a file. Indeed, the pathname for a FIFO exists in the file system.
+
+#include <sys/stat.h>
+int mkfifo(const char *path, mode_t mode);
+int mkfifoat(int fd, const char *path, mode_t mode);
+Both return: 0 if OK, −1 on error
+
+The specification of the mode argument is the same as for the open function
+
+Once we have used mkfifo or mkfifoat to create a FIFO, we open it using open. 
+
+Indeed, the normal file I/O functions (e.g., close, read, write, unlink) all work with FIFOs.

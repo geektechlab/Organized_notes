@@ -1,0 +1,19 @@
+Return value of callback function
+----------------------------------
+
+HRTIMER_NORESTART	-  for a one-shot timer which should not be started again
+HRTIMER_RESTART		-  for a recurring timer
+
+In the restart case, the callback must set a new expiration time before returning.
+
+Usually, restarting timers are used by kernel subsystems which need a callback at a regular interval.
+
+The hrtimer code provides a function for advancing the expiration time to the next such interval:
+
+unsigned long hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval);
+
+timer:      hrtimer to forward
+now:        forward past this time
+interval:   the interval to forward
+
+Returns the number of overruns.

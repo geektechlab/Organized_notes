@@ -1,0 +1,1 @@
+ Memory mapped by mmap() is preserved across fork(2), with the same attributes.

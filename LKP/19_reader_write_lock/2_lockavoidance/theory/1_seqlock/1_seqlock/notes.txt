@@ -1,0 +1,38 @@
+seqlocks/sequence locks
+========================
+
+Added in Linux 2.6
+
+Objective: Provide Fast and lock-free access to shared resources.
+
+Differences between reader-writer locks and sequence locks
+------------------------------------------------------------
+
+	--> Writer is given a higher priority when compared to reader
+
+	--> Writer is allowed to modify the shared data, even when there are readers in critical section
+
+How readers handle the data corruption when writer updates it during read?
+--------------------------------------------------------------------------
+
+	Readers are in charge to check if they read valid data.
+
+	If a write access took place while the data was read, the data is invalid and has to be read again.
+
+	Identification of write accesses is realized with a counter
+
+What happens when a writer is already in critical section and another writer arrives
+--------------------------------------------------------------------------------------
+
+	A writer uses a spinlock for mutual exclusion and hence will not interfere the other writer.
+
+When to use
+-------------
+
+	A small amount of data is to be protected
+
+	Your data has a lot of readers/frequently accessed
+
+	Your data has a few writers
+
+	It is important that writers not be starved for access

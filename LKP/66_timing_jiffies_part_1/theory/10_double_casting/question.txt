@@ -1,0 +1,3 @@
+Why do we have double casting in the below code
+
+#define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))

@@ -1,0 +1,18 @@
+ktime_t
+----------
+
+Data structure used to store a time value in nanoseconds.
+
+Header File : <linux/ktime.h>
+
+On 64-bit systems, a ktime_t is really just a 64-bit integer value in nanoseconds
+
+typedef s64     ktime_t;
+
+On 32-bit machines, however, it is a two-field structure:
+	one 32-bit value holds the number of seconds
+	and the other holds nanoseconds.
+	
+	The order of the two fields depends on whether the host architecture is big-endian or not
+
+	they are always arranged so that the two values can, when needed, be treated as a single, 64-bit value

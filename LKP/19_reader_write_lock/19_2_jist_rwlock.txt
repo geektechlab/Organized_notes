@@ -1,0 +1,92 @@
+Theory0:
+The synchronization techniques discussed till now have one drawback. They do not differentiate between situations in which:
+		data structures are simply read
+		data structures are actively updated
+	Read access can be provided to multiple tasks concurrently
+	Write access should be provided to one task at a time.
+
+Kernel provides additional semaphore and spinlock versions for the above requirement, as read operation is performed more often than write operation:
+	1. Reader/Writer Spinlocks
+	2. Reader/Writer Semaphores
+
+These are also known as shared/exclusive or concurrent/exclusive locks:
+	shared 		--> readers
+	exclusive	--> writers
+
+Theory1:
+Header File: <linux/rwlock_types.h>
+Data Structure: struct rwlock_t
+
+Initialization:
+	static: DEFINE_RWLOCK(x)
+	Dynamic: rwlock_init(lock);
+
+Lock/Unlock:
+	Readers:
+		read_lock(&mr_rwlock);
+		/* critical section (read only) ... */
+		read_unlock(&mr_rwlock);
+
+	Writers:
+		write_lock(&mr_rwlock);
+		/* critical section (read and write) ... */
+		write_unlock(&mr_lock);
+
+Theory2:
+What happens when we run the below code snippet?
+
+read_lock(&mylock);
+write_lock(&mylock);
+
+Executing these two functions will cause deadlock, as write_lock will spin until it all readers have released the lock. Write lock can only be acquired when reader has completed read unlock.
+
+Theory3:
+It is safe for the same thread to recursively obtain the same read lock
+
+Theory4:
+What happens when a read lock is held and a writer is waiting for exclusive access and a new reader arrives? Who is given a chance? reader/writer.
+
+first in first out happens. Whoever come first, it is given chance.
+
+Theory5:
+Header File: <linux/rwsem.h>
+Data Structure: struct rw_semaphore
+Implementation : kernel/locking/rwsem.c
+
+Initialization:
+	Static: 	DECLARE_RWSEM(name)
+	Dynamic:	init_rwsem(struct rw_semaphore *sem)
+
+All reader-writer semaphores are mutexes—that is, their usage count is one. They enforce mutual exclusion only for writers, not readers.
+
+Theory6:
+Lock/Unlock:
+Readers:
+	void down_read(struct rw_semaphore *sem);
+		critical section
+		....
+	void up_read(struct rw_semaphore *sem);
+
+Writers:
+	void down_write(struct rw_semaphore *sem);
+		critical section
+		....
+	void up_write(struct rw_semaphore *sem);
+
+Note: down_read/down_write may put the calling process into an uninterruptible sleep.
+
+Theory7:
+int down_read_trylock(struct rw_semaphore *sem);
+int down_write_trylock(struct rw_semaphore *sem);
+
+Note: Both return 1 if the lock is successfully acquired and 0 if it is currently contended. This is the opposite of normal semaphore behavior!
+
+Theory8:
+downgrade_write():
+
+Reader-writer semaphores have a unique method which is not present in reader-writer spinlocks.
+void downgrade_write(struct rw_semaphore *sem);
+
+This function atomically converts an acquired write lock to a read lock. Where can i use this?
+
+Used in situation where writer lock is needed for a quick change, followed by longer period of read-only access

@@ -1,0 +1,10 @@
+Linux Abstract Socket Namespace
+====================================
+
+Linux has a special feature: if the pathname for a UNIX domain socket begins with a null byte \0, its name is not mapped into the filesystem
+
+Thus it won’t collide with other names in the filesystem
+
+Also, when a server closes its UNIX domain listening socket in the abstract namespace, its file is deleted
+
+with regular UNIX domain sockets, the file persists after the server closes it.

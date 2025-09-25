@@ -1,0 +1,1 @@
+$ sudo cat /proc/timer_list | grep my_hrtimer_function -C 3

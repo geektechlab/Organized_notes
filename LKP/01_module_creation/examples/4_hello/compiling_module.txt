@@ -1,0 +1,40 @@
+To Build Modules ( we are using /lib/modules/`uname -r`/build/Makefile, but it looks for another makefile in current folder which tells which modules to build. We specify this other makefile through M=${PWD} ):
+
+	make -C /lib/modules/`uname -r`/build M=${PWD} modules
+
+To clean:
+
+	make -C /lib/modules/`uname -r`/build M=${PWD} clean
+
+
+The above commands starts by changing its directory to the one provided with the -C option (that is your kernel source directory)
+
+There it finds the kernel's top level makefile. The M= option causes the Makefile to move back into your module source directory before trying to build the modules.
+
+Note: M is not make option but argument passed to it
+
+obj-m refers to the list of modules 
+
+The kernel Makefile will read our Makefile to find out what to build, we specify that by writing obj-m += hello.o
+
+-----------
+
+Once built, check generated module by
+	file ./hello.ko
+	modinfo ./hello.ko
+Load it by
+	sudo insmod ./hello.ko ( because only root user can load module )
+Check loading by
+	lsmod
+We can remove module by
+	sudo rmmod hello
+Verify removal by
+	lsmod
+Or check by
+	ls /sys/module/hello/
+We need to check print messages by printk by
+	dmesg
+
+-----------
+
+whenever we load an out of tree module it taints the kernel

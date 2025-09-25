@@ -1,0 +1,16 @@
+Pause vs Sigsuspend
+======================
+
+sigsuspend and pause, both do the same work, they pause or temporarily stops the process until they receive some signal. 
+
+These functions return, once the signal handling of the signal is complete.
+
+A small difference between these functions is that, in sigsuspend, we can specify the signal mask to which the function should not listen. 
+
+Suppose we implement the sigsuspend in the following manner
+
+sigset_t tempmask; sigemptyset(&tempmask); sigaddset(&tempmask,SIGINT); sigsuspend(&tempmask);
+
+Now, in the above code, we have specified the sigsuspend function to listen for every signal except SIGINT.
+
+When sigsuspend receives any other signal than SIGINT, it returns.

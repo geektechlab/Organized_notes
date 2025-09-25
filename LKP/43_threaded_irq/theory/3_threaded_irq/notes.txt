@@ -1,0 +1,36 @@
+Threaded IRQs
+----------------------
+
+An alternative to using formal bottom-half mechanisms is threaded interrupt handlers.
+
+Threaded interrupt handlers seeks to reduce the time spent with interrupts disabled to bare minimum, pushing the rest of the processing out into kernel threads.
+
+With threaded IRQs, the way you register an interrupt handler is a bit simplified.
+
+You do not even have to schedule the bottom half yourself. The core does that for us.
+
+The bottom half is then executed in a dedicated kernel thread. 
+
+int request_threaded_irq (unsigned int irq,
+		irq_handler_t handler,
+		irq_handler_t thread_fn,
+		unsigned long irqflags,
+		const char * devname,
+		void * dev_id);
+
+Difference between request_irq and request_threaded_irq
+======================================================
+
+irq_handler_t thread_fn
+
+request_threaded_irq() breaks handler code in two parts, 
+	handler and 
+	thread function
+
+Now main functionality of handler is to intimate hardware that it has received the interrupt and wake up thread function
+
+As soon as handler finishes, processor is in process context. 
+
+kernel/irq/manage.c --- setup_irq_thread
+
+priority of the thread is set to MAX_USER_RT_PRIO/2 which is higher than regular processes

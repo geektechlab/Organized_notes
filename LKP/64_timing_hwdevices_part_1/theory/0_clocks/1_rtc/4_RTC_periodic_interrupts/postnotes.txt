@@ -1,0 +1,1 @@
+Each read operation would block the call for the the time period inverse of the current frequency

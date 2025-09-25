@@ -1,0 +1,31 @@
+Local APIC
+==============
+
+Problem with PIT is it is system wide resource, there is only one PIT even when there are multiple CPUs.
+
+The Local APIC is a functional part of the APIC architecture, physically located in the CPU chip
+
+Each Intel processor has Local APIC(Advance Programmable Interrupt Controller).
+
+        ----------------
+        |       CPU     |
+        |  --------     |
+        |  | Local|     |
+        |  | APIC |     |
+        |  -------      |
+        ----------------
+
+The local APIC includes a timer device with 32-bit counter
+
+The timer can be configured by a special timer register.
+
+Modes:
+1. one-shot 
+2. periodic
+3. deadline
+
+The local APIC timer sends an interrupt only to its processor, while the PIT raises a global interrupt, which may be handled by any CPU in the system.
+
+The frequency of the LAPIC timer depends on the CPU bus clock and can  be configured within the range between the bus clock frequency and 1/128 of the bus clock frequency by setting a divider to any power of two between 1 and 128.
+
+$ watch -n 0.1 -d "cat /proc/interrupts | grep 'Local timer interrupts'"

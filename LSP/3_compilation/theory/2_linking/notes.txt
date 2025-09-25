@@ -1,0 +1,40 @@
+Create the object file for func.c
+
+$ gcc -c func.c
+
+Similarly create the object file for main.c
+
+$ gcc -c main.c
+
+Now generate the executable
+
+$ gcc func.o main.o -o main
+
+Execute the main program
+
+$ ./main
+Inside main()
+Inside func()
+
+
+when we link the two object files func.o and main.o,
+    linker will combine all files' .data .txt etc sections in one executable file as combined sections
+    the gcc linker is able to resolve the function call to func()
+
+Where did the linker find the definition of the function printf()?
+=====================================================================
+
+printf() is a function which is declared in stdio.h and defined as a part of standard shared library (libc.so)
+
+=====================================================================
+ldd tool will print the shared libraries required by each program
+
+$ ldd main
+    linux-vdso.so.1 =>  (0x00007ffd241f8000)
+    libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fd939b4c000)
+    /lib64/ld-linux-x86-64.so.2 (0x000055ab46461000)
+
+The above output indicates that the main executable depends on three libraries.
+    The first library is required for making system calls
+    The second library is C Library
+    The third shared library is the one which loads all the other shared libraries required by the executable.

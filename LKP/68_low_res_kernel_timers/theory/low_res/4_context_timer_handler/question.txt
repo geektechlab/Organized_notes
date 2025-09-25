@@ -1,0 +1,4 @@
+Guess in which context timer handler runs?
+------------------------------------------
+
+it runs in interrupt context, not in process context.

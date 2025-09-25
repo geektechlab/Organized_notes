@@ -1,0 +1,44 @@
+Allocating Major and Minor Number
+===================================
+Two ways:
+
+1. Static
+2. Dynamic
+
+Difference between static and dynamic method
+================================================
+
+Static method is only really useful if you know in advance which major number you want to start with. 
+
+With Static method , you tell the kernel what device numbers you want (the start major/minor number and count) and it either gives them to you or not (depending on availability).
+
+With Dynamic method, you tell the kernel how many device numbers you need (the starting minor number and count) and it will find a starting major number for you, if one is available, of course.
+
+Partially to avoid conflict with other device drivers, it’s considered preferable to use the Dynamic method function, which will dynamically allocate the device numbers for you.
+
+static assignment and unallocation of device identifiers:
+=========================================================
+
+int register_chrdev_region (dev_t from,	unsigned count,	const char *name);
+
+Description: register a range of device numbers
+
+Arguments:
+
+from : the first in the desired range of device numbers; must include the major number.
+
+count: the number of consecutive device numbers required
+
+name: the name of the device or driver. This will appear in /proc/devices
+
+Return Value:
+zero on success, a negative error code on failure.
+
+void unregister_chrdev_region(dev_t from, unsigned int count);
+
+Header File: <linux/fs.h>
+
+-----------
+we can't use same major number and minor number combination which already has been used. But character and block device can have same major and minr number combination because noth device types are different. Try passing same major number which is already used by finding it from [ cat /proc/devices ].
+-----------
+however, we can use same device name.

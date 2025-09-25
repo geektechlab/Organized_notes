@@ -1,0 +1,2 @@
+Do we need a separate buffer in the kernel for write operation?
+==================================================================

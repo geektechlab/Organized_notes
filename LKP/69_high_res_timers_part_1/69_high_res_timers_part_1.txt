@@ -1,0 +1,216 @@
+Theory0:
+Problem with Low res timers
+-------------------------------
+
+Low resolution timers  in Linux are only supported at a resolution of 1 jiffy.
+
+The length of a jiffy is dependent on the value of HZ in the Linux kernel
+
+It is 1 millisecond on i386 and some other platforms, and 10 milliseconds on most embedded platforms.
+
+These are not suited for real-time applications.
+
+High Resolution Timers
+-------------------------
+
+Introduced in kernel v2.6.16
+
+Verify whether your kernel has support for High Res timers or not
+
+$ cat /boot/config-`uname -r` | grep CONFIG_HIGH_RES_TIMERS
+
+You can also examine the timer_list, and see whether specific clocks are listed as supporting high resolution
+
+$ sudo cat /proc/timer_list | grep resolution
+
+The .resolution entry must show 1 nsecs and the event_handler must show hrtimer_interrupts
+
+Low Res timers are based on HZ(Jiffies), whereas High Res Timers based on ktime_t
+
+Example of Low Resolution Timers: PIT
+Example of High Resolution Timers: LAPIC
+
+Theory1:
+ktime_t
+----------
+
+Data structure used to store a time value in nanoseconds.
+
+Header File : <linux/ktime.h>
+
+On 64-bit systems, a ktime_t is really just a 64-bit integer value in nanoseconds
+
+typedef s64     ktime_t;
+
+On 32-bit machines, however, it is a two-field structure:
+	one 32-bit value holds the number of seconds
+	and the other holds nanoseconds.
+	
+	The order of the two fields depends on whether the host architecture is big-endian or not
+
+	they are always arranged so that the two values can, when needed, be treated as a single, 64-bit value
+
+Theory2:
+Macros/functions on ktime_t
+------------------------------
+
+A whole set of functions and macros has been provided for working with ktime_t values
+
+There are two ways of initializing them
+
+1. DEFINE_KTIME(name);   /* Initialize to zero */ (not present)
+
+2. ktime_t kt;
+   kt = ktime_set(long secs, long nanosecs);
+
+static inline ktime_t ktime_set(const s64 secs, const unsigned long nsecs)
+{
+        if (unlikely(secs >= KTIME_SEC_MAX))
+                return KTIME_MAX;
+
+        return secs * NSEC_PER_SEC + (s64)nsecs;
+}
+
+Return the ktime_t representation of the value
+
+Theory3:
+ktime_t macros/functions
+------------------------
+
+Various other functions exist for changing ktime_t values.
+
+    ktime_t ktime_add(ktime_t kt1, ktime_t kt2);
+    ktime_t ktime_sub(ktime_t kt1, ktime_t kt2);  /* kt1 - kt2 */
+    ktime_t ktime_add_ns(ktime_t kt, u64 nanoseconds);
+
+All of these treat their arguments as read-only and return a ktime_t value as their result
+
+/* Subtract two ktime_t variables. rem = lhs -rhs: */
+#define ktime_sub(lhs, rhs)     ((lhs) - (rhs))
+
+/* Add two ktime_t variables. res = lhs + rhs: */
+#define ktime_add(lhs, rhs)     ((lhs) + (rhs))
+
+#define ktime_add_ns(kt, nsval)         ((kt) + (nsval))
+
+Theory4:
+ktime_t conversion functions
+----------------------------------
+
+ktime_t timespec_to_ktime(struct timespec tspec);
+
+static inline ktime_t timespec_to_ktime(struct timespec ts)
+{
+        return ktime_set(ts.tv_sec, ts.tv_nsec);
+}
+
+Theory5:
+ktime_t conversion functions
+----------------------------------
+
+ktime_t timeval_to_ktime(struct timeval tval);
+
+/* convert a timeval to ktime_t format: */
+static inline ktime_t timeval_to_ktime(struct timeval tv)
+{
+        return ktime_set(tv.tv_sec, tv.tv_usec * NSEC_PER_USEC);
+}
+
+Theory6:
+ktime_t conversion functions
+----------------------------------
+
+struct timespec ktime_to_timespec(ktime_t kt);
+struct timeval ktime_to_timeval(ktime_t kt);
+
+#define ktime_to_timespec(kt)           ns_to_timespec((kt))
+#define ktime_to_timeval(kt)            ns_to_timeval((kt))
+
+struct timespec ns_to_timespec(const s64 nsec)
+{
+        struct timespec ts;
+        s32 rem;
+
+        if (!nsec)
+                return (struct timespec) {0, 0}; 
+
+        ts.tv_sec = div_s64_rem(nsec, NSEC_PER_SEC, &rem);
+        if (unlikely(rem < 0)) {
+                ts.tv_sec--;
+                rem += NSEC_PER_SEC;
+        }
+        ts.tv_nsec = rem;
+
+        return ts;
+}
+
+truct timeval ns_to_timeval(const s64 nsec)
+{
+        struct timespec ts = ns_to_timespec(nsec);
+        struct timeval tv;
+
+        tv.tv_sec = ts.tv_sec;
+        tv.tv_usec = (suseconds_t) ts.tv_nsec / 1000;
+
+        return tv;
+}
+
+Theory7:
+ktime_t conversion functions
+----------------------------------
+
+u64 ktime_to_ns(ktime_t kt);
+
+/* Convert ktime_t to nanoseconds */
+static inline s64 ktime_to_ns(const ktime_t kt)
+{
+        return kt;
+}
+
+Direct interpretation of a ktime_t as a number of nanoseconds would be possible on 64-bit machines, 
+but can lead to problems on 32-bit machines . Thus, the function ktime_to_ns is provided to perform the conversion properly.
+
+Theory8:
+ktime accessors
+----------------
+
+Device drivers can read the current time using ktime_get()
+
+Header file: <linux/timekeeping.h>
+
+Implementation: kernel/time/timekeeping.c
+
+Clock used: CLOCK_MONOTONIC
+
+Useful for reliable timestamps and measuring short time intervals accurately. 
+Starts at system boot time but stops during suspend.
+
+Theory9:
+ktime accessors
+----------------
+
+ktime_t ktime_get_boottime(void)
+
+Clock used: CLOCK_BOOTTIME
+
+Like ktime_get(), but does not stop when suspended
+
+Useful for key expiration times that need to be synchronized with other machines across a suspend operation
+
+Theory10:
+ktime accessors
+----------------
+
+ktime_t ktime_get_real(void);
+
+Header file: <linux/timekeeping.h>
+
+Clock used: CLOCK_REALTIME
+
+Returns the time in relative to the UNIX epoch starting in 1970 using the Coordinated Universal Time (UTC), same as gettimeofday() user space
+
+Use cases: timestamps that need to persist across a reboot, like inode times
+
+should be avoided for internal uses, since it can jump backwards due to 
+	a leap second update, 
+	NTP adjustment settimeofday() operation from user space

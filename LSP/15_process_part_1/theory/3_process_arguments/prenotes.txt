@@ -1,0 +1,1 @@
+When a program is executed, the process that does the exec can pass command-line arguments to the new program.

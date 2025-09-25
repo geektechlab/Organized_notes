@@ -1,0 +1,35 @@
+----
+overcomes previous problems.
+----
+
+poll function
+===============
+poll() performs a similar task to select(2): it waits for one of a set of file descriptors to become
+       ready to perform I/O.
+
+Header File: #include <poll.h>
+
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+
+Arguments
+============
+
+fds: must point to an array of struct pollfd.
+     Each element in the array specifies a file descriptor that the program is interested in monitoring,
+     and what events on that file descriptor the program would like to know about.
+
+struct pollfd {
+    int     fd;       /* descriptor to check */
+    short   events;   /* events of interest on fd */
+    short   revents;  /* events that occurred on fd */
+};
+
+nfds: Number of items which are present in the fds argument.
+
+timeout: the number of milliseconds that poll() should block waiting for a file descriptor to become ready
+
+Returns:
+===========
+    count of ready descriptors on success
+    0 on timeout
+    -1 on error

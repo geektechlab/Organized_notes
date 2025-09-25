@@ -1,0 +1,7 @@
+wait_event_interruptible(queue, condition)
+
+It can be interrupted by signals
+
+This version returns an integer value that you should check; a nonzero value means your sleep was interrupted by some sort of signal, and your driver should probably return -ERESTARTSYS.
+
+void wake_up_interruptible(wait_queue_head_t *queue);

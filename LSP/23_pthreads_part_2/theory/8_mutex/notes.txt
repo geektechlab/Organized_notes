@@ -1,0 +1,59 @@
+Synchronization  in Threads
+=============================
+
+How can 50 threads run when you have only 8 cores on machine?
+
+The answer is that the OS and threading system to arrange to multiplex the threads on the CPUs.
+
+Each thread is given a turn on some CPU.
+
+When it goes to do I/O, or a fixed amount of time has expired, the OS pauses the thread (saving off all of its machine state), and selects another thread to run.
+
+It then loads the saved machine state from the new thread onto the CPU and starts that thread at the spot where it last left off (or at the beginning if it was just created).
+
+The process of pausing one thread to run another is called pre-emption and the second thread is said to pre-empt the first. 
+
+The process of switching to a new thread (as a result of a pre-emption event) is called context switching and the saved machine state that is necessary to get a thread running again after a pause is often called a context.
+
+When multiple threads of control share the same memory, we need to make sure that each thread sees a consistent view of its data.
+
+If each thread uses variables that other threads don’t read or modify, no consistency problems will exist
+
+Similarly, if a variable is read-only, there is no consistency problem with more than one thread reading its 
+value at the same time.
+
+However, when one thread can modify a variable that other  threads can read or modify, we need to synchronize the threads to ensure that they don’t use an invalid value when accessing the variable’s memory contents.
+
+In this example, thread A reads the variable and then writes a new value to it, but the write operation takes two memory cycles. If thread B reads the same variable between the two write cycles, it will see an inconsistent value.
+
+    Thread A        Thread B
+    ========        ========
+
+    read
+
+    write1
+
+                    read
+
+    write2
+
+To solve this problem, the threads have to use a lock that will allow only one thread to access the variable at a time.
+
+If it wants to read the variable, thread B acquires a lock. Similarly, when thread A updates the variable, it acquires the same lock. Thus thread B will be unable to read the variable until thread A releases the lock.
+
+Consider the case in which we increment a variable
+
+The increment operation is usually broken down into three steps.
+
+    1. Read the memory location into a register.
+    2. Increment the value in the register.
+    3. Write the new value back to the memory location.
+
+If two threads try to increment the same variable at almost the same time without synchronizing with each other, the results can be inconsistent.
+
+What is a Critical Section?
+=============================
+
+A critical section is a section of code that can only be executed by one thread at a time, if the program is to function correctly.
+
+If two threads (or processes) were to execute code inside the critical section at the same time then it is possible that program may no longer have correct behavior.

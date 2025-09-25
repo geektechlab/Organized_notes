@@ -1,0 +1,6 @@
+Destroying Thread Attributes
+==============================
+
+The function pthread_attr_destroy() is used to remove the storage allocated during initialization. The attribute object becomes invalid. It is prototyped by:
+
+int pthread_attr_destroy(pthread_attr_t *tattr);

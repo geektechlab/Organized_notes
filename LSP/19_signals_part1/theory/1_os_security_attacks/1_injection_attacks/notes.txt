@@ -1,0 +1,7 @@
+===================================
+Introduction
+===================================
+
+Now, lets consider a situation where you use system() better. You call all programs with absolute path and everything, but even that is not enough.
+
+You must also consider injection attacks which is when the attacker can inject code that will run.

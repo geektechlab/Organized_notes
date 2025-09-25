@@ -1,0 +1,10 @@
+ktime accessors
+----------------
+
+ktime_t ktime_get_boottime(void)
+
+Clock used: CLOCK_BOOTTIME
+
+Like ktime_get(), but does not stop when suspended
+
+Useful for key expiration times that need to be synchronized with other machines across a suspend operation

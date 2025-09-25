@@ -1,0 +1,3 @@
+gettid returns the caller's thread ID (TID)
+
+man 2 gettid

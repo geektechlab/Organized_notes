@@ -1,0 +1,26 @@
+dmidecode
+============
+
+dmidecode  is  a  tool for dumping a computer's SMBIOS/DMI table contents in a human-readable format
+
+$dmidecode
+
+When you run dmidecode, it will try to locate the DMI table
+
+It will first try to read the DMI table from sysfs, if failed try to read from memory directly /dev/mem
+
+If dmidecode  succeeds  in locating a valid DMI table, it will then parse this table and display it
+
+Some of the options:
+===================
+
+1. -s, --string KEYWORD
+
+	dmidecode -s bios-version
+	dmidecode -s bios-vendor	
+	dmidecode -s system-manufacturer
+	dmidecode -s system-serial-number
+	
+2. dmidecode --no-sysfs
+
+	Do not attempt to read DMI data from sysfs files

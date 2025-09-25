@@ -1,0 +1,18 @@
+Initialization
+--------------------
+
+Static:
+----------
+
+DEFINE_TIMER()
+
+#define DEFINE_TIMER(_name, _function)                          \
+        struct timer_list _name =                               \
+                __TIMER_INITIALIZER(_function, 0)
+
+Dynamic:
+-----------
+
+void timer_setup( struct timer_list *timer, \ 
+           void (*function)(unsigned long), \ 
+           unsigned int flags); 

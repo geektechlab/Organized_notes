@@ -1,0 +1,16 @@
+Jiffies Wraparound
+======================
+
+The jiffies variable, like any C integer experiences overflow when its value is increased beyond its maximum storage limit.
+
+For a 32-bit unsigned integer, the maximum value is 2^32 - 1.
+
+When the tick count is equal to the maximum and it is incremented, it wraps around to zero.
+
+What happens if jiffies wrapped back to zero after setting timeout?
+
+unsigned long timeout = jiffies + 10 * HZ;
+
+if (timeout  > jiffies) 
+
+Then the first condition will fail because the jiffies value would be smaller than timeout despite logically being larger.

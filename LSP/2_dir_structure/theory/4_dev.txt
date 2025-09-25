@@ -1,0 +1,59 @@
+/dev 
+====================
+
+	dev -- device
+		Linux/Unix treat everything as files.
+		it treats hardware devices too as files. All hardware files are present in /dev(Device ) folder.
+		Essential device files, e.g., /dev/null.
+		Many of these are generated at boot time or even on the fly
+
+	For example if you plug in a new webcam or a USB Pendrive into your machine, a new device entry will be automatically created here
+
+-------------
+
+	In Linux, most devices are either character devices or block devices. 
+
+	Character devices can be thought of as those that transfer data in characters or bytes. character devices transfer data in bytes/characters. eg. serial port/printer port.
+	For example:
+		/dev/lp0 represents the first printer port
+		/dev/ttyS0 represents the first serial port
+
+	Block devices are those that transmit data in multiple blocks at a time. Any device transferring data in block is block devices. e.g. hard disk, SCSI, pen drives etc.
+		/dev/hd* represents hard disk drives.
+		/dev/sd* represents SCSI devices
+
+---------------
+if [ ls -l ] gives b inside /dev directory for any device then block, if gives c then character device.
+---------------
+
+	There are some other very interesting device files in /dev. 
+	The device files null, zero, random and urandom are not associated with any physical devices.
+
+	/dev/zero: Used by developers to create a file with no meaningful data but a particular size
+	e.g. [ sudo dd if=/dev/zero of=/tmp/zero.txt bs=1024 count=1 ] will create file of size 1kB
+	e.g. [ sudo dd if=/dev/zero of=/tmp/zero.txt bs=1024 count=1024 ] will create file of size 1MB
+	we can verify file size using [ ls -lh ] and content using [ od ] command.
+
+	/dev/null: Used by developers for redirecting unwanted output/error etc to this file. Useful for creating files with zero size. it is a kind of black hole.
+
+	/dev/null
+	Read : Returns End of file (read returns 0)
+	Write: Data written is discarded
+
+	/dev/zero:
+	Read: Returns endless bytes of zeroes (\0 characters)
+	Write: Data written is discarded
+
+
+	dd if=/dev/zero of=/tmp/zero.txt bs=4096 count=1000
+	dd if=/dev/null of=/tmp/null.txt bs=4096 count=1000
+
+	Notice the byte count.
+
+	Use cases of /dev/zero and /dev/null
+
+	1. Suppressing stdout : $ cat file > /dev/null or $ cat file > /dev/zero
+	2. Deleting the contents of the file : $ cat /dev/null > /tmp/file
+	3. Destroying existing data on the file system partition : $ dd if=/dev/zero of=/dev/<destination partition>
+	4. Creating a 1 MB file: $ dd if=/dev/zero of=/tmp/file count=1024 bs=1024
+

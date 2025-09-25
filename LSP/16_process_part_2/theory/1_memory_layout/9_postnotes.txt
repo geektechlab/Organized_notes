@@ -1,0 +1,61 @@
+malloc is using the brk system call in order to manipulate the heap
+
+From brk man page (man brk), we can see what this system call is doing:
+
+int brk(void *addr);
+void *sbrk(intptr_t increment);
+
+brk() and sbrk() change the location of the program  break,  which  defines the end of the process's data segment (i.e., the program break is the first location after the end of the uninitialized data segment).  
+
+Increasing  the program  break has the effect of allocating memory to the process; decreasing the break deallocates memory.
+
+brk() sets the end of the data segment to the value specified by addr, when that  value  is  reasonable,
+
+sbrk() increments the program's data space  by  increment  bytes.  Calling sbrk()  with  an increment of 0 can be used to find the current location of the program break.
+
+The program break is the address of the first location beyond the current end of the data region of the program in the virual memory.
+
+	high address|-------------------| command-line arguments
+   				|-------------------| and environment variables
+				|        stack      |
+				|-------------------|
+				|					|
+				|					|
+				|					|
+				|-------------------|<-------------------Program Break
+				|uninitialized data | initialized to
+				|		(bss)		| zero by exec
+				|-------------------|
+				| initialized data  | read from
+				|-------------------| program file 
+				|		text		| by exec
+	low address |-------------------|
+			Typical memory arrangement
+
+By increasing the value of the program break, via brk or sbrk, the function malloc creates a new space that can then be used by the process to dynamically allocate memory (using malloc)
+
+    high address|-------------------| command-line arguments
+                |-------------------| and environment variables
+                |        stack      |
+                |-------------------|
+                |-------------------|<--------------------New Program Break
+                | Space used by     |
+                |  malloc           |
+                |-------------------|<-------------------Previous Program Break
+                |uninitialized data | initialized to
+                |       (bss)       | zero by exec
+                |-------------------|
+                | initialized data  | read from
+                |-------------------| program file
+                |       text        | by exec
+    low address |-------------------|
+            Typical memory arrangement
+
+So the heap is actually an extension of the data segment of the program.
+
+
+The first call to brk (brk(0)) returns the current address of the program break to malloc.
+
+And the second call is the one that actually creates new memory (since 0xe91000 > 0xe70000) by increasing the value of the program break
+
+That's great, but wait, why didmalloc increment the heap by 00e91000 - 00e70000 = 0x21000 or 135168 bytes, when we only asked for only 1 byte?

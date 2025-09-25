@@ -1,0 +1,87 @@
+/bin folder
+===================
+
+--> bin stands for binary which means an executable file
+
+--> This folder contains commands or scripts or executable which can be executed to accomplish a task. 
+
+--> There are several other directories on that also contain the string 'bin' in their names
+
+	/bin	
+	/sbin	
+	/usr/bin	
+	/usr/sbin	
+	/usr/local/bin	
+	/usr/local/sbin
+
+/bin 
+==========
+
+	--> The /bin directory contains binaries for use by all users.
+
+	--> /bin contains executables which are required by the system for emergency repairs, booting, and single user mode
+
+	-->	This folder contains basic commands such as cat, chmod, chgrp, chown, date, dir, dd, df, ln, mv, echo
+
+/sbin
+==========
+
+	--> stands for system binaries or super user binaries
+
+	--> It contains commands that need to be available at the very beginning of the OS initialization and at the shutdown end too.
+
+	--> This folder contains commands which are required for changing system properties or system level settings such as disk management, network management etc
+
+	--> Many of the system binaries require root privilege to perform certain tasks.
+
+	--> e.g. fsck, root, init, ifconfig
+
+------------------
+
+/usr is generally for user / administrator added binaries
+
+sudo apt-get install gimp
+
+we can chech by [ which gimp ] and it will show in /usr/bin or /usr/sbin
+
+/usr/bin
+================
+
+	--> This folder is similar to /bin.
+
+	--> Most programs executed by normal users which are not needed for booting or for repairing the system
+
+	--> commands which are not installed locally should be placed in this directory
+
+	--> Eg. vi, atq, bc, awk, cal, cmp, dig, diff, du, env, find, free, ftp, gcc, groups, id, info iostat, last, lsof, md5sum, nmap, rar, seq, tail, top
+
+/usr/sbin
+===============
+
+	--> contains non-vital system utilities that are used after booting (i.e., starting the system) by the system administrator
+
+	-->Eg.  adduser, chroot, groupadd, grub related commands, tcpdump
+
+	--> /usr/sbin also contains some daemons, which are programs that run silently in the background
+	
+	--> Eg. bluetoothd, dropbear
+
+------------------------
+
+/usr/local is a place where files built by the system administrator are placed , typically by running following sequence on the source code
+
+	1. ./configure
+	2. make
+	3. make install
+
+Example: hello package
+
+/usr/local/bin
+====================
+	
+	Binaries for programs local to the site.
+
+/usr/local/sbin
+===================
+	
+	Locally installed programs for system administration

@@ -1,0 +1,56 @@
+zones
+================
+Linux kernel divides physical RAM into a number of different memory regions: zones
+
+What memory regions(zones) there are depends on whether your machine is 32-bit or 64-bit and also how complicated it is
+
+Zones:
+==========
+
+1. DMA: low 16 MBytes of memory. At this point it exists for historical reasons. 
+		there were hardware that could only do DMA into this area of physical memory.
+
+2. DMA32:	exists only in 64-bit Linux. 
+		it is the low 4 GBytes of memory, more or less.
+		it exists because the transition to large memory 64-bit machines has created a class of hardware that can only do DMA to the low 4 GBytes of memory.
+
+3. Normal:	 is different on 32-bit and 64-bit machines.
+   		On 64-bit machines, it is all RAM from 4GB or so on upwards
+		On 32-bit machines it is all RAM from 16 MB to 896 MB for complex and somewhat historical reasons
+
+		Note that this implies that machines with a 64-bit kernel can have very small amounts of Normal memory unless they have significantly more than 4GB of RAM. 
+		For example, a 2 GB machine running a 64-bit kernel will have no Normal memory at all while a 4 GB machine will have only a tiny amount of it. We will have only DMA zone.
+
+4. HighMem:	exists only on 32-bit Linux; 
+		it is all RAM above 896 MB, including RAM above 4 GB on sufficiently large machines.
+
+Within each zone, Linux uses a buddy-system allocator to allocate and free physical memory.
+
+Buddy Allocator
+================
+
+Memory is broken up into large blocks of pages where each block is a power of two number of pages (2^order). Starts from 4KB page.
+All free pages are split into 11 (MAX_ORDER) lists, each contains a list of 2^order pages. [ check all 11 columns in /proc/buddyinfo ] [ watch video 9:00-12:00 ].
+
+When an allocation request is made for a particular size, the buddy system looks into the appropriate list for a free block, and returns its address, if available. 
+
+However, if it cannot find a free block, it moves to check in the next high-order list for a larger block, which if available it splits the higher-order block into equal parts called buddies, returns one for the allocator, and queues the second into a lower-order list. 
+
+When both buddy blocks become free at some future time, they are coalesced to create a larger block
+
+[ /proc/buddyinfo ] shows all zones present.
+==================
+
+Using the buddy algorithm, each column represents the number of pages of a certain order (a certain size) that are available at any given time.
+
+check available RAM using [ free -m ]
+# cat /proc/buddyinfo 
+Node 0, zone      DMA      1      1      0      1      2      1      1      0      1      1      3
+Node 0, zone   Normal      1      1      1      1      3      1      1      2      3      4    207
+Node 0, zone  HighMem     22      8      4      1      1      1      1      1      1      2     34
+
+--
+highmem will not be present if it has only 512 MB memory. Verify by configuring QEMU and then running /proc/buddyinfo ( video 5:00 )
+--
+
+This means, zone DMA, there are 1 of 2^(0*PAGE_SIZE) free chunks of memory, 1 of 2^(1)*PAGE_SIZE, 0 of 2^(2)*PAGE_SIZE and so on upto 3*(2^10)*PAGE_SIZE = Nearly 16 MB

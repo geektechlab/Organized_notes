@@ -1,0 +1,8 @@
+Why can't i use printk instead of putting data into debugfs?
+============================================================
+
+Sometimes putting in a few printk() calls is sufficient, but, often, that is not the best way to go
+
+The debugging information may only be useful occasionally, but the printed output clogs up the logs all the time.
+
+Using printk() also does not help if the developer wishes to be able to change values from user space.

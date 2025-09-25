@@ -1,0 +1,4 @@
+hrtimer_interrupt
+-----------------
+
+When the clock event device responsible for high-resolution timers raises an interrupt, hrtimer_interrupt is called as event handler

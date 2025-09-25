@@ -1,0 +1,22 @@
+Interfacing Push Button with Raspberry Pi3 and Generating Interrupt on Button Press
+===============================================================================
+
+What you need
+---------------
+
+        ---> Breadboard
+
+        ---> Push Button
+
+        ---> 330 Ohm resistor
+
+        ---> Two Male-Female Jumper Wires
+
+Setting up Circuit
+--------------------
+
+	connect one side of the switch to an input pin on the Raspberry Pi (For example 10)
+
+	other side of the switch we connect to 3.3V on pin 1 using a resistor
+
+	The resistor is used as a current limiting resistor to protect our input pin by limiting the amount of current that can flow.

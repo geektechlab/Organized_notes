@@ -1,0 +1,59 @@
+1. Which header file needs to be used for pthread programming ?
+a.pthreads.h
+b.pthread.h
+c.p_thread.h
+d.posix.h
+
+2.Pthreads are not useful in uniprocessor systems
+	a.False ( because it will give more responsiveness within a program by rescheduling threads and make user feel that multiple things are happening within a process )
+b.True
+c.Depends on the compiler
+d.Depends on the processor
+
+3.What are the flags that are passed while compiling a pthread program using gcc
+a.-pthread
+	b.-lpthread
+c.-gccpthread
+d.-thread
+
+4.Among the arguments passed to pthread API pthread_create the final argument, is.
+a.Attributes of the thread
+b.Name of the thread
+	c.Data being passed to the thread
+d.Thread id
+
+5.The data type used for storing the thread id is
+a.pthread
+b.pthread_t
+c.p_thread_t
+d.pthread_id
+
+6.Which of the following APIs can be used for synchronization between threads
+a.pthread_exit
+b.pthread_cancel
+c.pthread_self
+d.pthread_join
+
+7.To create a detachable thread which of the following structures needs to be modified
+a.pthread_attr_t
+b.pthread_t
+c.pthread_attribute
+d.attribute_t
+
+8.pthread_self returns.
+	a.The thread id
+b..The thread attribute
+c.Thread data
+d.Thread running time 
+
+9.Two threads can be compared using the API
+a.compare_pthreads
+	b.pthread_equal
+c.pthread_compare
+d.equal_pthread
+
+10.pthread_create(&threads_id, NULL, Hello_world, NULL); creates a thread
+a.Calls Hello_world with default attributes
+b.Calls Hello_world with all attributes set to NULL
+c.Calls Hello with default attributes
+d.Calls Hello with all attributes set to NULL

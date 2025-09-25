@@ -1,0 +1,12 @@
+fopen vs open in C
+==================
+
+1) fopen is a library function while open is a system call.
+
+2) fopen provides buffered IO which is faster compare to open which is non buffered.
+
+3) fopen is portable while open not portable (because open is environment ( platform - linux/windows etc. ) specific).
+
+4) fopen returns a pointer to a FILE structure(FILE *); open returns an integer that identifies the file.
+
+5) A FILE * gives you the ability to use fscanf and other stdio functions.

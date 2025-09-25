@@ -1,0 +1,3 @@
+int lstat(const char *restrict pathname, struct stat *restrict buf );
+
+The lstat function is similar to stat, but when the named file is a symbolic link, lstat returns information about the symbolic link, not the file referenced by the symbolic link.

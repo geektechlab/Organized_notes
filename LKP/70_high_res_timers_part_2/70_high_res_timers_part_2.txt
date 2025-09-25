@@ -1,0 +1,91 @@
+Theory0:
+nanosecond output
+-------------------
+
+u64 ktime_get_ns(void);
+
+u64 ktime_get_boottime_ns(void);
+
+u64 ktime_get_real_ns(void);
+
+Same as the plain ktime_get functions, but returning a u64 number of nanoseconds in the respective time reference, which may be more convenient for some callers.
+
+Theory1:
+timespec output
+-------------------
+
+void ktime_get_ts64(struct timespec64 *);
+
+void ktime_get_boottime_ts64(struct timespec64 *);
+
+void ktime_get_real_ts64(struct timespec64 *);
+
+returns the time in a ‘struct timespec64’, split into seconds and nanoseconds.
+
+This can avoid an extra division when printing the time, or when passing it into an external interface that expects a ‘timespec’ or ‘timeval’ structure
+
+Theory2:
+seconds output
+-------------------
+
+time64_t ktime_get_seconds(void);
+
+time64_t ktime_get_boottime_seconds(void);
+
+time64_t ktime_get_real_seconds(void);
+
+Return a coarse-grained version of the time as a scalar time64_t
+
+This avoids accessing the clock hardware and rounds down the seconds to the full seconds of the last timer tick using the respective reference.
+
+Theory3:
+uptime
+----------
+
+$uptime
+
+cat /proc/uptime
+
+File: fs/proc/uptime.c
+
+ktime_get_boottime_ts64(&uptime);
+
+Theory4:
+gettimeofday
+---------------------
+
+Defined in: kernel/time/time.c
+
+Calls ktime_get_real_ts64
+
+Theory5:
+clock_gettime
+---------------
+
+Defined in : kernel/time/posix-timers.c
+
+Theory6:
+Coarse variants
+-----------------
+
+ktime_t ktime_get_coarse_boottime(void);
+ktime_t ktime_get_coarse_real(void);
+
+u64 ktime_get_coarse_boottime_ns(void);
+u64 ktime_get_coarse_real_ns(void);
+
+void ktime_get_coarse_ts64(struct timespec64 *);
+void ktime_get_coarse_boottime_ts64(struct timespec64 *);
+void ktime_get_coarse_real_ts64(struct timespec64 *);
+
+These are quicker than the non-coarse versions, but less accurate.
+
+Theory7:
+Why is coarse variants faster than non-coarse variants
+--------------------------------------------------------
+
+ktime_get() (unlike the ktime_get_coarse()) eventually invokes timekeeping_get_delta() which reads clocksource with tk_clock_read()
+
+They doesn't read the hardware instead they read from a global timekeeping structure, which gets updated every timer tick. This can be 10ms in the past
+
+Skipping the hardware clock access saves around 100 CPU cycles on most modern machines with a reliable cycle counter, but up to several microseconds on older hardware with an external clocksource

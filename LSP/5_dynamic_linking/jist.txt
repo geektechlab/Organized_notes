@@ -1,0 +1,114 @@
+Theory0:
+Loader
+================
+
+Compiler output is assembly files
+
+Assembler output is obj files
+
+-----------
+a.out name came because it is assembler's output
+-----------
+
+Linker joins object files into one executable
+
+So what is a Loader?
+
+Loader brings executable into memory and starts execution
+
+Dynamic Linking (.so)
+=======================
+
+When using a static linking, the linker finds the bits that the program modules need, and physically copies them into the executable output file that it generates. 
+
+For dynamic linking, it doesn't copy instead it leaves a note in the executable saying `when this program is run, it will first have to load this library'. 
+
+Dynamic linking can occur when executable is first loaded and run (load‐time linking).
+
+Dynamic linking can also occur after program has begun (run‐time linking).
+
+Advantages of Dynamic Linking
+======================================
+
+Dynamic libraries provide a means to use code that can be loaded anywhere in the memory. Dynamic library has relocatable address.
+
+Once loaded, the library code can be used by any number of programs.
+
+This way the size of programs using dynamic library can be kept low as a lot of code is kept common in form of a shared library
+
+-----------
+[ ldd ] can be used to find dependent libraries.
+
+[ gcc hello.c -o hello ]
+[ strace hello ]
+here, hello first loads libraries and then calls hello.
+So, dynamic libraries are loaded first and then execution starts.
+------------
+
+Theory1:
+How to create the dynamic library
+===================================
+
+Step1: Create object files using the below command
+
+	$ gcc -fPIC -c *.c
+
+the -fPIC flag stands for Position Independent Code, a characteristic required by shared libraries
+
+Step2: Create the library
+
+	$ gcc -shared -Wl,-soname,libarith.so -o libarith.so *.o
+
+The -shared key tells the compiler to produce a shared object which can then be linked with other objects to form an executable.
+
+-Wl flag passes an options to linker with following format -Wl,options
+	in case of our example it sets the name of library, as it will be passed to the linker.
+
+
+Use the dynamic library
+=============================
+$ cd app
+$ gcc main.c -o main -I.. -larith -L..
+[ strace ./hello ] will tell how shared library is being used.
+
+-------------
+export LD_LIBRARY_PATH=<path> can be used to tell where to find shared library. It sets standard shared library path.
+-------------
+
+Tools to work with dynamic library
+===================================
+
+To find out what functions a library has, use the nm command
+
+$ nm libarith.so
+
+Theory2:
+what if we didn’t want to add libraries at compile time, but instead load them ourselves as needed during runtime? 
+
+Instead of a predefined dependency on a library, we could make its presence optional and adjust our program’s functionality accordingly.
+
+Well, we can do just that with the concept of dynamic loading
+
+Theory3:
+Create shared object files
+==========================
+
+$ gcc *.c -c -fPIC
+
+Create Shared library
+========================
+
+$ gcc -shared -Wl,-soname,libarith.so.1 -o libarith.so.1.0 *.o
+
+the option -Wl,-soname specify the soname of the resulting shared library
+
+-o option is to specify the output file name (the real name of the shared library)
+
+Note that you can build a shared library without the soname, but it makes version management of shared libraries impossible
+
+Installing a shared library
+============================
+
+$ ln -s libarith.so.1.0 libarith.so.1
+
+$ ln -s libarith.so.1 libarith.so

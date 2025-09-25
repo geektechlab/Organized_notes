@@ -1,0 +1,18 @@
+CONFIG_STRICT_DEVMEM
+=====================
+
+Since Linux 2.6.26, and depending on the architecture, the CONFIG_STRICT_DEVMEM kernel configuration option limits the areas which can be accessed through /dev/mem
+
+# cat /boot/config-`uname -r` | grep CONFIG_STRICT_DEVMEM
+
+It is enabled by default x86/x86_64 and ARM platforms.
+
+Enabling CONFIG_STRICT_DEVMEM implements strict access to /dev/mem so that it only allows user-space access to memory mapped peripherals.
+
+With this option disabled, the root user from user-space can access all kernel and user-space memory through /dev/mem.
+
+Try with qemu-system-arm
+
+The QEMU emulator supports the VersatilePB platform, that contains an ARM926EJ-S core
+
+Memory map can be read : cat /proc/iomem

@@ -1,0 +1,8 @@
+Auto Complete
+==============
+
+vim supports tag name completion.
+
+Start typing the tag name and then hit TAB key and name completion will be done automatically if there is a tag name.
+
+:tag msleep<TAB>

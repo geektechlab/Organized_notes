@@ -1,0 +1,87 @@
+Theory0:
+Flashing Raspbian Image on Raspberry Pi3:
+Pre Requisites: SD Card should be connected to your computer
+$ dmesg | grep sdb
+
+Step 1: Download Raspbian Buster Lite from Raspbian website
+$ wget --content-disposition https://downloads.raspberrypi.org/raspbian_lite_latest
+
+Step 2: Extract the image
+$ unzip 2019-09-26-raspbian-buster-lite.zip
+
+Step 3: Write it to the SD Card
+$ sudo dd if=2019-09-26-raspbian-buster-lite.img of=/dev/sdb bs=4096 && sync
+
+Theory1:
+Enabling SSH on Raspberry Pi: SSH is by default disabled on Raspbian images.
+
+Advantage of SSH: No need of HDMI display or keyboard.
+
+To enable ssh, create an empty file name 'ssh.txt' in the boot partition of the SD Card.
+$ sudo mount /dev/sdb1 /media
+$ sudo touch /media/ssh
+$ sudo umount /media
+
+Connect SD Card to Raspberry Pi and Ethernet Cable and boot. You can get the IP Address of Raspberry Pi from your Router Admin Page.
+$ ssh pi@<ip_address>
+Password: raspberry
+
+Theory2:
+Building Linux Kernel for Raspberry Pi 3:
+Two Methods:
+1. Build locally on Raspberry Pi : Takes long time
+2. Cross Compilation: Quicker, but requires more setup
+
+We will use cross compilation as it is faster.
+Step 1 : Create a directory 'raspberry' in your home folder
+$ sudo apt install git bison flex libssl-dev
+$ mkdir  ~/raspberry
+$ cd ~/raspberry
+
+Step 2: Raspberry Pi is providing a ready-to-use toolchain on their github repository.
+$ git clone https://github.com/raspberrypi/tools.git --depth=1
+The "--depth=1” is here to tell git we only want the last revision, and not the whole history to be cloned.
+
+Step 3: Update the PATH environment variable, so the system is aware of new file locations. On a 32-bit System.
+$ echo PATH=$PATH:~/raspberry/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin >> ~/.bashrc 
+On a 64-bit System
+$ echo PATH=$PATH:~raspberry/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin >> ~/.bashrc
+source ~/.bashrc
+
+Step 4: Get the Linux Sources
+$ git clone --depth=1 https://github.com/raspberrypi/linux
+
+Step 5: Build the Kernel
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- bcm2709_defconfig
+
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf-
+Copy the kernel and Device Tree blobs onto the SD card
+
+$ sudo mount /dev/sdb1 /media
+$ sudo cp /media/kernel7.img /media/kernel7-backup.img /* keeping backup of kernel image */
+$ sudo cp arch/arm/boot/zImage /media/kernel7.img
+$ sudo cp arch/arm/boot/dts/overlays/*.dtb* /media/overlays/
+$ sudo cp arch/arm/boot/dts/overlays/README /media/overlays
+
+Step 6: Copy the modules into a folder
+$ sudo mount /dev/sdb2 /mnt /* mount root partition */ /* check using [ ls /mnt ] */
+$ sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- INSTALL_MOD_PATH=/mnt modules_install
+INSTALL_MOD_PATH is used to set the alternate path for module installation.
+
+Step 7: Finally Plug the Card and boot it
+
+Theory3:
+Expand File System on Raspberry Pi: After installing a new OS on your PI’s SD card you might notice there is a lot of diskspace ‘missing’ on the card.
+
+$ sudo raspi-config
+Select Option 7: Advanced Options
+Select Option A1: Expand FileSystem
+
+Finally Select Yes when it asks for "reboot"
+
+Theory4:
+Cross Compiling Linux Kernel Module:
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C ~/raspberrypi/linux/ M=${PWD} modules
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C ~/raspberrypi/linux/ M=${PWD} clean
+
+then copy generated .ko using ssh and then install it using [ sudo insmod ]

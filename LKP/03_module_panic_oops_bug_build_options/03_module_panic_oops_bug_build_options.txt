@@ -1,0 +1,101 @@
+tainting of kernel will be stored in dmesg only once. re-loading will not display that message. At runtime, you can query the tainted state by reading 
+$cat /proc/sys/kernel/tainted. After [reboot], value of above file will be 0.
+The easiest way to decode that number is the script kernel-chktaint https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/tools/debugging/kernel-chktaint
+----------
+running above script will tell the reason of tainting
+For raw taint value decoding from the message, check flags.txt in this directory
+----------
+
+How to find the version of a compiled kernel module? modinfo can be used for this.
+[ modinfo <.ko file> ]
+Module Metadata:
+MODULE_DESCRIPTION can be a short synopsis of what your module is trying to accomplish
+MODULE_AUTHOR declares the module’s author
+MODULE_VERSION macro sets the version of the module
+
+When the kernel is tainted, it means that it is in a state that is not supported by the community. In addition, some debugging functionality and API calls may be disabled when the kernel is tainted. Reasons:
+	The use of a proprietary (or non-GPL-compatible) kernel module—this is the most common cause of tainted kernels and usually results from loading proprietary NVIDIA or AMD video drivers
+	The use of staging drivers, which are part of the kernel source code but are not fully tested
+	The use of out-of-tree modules that are not included with the Linux kernel source code
+	Certain critical error conditions, such as machine check exceptions and kernel oopses
+
+MODULE_DESCRIPTION can be a short synopsis of what your module is trying to accomplish
+MODULE_AUTHOR declares the module’s author
+MODULE_VERSION macro sets the version of the module
+
+Understanding modinfo output:
+	vermagic: When loading a module, the strings in the vermagic value are checked if they match. If they don't match you will get an error and the kernel refuses to load the module. 
+	intree: All kernel modules start their developments as out-of-tree. Once a module gets accepted to be included, it becomes an in-tree module.
+	srcversion: is an MD4 hash of the source code used to compile the kernel module. It is calculated automatically at build time from modpost script. Can be used for checking if given .ko is loaded by user or he is using previous only when we distribute .ko to customer.
+	retpoline: "Retpoline" was introduced to be a solution to mitigate the risk of Spectre bug.
+
+An ELF object file consists of various named sections. Some of them are basic parts of an object file, for example the .text section contains executable code that a loader loads.
+To see all the sections
+$ objdump --section-headers ./mod_info.ko
+To see the contents of the .modinfo section:
+$ objdump --section-headers --section=.modinfo --full-contents ./mod_info.ko
+
+Printk is implemented by using a ring buffer in the kernel with a size of __LOG_BUF_LEN bytes where __LOG_BUF_LEN equals (1 << CONFIG_LOG_BUF_SHIFT).
+
+Calling dump_stack() will cause a stack trace to be printed at that point.
+
+Kernel Panic is an error in the kernel code and will stop running immediately to avoid data loss or other damage. The reason to stop running is to protect your computer.
+reasons:
+	Hardware or Software Issue (e.g. unable to start init process) ( init process is first process )
+	Bug in the kernel driver ( e.g. NULL pointer dereference )
+	Defective or Incompatible RAM
+
+When kernel decides to Panic, it calls the panic() function which dumps some debug information and depending on the configuration reboots the system. By default, the kernel will not reboot on Kernel Panic. There are two ways by which you can instruct the kernel to reboot:
+1. Kernel Command line: Add "panic=N" to the kernel command line, for the kernel to reboot after N seconds
+2. Proc File system: echo N > /proc/sys/kernel/panic , for kernel to reboot after N seconds on reboot. Note this setting is not persistent on reboot.
+how to check kernel commandline to know to reason of boot/reboot:
+- dmesg initial log will have kernel command line printed
+- cat /proc/cmdline
+
+An OOPS is similar to segfault in user space. Kernel throws oops message when an exception such as accessing invalid memory location happens in the kernel code. Upon OOPS, the kernel performs the following operations:
+	Kills the offending process
+	Prints information which can help the developers to debug
+	Continues execution. Note: After oops, the system cannot be trusted further as the some of the locks or structures may not be cleaned up.
+
+An OOPS Message contains the following information:
+	Processor Status
+	Contents of the CPU Registers at the time of exception
+	Stack trace
+	Call Trace
+in case of OOPS, system execution continues unlike kernel panic. But system can't be trusted further because some of the locks or structures may not be cleaned up. System continues running further after adding logs to dmesg.
+
+BUG() macro:
+	Prints the contents of the registers
+	Prints Stack Trace
+	Current Process dies
+
+WARN() macro:
+	Prints the contents of the registers
+	Prints Stack Trace.
+	But current process will not die unlike BUG()
+
+After loading this module using insmod, you cannot unload this. If you try to call rmmod, you will get "Module in use" error
+
+Sometimes, an external module uses exported symbols from another external module. kbuild needs to have full knowledge of all symbols to avoid spitting out warnings about undefined symbols. When an external module is built, a Module.symvers file is generated containing all exported symbols which are not defined in the kernel. Use KBUILD_EXTRA_SYMBOLS and provide it the path of the Module.symvers file if it is present in some other directory other than the module directory.
+
+----
+can I load any file to kernel ? lets do, [ touch hello.ko ], then [ chmod +x hello.ko ], then [ insmod hello.ko ]. It's not possible. insmod is user space utility. What happens when we do insmod on a module ? What is a kernel module?
+
+	Kernel module is a piece of kernel code which can be added to the running kernel when loaded and can be removed from the kernel when the functionality is removed.
+
+When we do insmod on a module, it performs a series of steps:
+
+	a) It calls init_module() to intimate the kernel that a module is attempted to be loaded and transfers the control to the kernel
+	b) In kernel, sys_init_module() is run. It does a sequence of operations as follows:
+		--> Verifies if the user who attempts to load the module has the permission to do so or not
+		--> After verification, load_module function is called.
+				-->	The load_module function assigns temporary memory and copies the elf module from user space to kernel memory using copy_from_user
+				--> It then checks the sanity of the ELF file ( Verification if it is a proper ELF file )
+				--> Then based on the ELF file interpretation, it generates offset in the temporary memory space allocated. This is called the convenience variables
+				-->	User arguments to the module are also copied to the kernel memory
+				-->	Symbol resolution is done
+				-->	The load_module function returns a reference to the kernel module.
+		-->	The reference to the module returned by load_module is added to a doubly linked list that has a list of all the modules loaded in the system
+		-->	Then the module_init function in the module code is called
+
+we can check it by [ strace insmod ./hello.ko ]

@@ -1,0 +1,3 @@
+The default action for things like SIGSEGV is to terminate your process but as you've installed a handler for it, it'll call your handler overriding the default behavior. 
+
+But the problem is segfaulting instruction may be retried after your handler finishes and if you haven't taken measures to fix the first seg fault, the retried instruction will again fault and it goes on and on. So, in this program when we execute, it continously goes into sighandler.

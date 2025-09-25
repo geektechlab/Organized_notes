@@ -1,0 +1,14 @@
+If I lock a mutex, does it stop all other threads?
+====================================================
+
+No, the other threads will continue. It's only when a thread attempts to lock a mutex that is already locked, will the thread have to wait
+
+Can I create mutex before fork-ing?
+===================================
+
+Yes - however the child and parent process will not share virtual memory and each one will have a mutex independent of the other.
+
+If one thread locks a mutex can another thread unlock it?
+=========================================================
+
+No. The same thread must unlock it.

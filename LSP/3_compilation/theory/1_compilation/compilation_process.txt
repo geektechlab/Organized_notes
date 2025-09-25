@@ -1,0 +1,72 @@
+GCC Compilation Process
+=============================
+
+GCC compiles a C/C++ program into executable in 4 steps
+
+For example, a "gcc -o hello hello.c" is carried out as follows:
+
+1. Pre-processing:
+==================================
+    The first stage of compilation is called preprocessing
+
+    In this stage, lines starting with a # character are interpreted by the preprocessor as preprocessor commands.
+        joining continued lines (lines ending with a \)
+        Removal of Comments
+        Expansion of Macros
+        Expansion of the included files.
+
+    The output of this step is a "pure" C file without pre-processor directives.
+
+    $ cpp hello.c > hello.i
+    $ gcc -E hello.c > hello.i
+
+2. Compilation:
+==================================
+
+    The second stage of compilation is confusingly enough called compilation.
+
+    In this stage, the preprocessed code is translated to assembly instructions specific to the target processor architecture.
+
+        Check C program for syntax errors.
+        Translate the file into intermediate code i.e. in assembly language.
+        Optionally optimize the translated code for better performance.
+            Removing unused variables and subroutines;
+
+    $  gcc -S hello.i
+----------
+gcc generates assembly instruction for x86.
+for ARM, run arm-linux-gnueabihf-gcc -S hello.in. It is cross compiler and will generate ARM assembly instruction.
+----------
+
+3. Assembly:
+====================================
+
+    During this stage, an assembler is used to translate the assembly instructions to object code.
+
+    The output consists of actual instructions to be run by the target processor.
+
+    $ as -o hello.o hello.s
+    $ gcc -c hello.s
+
+    The contents of this file is in a binary format and can be inspected using hexdump or od by running either one of the following commands:
+
+    $hexdump hello.o
+    $od -c hello.o
+
+    At this phase, only existing code is converted into machine language, the function calls like printf() are not resolved
+
+4. Linker:
+====================================
+
+    The object code generated in the assembly stage is composed of machine instructions that the processor understands but some pieces of the program are out of order or missing.
+
+    To produce an executable program, the existing pieces have to be rearranged and the missing ones filled in. This process is called linking
+
+    The result of this stage is the final executable program
+
+    An object and executable come in several formats
+         ELF (Executable and Linking Format) is used on Linux. ELF is format used by Linux to store object, executable, shared library and kernel object files.
+         COFF (Common Object-File Format) is used on Windows systems.
+
+---------------
+[ file hello ] will give info about actual executable.

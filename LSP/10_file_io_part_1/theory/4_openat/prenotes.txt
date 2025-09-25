@@ -1,0 +1,43 @@
+Absolute Path vs Relative Path
+=======================================
+
+An absolute path is defined as specifying the location of a file or directory from the root directory(/). In other words we can say absolute path is a complete path from start of actual filesystem from / directory
+
+example:
+/home/user/Document/srv.txt
+/root/data/dev.jpg
+/var/log/messages
+
+Relative path is defined as path related to the present working directory(pwd). Suppose I am located in /home/user1 and I want to change directory to /home/user1/Documents. I can use relative path concept to change directory to Documents.
+
+$ pwd
+/home/user1
+$cd Documents/  (using relative path)
+$pwd
+/home/user1/Documents
+
+or
+
+$ pwd
+/home/user1
+$cd /home/user1/Documents/  (using absolute path)
+$ pwd
+/home/user1/Documents  
+
+openat
+================
+
+#include <fcntl.h>
+int open(const char *path, int oflag, ... /* mode_t mode */ );
+int openat(int fd, const char *path, int oflag, ... /* mode_t mode */ );
+
+The fd parameter distinguishes the openat function from the open function.
+
+There are three possibilities:
+	1. The path parameter specifies an absolute pathname. In this case, the fd parameter is ignored and the openat function behaves like the open function.
+	2. The path parameter specifies a relative pathname and the fd parameter is a file descriptor that specifies the starting location in the file system where the relative pathname is to be evaluated
+	3. The path parameter specifies a relative pathname and the fd parameter has the special value AT_FDCWD. In this case, the pathname is evaluated starting in the current working directory and the openat function behaves like the open function.
+
+------
+diff btween open and openat is openat takes file descriptor/at cwd.
+------

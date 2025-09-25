@@ -1,0 +1,53 @@
+1. In Linux, the static library has the extension of
+	a) .a
+b) .b
+c) .c
+d) .d
+
+2. The library contains the
+	a) pre-compiled object files
+b) source files
+c) header files
+d) none of the mentioned
+
+3. In Linux, the static libraries can be created by
+	a) ar command
+b) as command
+c) ap command
+d) aq command
+
+4. If a program is linked against a static library then
+	a) machine code of the used function is copied in the executable
+b) used function definition is copied into the preprocessd code
+c) used function definition is provided at the time of compiling
+d) none of the mentioned
+
+5. To use the static library in the program
+a) header file must be provided to in the source code
+b) path for the library must be specified
+	c) header file must be provided to in the source code & path for the library must be specified
+d) none of the mentioned
+
+6. Which gcc option is used to specify the library?
+a) -c
+b) -l
+c) -a
+d) -o
+
+7. In linux, the static libraries are mostly installed in
+a) /usr/lib
+b) /usr/local/lib
+	c) both /usr/lib and /usr/local/lib
+d) none of the mentioned
+
+8. Which one of the following command can list the symbols defined in a library?
+a) mn
+	b) nm
+c) nn
+d) mm
+
+9. The archive(ar) utility in linux can
+a) create a new static library
+b) insert the object files into the static library
+c) replace the object files into the static library
+	d) all of the mentioned

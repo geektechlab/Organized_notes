@@ -1,0 +1,270 @@
+Theory0:
+What is a Process
+===================
+
+A program is a binary file on a storage medium; by itself, it is a dead object. 
+
+When you run the program say from shell, it does indeed come alive, and become a process
+
+A process is program that is running
+
+What's a program?
+===================
+
+Programs usually contain the following
+
+	A binary format: This tells the operating system which set of bits in the binary are what 
+			-- which part is executable, which parts are constants, which libraries to include etc.
+
+	A set of machine instructions
+
+	A number denoting which instruction to start from
+
+	Constants
+
+	Libraries to link and where to fill in the address of those libraries
+
+Process ID (PID)
+===================
+
+To keep track of all these processes, your operating system gives each process a number - PID (Process ID)
+
+Processes also have a ppid which is short for parent process id.
+
+There are some special processes, but the details differ from implementation to implementation.
+
+Process ID 0 is usually the scheduler process and is often known as the swapper.
+
+Process ID 1 is usually the init process(sysvinit) or systemd(systemd) and is invoked by the kernel at the end of the bootstrap procedure
+
+----
+run [ ps -ef | less ] and check 1 is assigned to systemd and if we use sysvinit then pid 1 is assigned to init. Ususally, it is first process.
+
+systemd and sysvinit are init managers and those start a process. systemd is newer and it is being adapted now.
+
+in some system we have process id 0 for idle purpose.
+----
+
+System Calls
+============
+
+#include <unistd.h>
+
+pid_t getpid(void);
+Returns: process ID of calling process
+
+pid_t getppid(void);
+Returns: parent process ID of calling process
+
+Theory1:
+Every process has six or more IDs associated with it.
+
+who we really are
+====================
+        real user ID
+        real group ID
+
+used for file access permission checks
+=========================================
+        effective user ID
+        effective group ID
+
+saved by exec functions
+=============================
+        saved set-user-ID
+        saved set-group-ID
+
+uid_t getuid(void);
+Returns: real user ID of calling process
+
+uid_t geteuid(void);
+Returns: effective user ID of calling process
+
+gid_t getgid(void);
+Returns: real group ID of calling process
+
+gid_t getegid(void);
+Returns: effective group ID of calling process
+
+Real User ID/Group ID
+=====================
+
+The real user ID/group ID is the uid of the user who originally ran the process
+
+These two fields are taken from our entry in the password file when we log in
+
+Effective User ID/Group ID
+=========================
+
+When we execute a program file, the effective user ID of the process is usually the real user ID, and the effective group ID is usually the real group ID.
+
+Every file has an owner and a group owner.
+
+However, we can also set a special flag in the file’s mode word (st_mode) that says, ‘‘When this file is executed, set the effective user ID of the process to be the owner of the file (st_uid).’’
+
+Similarly, we can set another bit in the file’s mode word that causes the effective group ID to be the group owner of the file (st_gid).
+
+These two bits in the file’s mode word are called the set-user-ID bit and the set-group-ID bit.
+
+For example, if the owner of the file is the superuser and if the file’s set-user-ID bit is set, then while that program file is running as a process, it has superuser privileges.
+
+This happens regardless of the real user ID of the process that executes the file.
+
+As an example, the UNIX System program that allows anyone to change his or her password, passwd(1), is a set-user-ID program.
+
+This is required so that the program can write the new password to the password file, typically either /etc/passwd or /etc/shadow, files that should be writable only by the superuser
+
+Saved User ID/Group ID
+======================
+
+The saved user ID is the process's original effective user ID.
+
+Upon an exec call, the kernel sets the Saved User ID to the effective user ID.
+
+This is used to switch back and forth between a privileged to unprivileged state for our process
+
+$ sudo chown -R root:root pid
+
+$ sudo chmod u+s pid
+$ sudo chmod g+s pid
+
+How Sudo Works
+=============
+
+If you take a look at the executable sudo:
+
+linuxtrainer@ubuntu:~$ which sudo
+/usr/bin/sudo
+linuxtrainer@ubuntu:~$ ls -la /usr/bin/sudo
+-rwsr-xr-x 1 root root 149080 Jan 17  2018 /usr/bin/sudo
+linuxtrainer@ubuntu:~$ 
+
+You'll notice that it has the setuid bit set
+
+Whenever you run a program with sudo, the sudo process runs with a root privilege straight away.
+
+Theory2:
+When a program is executed, the process that does the exec can pass command-line arguments to the new program.
+
+Theory3:
+Each program is also passed an environment list.
+
+Like the argument list, the environment list is an array of character pointers, with each pointer containing the address of a null-terminated C string.
+
+The address of the array of pointers is contained in the global variable environ
+
+extern char **environ;
+
+the strings in environ have the form "name=value".
+
+man 7 environ
+
+What are environmental Variables
+====================================
+
+Everyone knows what are variables, Data stored somewhere in memory when referenced by some indicator (variable name)
+
+Environment variables are none other than variables, It’s just that data stored in that variable is what describes environment behaviour. 
+
+Examples:
+
+$PATH: This ENV stores the path of all the directories which holds binary files you want to execute just by specifying the name of the file and not by relative or absolute path
+
+$USER: This ENV stores your username
+
+$HOME: This ENV stores the absolute path to your home directory
+
+printenv command list out all environmental variables
+
+---------
+how to set environemnt variables permanent:
+[ vi ~/.bashrc ]
+we can set those here
+
+or
+
+in the initrd script at
+[ cd /etc/init.d ]
+look at 43:00 in video
+---------
+
+Theory4:
+What is Virtual Memory
+==========================
+
+In computing, virtual memory is a memory management technique that is implemented using both hardware and software.
+
+Addresses used by program are virtual addresses which are converted to physical addresses using Memory Management Unit (MMU)(Hardware)
+
+Benefits of Virtual Memory
+============================
+
+freeing applications from having to manage a shared memory space, 
+increased security due to memory isolation,
+being able to conceptually use more memory than might be physically available, using the technique of paging
+
+Key Points of Virtual Memory
+=============================
+
+Each process has its own virtual memory
+
+The amount of virtual memory depends on your system's architecture
+
+Each OS handles virtual memory differently, but for most modern operating systems, the virtual memory of a process looks like this:
+
+         address|-------------------| command-line arguments
+                |-------------------| and environment variables
+                |        stack      |
+                |-------------------|
+                |                   |
+                |                   |
+                |                   |
+                |-------------------|
+                |               heap|
+                |-------------------|
+                |uninitialized data | initialized to
+                |               (bss| zero by exec
+                |-------------------|
+                | initialized data  | read from
+                |-------------------| program file 
+                |               text| by exec
+    low address |-------------------|
+            Typical memory arrangement
+
+High Memory Addresses : Command Line Arguments + Environmental Variables + Stack Growing downwards
+Low Memory Addresses:  Heap Growing Upwards + Executable
+
+The heap is a portion of memory that is dynamically allocated (i.e. containing memory allocated using malloc).
+
+The size of text, data, .bss segments, and the total size is examined as follows with help of the size command. 
+
+The fourth and fifth columns are the total of the three sizes, displayed in decimal and hexadecimal, respectively. You can read man page of size for more details.
+
+Theory5:
+The proc filesystem is a pseudo-filesystem which provides an interface to kernel data structures.  
+It is commonly mounted at `/proc`.  Most of it is read-only, but some files allow kernel variables to be changed.
+
+If you list the contents of your /proc directory, you will probably see a lot of files.
+
+We will focus on two of them:
+
+	/proc/[pid]/mem : This file can be used to access the pages of a process's memory through open(2), read(2), and lseek(2).
+	/proc/[pid]/maps :  A  file containing the currently mapped memory regions and their access permissions.
+
+-----
+for ./1,
+run [ ps -ef ]
+find process id and then run [ cd /proc/<process id> ]
+and then run [ cat maps ] and check heap and stack etc. addresses
+-----
+
+How big is the virtual memory of a process
+==========================================
+
+The size of the virtual memory of a process depends on your system architecture.
+
+I am using a 64-bit machine, so theoretically the size of each process' virtual memory is 2^64 bytes
+
+In theory, the highest memory address possible is 0xffffffffffffffff (1.8446744e+19), and the lowest is 0x0
+
+0x18xxxxx ( from ./1 program ) is small compared to 0xffffffffffffffff, so the duplicated string is probably located at a lower memory address

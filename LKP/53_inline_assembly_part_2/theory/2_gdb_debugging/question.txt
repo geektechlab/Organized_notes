@@ -1,0 +1,4 @@
+How to debug?
+------------
+
+There is a mistake in the code and how to debug

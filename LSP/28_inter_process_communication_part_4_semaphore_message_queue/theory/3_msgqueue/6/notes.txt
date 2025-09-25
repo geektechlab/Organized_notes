@@ -1,0 +1,24 @@
+Asynchronous Notification of Messages
+=====================================
+
+A process that wants to read a message from a message queue has three options:
+
+	Set the queue to blocking mode, and wait for a message to be received by calling mq_receive
+
+	Set the queue to non-blocking mode, and call mq_receive multiple times until a message is received
+
+	Set the queue to non-blocking mode, and call mq_notify specifying a signal to be sent when the queue goes from empty to non-empty
+
+The last option is a good choice for a realtime application.
+
+int mq_notify(mqd_t mqdes, const struct sigevent *sevp);
+
+man 7 sigevent for structure
+
+The mq_notify function is used to register a request for asynchronous notification by a signal when a message becomes available on a previously empty queue.
+
+The process can then do useful work until a message arrives, at which time a signal is sent according to the signal information specified in the notification argument of the mq_notify function.
+
+After notification, the process can call mq_receive to receive the message.
+
+

@@ -1,0 +1,10 @@
+uptime
+----------
+
+$uptime
+
+cat /proc/uptime
+
+File: fs/proc/uptime.c
+
+ktime_get_boottime_ts64(&uptime);

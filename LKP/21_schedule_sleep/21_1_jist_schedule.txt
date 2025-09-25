@@ -1,0 +1,145 @@
+Theory0:
+
+Schedule() implements the scheduler.
+
+Implementation: kernel/sched.c
+
+The most important data structure used by scheduler is run queue.
+Run Queue: Contains the list of all processes which are in TASK_RUNNING state.
+
+Each CPU has its own run queue and each active process will be present on just one run queue.
+
+How it is invoked?
+1. Direct Way: When the current process do not have the resource it needs, and want to block itself until it acquires the resource, it calls schedule
+2. Lazy Way: When the time quantum/time slice of the current process is completed.
+
+Sleeping in Linux
+    At times, processes needs to wait until a certain event occurs, for example
+
+        1. Device to Initialize
+        2. I/O completion
+        3. Fix Interval of time to elapse
+
+    In such cases, the process is said to sleep on that event. A process can go to sleep by calling schedule(). When a process is put to sleep, it is marked as being in a special state and removed from the scheduler's run queue. Until something comes along to change that state, the process will not be scheduled on any CPU and, therefore, will not run.
+
+Process States:
+    TASK_RUNNING : Running or ready to run
+    TASK_ZOMBIE  : Task has terminated, but waiting for parent to call wait
+    TASK_STOPPED : Process Execution has stopped; happens when it receives SIGSTOP
+    TASK_INTERRUPTIBLE
+    TASK_UNINTERRUPTIBLE
+
+TASK_INTERRUPTIBLE vs TASK_UNINTERRUPTIBLE
+===========================================
+
+    TASK_INTERRUPTIBLE                          TASK_UNINTERRUPTIBLE
+
+    1. Process is sleeping/blocked              1. Process is sleeping/blocked
+        waiting for some condition                 waiting for some condition
+         to exist                                  to exist
+
+
+    2. When the condition becomes true          2. When the condition becomes true
+       the process is set to TASK_RUNNING          the process is set to TASK_RUNNING
+        by kernel                                  by kernel
+
+    3. When signal is send to this process      3. When signal is send to this process
+        it wakes up and becomes runnable           it doesn't wake up
+
+TASK_UNINTERRUPTIBLE is  mostly used by device drivers waiting for disk or network I/O
+
+How to find out what wait channels processes are waiting on?
+$ ps -l (to see processes associated with the current shell)
+$ ps -el (to see all processes on the system)
+
+If a process is in Sleep state, the WCHAN field shows the system call that the process is waiting on
+
+WCHAN(Wait Channel) - name of the kernel function in which the process is sleeping
+
+State:
+ D    uninterruptible sleep (usually IO)
+ S    interruptible sleep   (waiting for an event to complete)
+
+Theory1:
+schedule() function invokes scheduler and it then picks up the next process/task from the run queue. process invoking the schedule() voluntarily yields the processor, as the process is still in run queue, it would be scheduled again. You must call set_current_state() before calling schedule() to move it from the run queue.
+
+Header File: <linux/sched.h>
+
+Theory2:
+When the schedule() function is called with the state as TASK_INTERRUPTIBLE or TASK_UNINTERRUPTIBLE, an additional step is performed
+	the currently executing process is moved off the run queue before another process is scheduled. 
+	The effect of this is the executing process goes to sleep, as it no longer is on the run queue.
+	Hence, it never is scheduled by the scheduler. And, that is how a process can sleep.
+
+There is no one trying to wake up the process, hence the process is sleeping unconditionally.
+
+Theory3:
+Waking up:
+	Given a reference to a task structure, the process could be woken up by calling:
+
+	wake_up_process(sleeping_task);
+	Implementation: kernel/sched/core.c
+	-->	this sets the task state to TASK_RUNNING
+	-->	puts the task back on the run queue.
+
+	Note:	the process runs only when the scheduler looks at it the next time around.
+	Return: 
+		1 if the process was woken up, 
+		0 if it was already running.
+
+example is a device driver showing skeep and wake of process.
+
+Theory4:
+schedule_timeout()
+long schedule_timeout (	signed long  timeout);
+timeout - timeout value in jiffies
+
+Make the current task sleep until timeout jiffies have elapsed. The routine will return immediately unless the current task state has been set using set_current_state. The current task state is guaranteed to be TASK_RUNNING when this routine returns.
+
+Return value:
+	0	when the timer has expired
+	remaining time in jiffies, if the signal is received or process is woken up
+
+Theory5;
+Lost Wake Up Problem:
+    processes go to sleep after checking some condition.
+    Lost wakeup problem arises out of a race condition that occurs while a process goes to conditional sleep.
+
+Process A                                       Process B
+====================                            ========================
+    if (list_empty(&mylist_head))               list_add_tail_rcu(&mylist_head);
+    {                                           wake_up_process(task_a);
+        set_current_state(TASK_INTERRUPTIBLE);
+        schedule();
+    }
+    //Rest of the Code which performs operation on list 
+
+What is the problem in the above code?
+If process A which was executing list_empty  on one processor found that the list is empty and it entered the if loop. At the same time, process B started on another processor starts and executes all its instructions. It calls wake_up_process on process A which has not yet slept. Now process A sets the state to TASK_INTERRUPTIBLE and goes to sleep. Thus, a wake up from process B is lost. This is known as lost-wakeup problem. Process A sleeps, even though there are nodes available on the list.
+
+Solution: Problem goes if we modify our code
+
+Process A                                       Process B
+====================                            ========================
+    set_current_state(TASK_INTERRUPTIBLE);
+    if (list_empty(&mylist_head))               list_add_tail_rcu(&mylist_head);
+    {                                            wake_up_process(task_a);
+        
+        schedule();
+    }
+    //Rest of the Code which performs operation on list 
+
+How?
+Whenever wake_up_process() is called on process whose state is TASK_INTERRUPTIBLE/TASK_UNINTERRUPTIBLE, and the process has not yet called schedule(), it changes the state to TASK_RUNNING. Even if the wake_up_process is called after list_empty, as the state is TASK_RUNNING, it will not put the process into sleep. We can't spinlock because schedule will put process into sleep state. But can use semaphore but above solution is better.
+
+Theory6:
+The following is a snippet from kernel/kthread.c
+
+set_current_state(TASK_INTERRUPTIBLE);
+if (list_empty(&kthread_create_list))
+	schedule();
+__set_current_state(TASK_RUNNING);
+
+Here in this code, it is checking the condition only after setting the state to TASK_INTERRUPTIBLE. Why do you think last line is needed?
+
+It is setting the task state to RUNNING, as there are chances that the list_empty condition may fail() and schedule() will never be called.

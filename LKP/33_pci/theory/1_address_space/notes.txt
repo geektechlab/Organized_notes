@@ -1,0 +1,20 @@
+Address Space
+===============
+
+A PCI device can have up to three address spaces:
+	a) Configuration Space: i/o-ports 0x0CF8-0x0CFF dedicated to accessing PCI Configuration Space (Required)
+	b) I/O Space (Optional)
+	c) Memory Space (Optional)
+
+Note: Every PCI device must implement the PCI configuration register dictated by the PCI specification. Otherwise, the device will not be regarded as valid PCI device.
+
+Each PCI device is identified by a
+	a) Bus Number
+	b) Device Number
+	c) Function Number
+
+The PCI Specification permits a single system to host up to 256 buses.
+
+Each bus hosts up to 32 Devices.
+
+Each Device can have multi functionality. There are 8 possible funtions per device.

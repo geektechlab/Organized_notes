@@ -1,0 +1,98 @@
+1. The correct sequence of GCC compilation process is
+	a) preprocessing -> compilation -> assemble -> linking
+b) assemble -> preprocessing -> compilation -> linking
+c) preprocessing -> assemble -> compilation -> linking
+d) none of the mentioned
+
+2. The preprocessor removes the _______ from the source code.
+a) comments
+b) header files
+	c) both comments and header files
+d) none of the mentioned
+
+3. The compiler converts
+a) assembly code into machine code
+	b) preprocessed source code into assembly code
+c) machine code into assembly code
+d) none of the mentioned
+
+4. The assembly code is converted into the machine code by
+a) compiler
+	b) assembler
+c) linker
+d) none of the mentioned
+
+5. What is the role of linker in the compilation process?
+a) linker links the object code with the library code
+b) linker converts machine code into executable machine code
+c) linker generates an executable file
+	d) all of the mentioned
+
+6. If hello.c is compiled with GCC, then the hello.s file will contain the
+	a) assembly code
+b) machine code
+c) preprocessed code
+d) expanded source code
+
+7. The object file contains the
+a) assembly code
+	b) machine code
+c) modified source code
+d) none of the mentioned
+
+8. If we do not specify the executable file name at the compilation time in GCC, then in linux the compiler creates executable named as
+	a) a.out
+b) a.exe
+c) x.out
+d) x.exe
+
+9. The macros specifies in source code are expanded by
+	a) preprocessor
+b) assembler
+c) compiler
+d) linker
+
+10. The preprocessor creates the file with extension
+a) .a
+	b) .i
+c) .s
+d) .o
+
+11. The a.out file is in the
+	a) ELF format
+b) EXE format
+c) Both EXE and ELF format
+d) None of the mentioned
+
+12. The lines in our code that begin with the #character are
+	a) preprocessor directives
+b) macros
+c) header files
+d) none of the mentioned
+
+13. Which compilation step makes sure that all the undefined symbols in the code are resolved.
+	a) linking
+b) compiling
+c) preprocessing
+d) none of the mentioned
+
+14. The COFF stands for
+	a) common object file format
+b) combined operation for file formats
+c) combined object file format
+d) none of the mentioned
+
+15) Which stage error happens
+
+int main()
+{
+	int i;
+	wint d;
+
+	d = 10;
+}
+
+a) Preprocessing
+	b) Compiling
+c) Assembling
+d) Linking

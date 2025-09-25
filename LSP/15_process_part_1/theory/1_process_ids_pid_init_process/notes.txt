@@ -1,0 +1,56 @@
+What is a Process
+===================
+
+A program is a binary file on a storage medium; by itself, it is a dead object. 
+
+When you run the program say from shell, it does indeed come alive, and become a process
+
+A process is program that is running
+
+What's a program?
+===================
+
+Programs usually contain the following
+
+	A binary format: This tells the operating system which set of bits in the binary are what 
+			-- which part is executable, which parts are constants, which libraries to include etc.
+
+	A set of machine instructions
+
+	A number denoting which instruction to start from
+
+	Constants
+
+	Libraries to link and where to fill in the address of those libraries
+
+Process ID (PID)
+===================
+
+To keep track of all these processes, your operating system gives each process a number - PID (Process ID)
+
+Processes also have a ppid which is short for parent process id.
+
+There are some special processes, but the details differ from implementation to implementation.
+
+Process ID 0 is usually the scheduler process and is often known as the swapper.
+
+Process ID 1 is usually the init process(sysvinit) or systemd(systemd) and is invoked by the kernel at the end of the bootstrap procedure
+
+----
+run [ ps -ef | less ] and check 1 is assigned to systemd and if we use sysvinit then pid 1 is assigned to init. Ususally, it is first process.
+
+systemd and sysvinit are init managers and those start a process. systemd is newer and it is being adapted now.
+
+in some system we have process id 0 for idle purpose.
+----
+
+System Calls
+============
+
+#include <unistd.h>
+
+pid_t getpid(void);
+Returns: process ID of calling process
+
+pid_t getppid(void);
+Returns: parent process ID of calling process

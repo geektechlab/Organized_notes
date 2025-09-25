@@ -1,0 +1,508 @@
+IMP: 29:00 - 32:00
+
+Theory0:
+Read Copy Update / RCU
+===========================
+
+Added in Kernel Version 2.5
+
+RCU supports concurrency between a single updater/writer and multiple readers. Used in same scenario as in seqlock.
+
+Often used to update linked lists,which are used all over the kernel.
+
+RCU Can be used in the following scenario:
+------------------------------------------
+
+	Lot of Reads
+	Rare Writes
+	Write should have priority when compared to Read
+
+Problem with Read/Write Locks
+---------------------------------
+
+	Expensive (as they use atomic increment/decrement for reader count)
+
+Problem with Seq Locks
+----------------------------
+
+	Cannot be used with pointers, only works on basic types like integer etc
+	Reader needs to retry the operation
+
+RCU solves the above problem, 
+
+	to have pointer as a shared resource and 
+	No locks in the reader ( same as in seqlock )
+	Avoid reader to retry the operation
+
+Constraints of RCU
+---------------------
+
+	Access to shared resource should be mostly read, and very rare write
+	Cannot sleep into region protected by RCU
+	Protected resource should only be accessed via pointer
+
+Read Operation:
+================
+
+	No Locking is required
+
+Write Operation:
+=====================
+
+	Locking is required
+
+RCU allows read access to happen concurrently with write updates 
+
+Note: RCU Updaters/writers cannot block readers or force them to retry their accesses like seqlocks.
+
+Linux kernel uses many data structures that are read and updated intensively, especially in
+
+	1. Virtual File System : Directory entry caches (dentry)
+	2. Networking	       : Routing Tables. Every outgoing packet requires to check routing table to determine which interface ( ethernet/Wifi etc. ) should be used.
+
+How it works
+================
+
+	As readers do not check if the data they read is consistent(like the seqlock), writer have to
+	apply all their changes with one atomical operation.
+
+	RCU keep tracks of all users of the pointers to the shared data structure.
+	When a shared data structure is going to change, it 
+
+		first create a copy of the structure
+		perform the change
+		After all the readers have finished reading on the old copy, pointer is updated
+
+Why it is called RCU?
+=======================
+
+	When the writing thread needs to be changed, 
+		it makes a copy
+		changes the copy
+		updates the pointer to point to it
+
+Initial linked list
+
+       HEAD
+        |
+        V
+    --------------          -----------------               -------------
+    |            |          |               |               |           |
+    |   A        |--------->|   B           |-------------->|    C      |
+    |            |          |               |               |           |
+    --------------          ------------------              -------------
+
+Reader is reading
+
+             Reader
+       HEAD   /
+        |    /
+        V   V
+    --------------          -----------------               -------------
+    |            |          |               |               |           |
+    |   A        |--------->|   B           |-------------->|    C      |
+    |            |          |               |               |           |
+    --------------          ------------------              -------------
+
+Request to delete node B when there is reader at B
+
+            Updater        Reader
+       HEAD   /              |
+        |    /               |
+        V   V                v
+    --------------          -----------------               -------------
+    |            |          |               |               |           |
+    |   A        |--------->|   B           |-------------->|    C      |
+    |            |          |               |               |           |
+    --------------          ------------------              -------------
+
+First phase of update (Element B unlinked from List)
+
+         Updater          Reader
+       HEAD   /             |
+        |    /              |
+        V   V               v
+    --------------          -----------------               -------------
+    |            |          |               |               |           |
+    |   A        |---       |   B           |-------------->|    C      |
+    |            |  |       |               |            -->|           |
+    --------------  |       ------------------           |  -------------
+                    |                                    |
+                    |                                    |
+                    --------------------------------------
+
+Second phase of update (Updater deletes the node after grace period)
+
+                                Updater                     Reader
+       HEAD                        |                           |
+        |                          |                           |
+        V                          V                           v
+    --------------          -----------------               -------------
+    |            |          |               |               |           |
+    |   A        |---       |   B           |-------------->|    C      |
+    |            |  |       |               |            -->|           |
+    --------------  |       ------------------           |  -------------
+                    |                                    |
+                    |                                    |
+                    --------------------------------------
+
+After node is deleted
+
+       HEAD
+        V
+    --------------                                  -----------------
+    |            |                                  |               |
+    |   A        |--------------------------------->|   C           |
+    |            |                                  |               |
+    --------------                                  -----------------
+
+
+----
+suppose there is a reader at A, at request comes to delete B. If it gets deleted then when reader moves to B, it will dereference NULL pointer and crashes/OOPS. Here we have to point A to node C. So, reader will move directly to A to C. We should not delete node B untill reader moves from there. This is how RCU read copy update works. ) video ( 7 - 13 ).
+
+Theory1:
+RCU Design
+===============
+
+Core of RCU is based on two primitives:
+
+	1. RCU Read-side critical sections : rcu_read_lock/rcu_write_lock
+	2. RCU Synchronization : synchronize_rcu/call_rcu()
+
+Developers can use RCU Read-Side Critical sections and RCU Synchronization to build data structures that allow concurrent reading during updates.
+
+Header File: <linux/rcupdate.h>
+
+Core RCU API
+===============
+
+a.	rcu_read_lock()
+b.	rcu_read_unlock()
+c.	synchronize_rcu() / call_rcu()
+d.	rcu_assign_pointer()
+e.	rcu_dereference()
+
+Write operation:
+====================
+
+	Direct assign a new pointer to a pointer is protected by RCU is forbidden
+
+	You need to use rcu_assign_pointer() function.
+
+	struct my_data
+	{
+		int key;
+		int val;
+	};
+
+	struct my_data *global = NULL;
+
+	Write operation
+	----------------
+
+	struct my_data *new_ptr;
+	new_ptr = kmalloc(sizeof(struct my_data), GFP_KERNEL);
+	new_ptr->key = 1;
+	new_ptr->val = 1234;
+	rcu_assign_pointer(global, new_ptr);
+
+Theory2:
+Why can't i directly write to the pointer/global shared resource?
+-----------------------------------------------------------------
+
+or
+
+Why should i use rcu_assign_pointer?
+-------------------------------------
+
+Consider the below code fragment:
+
+	struct my_data
+	{
+		int key;
+		int val;
+	};
+
+	struct my_data *global = NULL;
+
+	....
+	
+	struct my_data *ptr;
+	ptr = kmalloc(sizeof(struct my_data), GFP_KERNEL);
+	ptr->key = 1;
+	ptr->val = 1201;
+	global = ptr;
+
+The problem here is CPU/Compiler can perform optimizations and can execute the above last three lines in any order
+
+If assignment of ptr to global happens before initialization of ptr fields, concurrent readers can could see the unitialized values.
+
+	ptr = kmalloc(sizeof(struct my_data), GFP_KERNEL);
+	global = ptr;
+	ptr->key = 1;
+	ptr->val = 1201;
+
+We need to keep use memory barriers to keep the things in order.
+
+rcu_assign_pointer will internally use memory barriers and make everything happen as per the order
+
+Theory3:
+Read operation:
+====================
+
+	It is forbidden to simply de-reference the pointer, protected by RCU region
+
+	You need to use rcu_dereference() function.
+
+	Additionally, the code that de-references the pointer and uses the result needs to be embraced by calls to	  rcu_read_lock() and rcu_read_unlock().
+
+	rcu_read_lock() - mark the beginning of an RCU read-side critical section
+
+	rcu_read_unlock() - marks the end of an RCU read-side critical section.
+
+	struct my_data
+	{
+		int key;
+		int val;
+	};
+
+	struct my_data *global = NULL;
+
+	global = kmalloc(sizeof(struct my_data), GFP_KERNEL);
+	
+	Read operation
+	----------------
+
+	struct my_data *tmp;
+	rcu_read_lock();
+
+	tmp = rcu_dereference(global);
+	pr_info("key:%d\t val:%d\n", tmp->key, tmp->val);
+	rcu_read_unlock();
+
+Theory4:
+Why can't i directly dereference to the pointer/global shared resource?
+-----------------------------------------------------------------
+
+or
+
+Why should i use rcu_dereference?
+-------------------------------------
+
+Consider the below code fragment:
+
+	struct my_data
+	{
+		int key;
+		int val;
+	};
+
+	struct my_data *ptr;
+
+	ptr = global;
+	add_key_val(ptr->key, ptr->val);
+
+Due to compiler optimization, value of ptr->key, ptr->val are fetched before the value of ptr.
+
+Compiler tries to guess value of ptr
+
+retry:
+	ptr = guess(global)
+	add_key_val(ptr->key, ptr->val);
+	if (ptr != global)
+		goto retry;
+
+rcu_dereference() internally uses memory barrier instructions/compiler directives to avoid this.
+
+	rcu_read_lock();
+	ptr = rcu_dereference(global);
+
+	if (ptr != NULL) {
+		add_key_val(ptr->key, ptr->val);
+	}
+	rcu_read_unlock();
+
+Theory5:
+What is the problem in the below code?
+
+What is the problem in the below code?
+=======================================
+
+Memory Leak
+- at write thread we are allocating memeory but not freeing.
+
+Theory6:
+When should i free memory?
+============================
+
+RCU should free after waiting For Pre-Existing RCU Readers to Complete
+
+RCU waits on "RCU read-side critical sections".
+
+RCU read-side critical sections
+-------------------------------
+
+	rcu_read_lock();
+	.....
+	critical section
+	.....
+	rcu_read_unlock();
+
+Basic idea behind RCU is to split updates/write into two phases:
+
+        1. Removal
+        2. Reclamation
+
+Removal:
+
+        Replaces references to data items with the latest
+
+Reclamation:
+
+        Freeing the old reference.
+        It should happen only when all the readers completed accessing using old reference
+
+Theory7:
+void synchronize_rcu(void);
+
+Calling process is blocked until all pre-existing RCU read-side critical sections on all CPUs have completed
+ 
+After the function returns, it is safe to free the memory associated with the old pointer.
+
+Note that synchronize_rcu will not necessarily wait for any subsequent RCU read-side critical sections to complete.
+
+		CPU 0                  CPU 1                 CPU 2
+	     ----------------- ------------------------- ---------------
+	 1.  rcu_read_lock()
+	 2.                    enters synchronize_rcu()
+	 3.                                               rcu_read_lock()
+	 4.  rcu_read_unlock()
+	 5.                     exits synchronize_rcu()
+	 6.                                              rcu_read_unlock()
+
+Theory8:
+void call_rcu(struct rcu_head *head, rcu_callback_t func);
+
+Another way to avoid blocking is to register a callback which will be called when all the read-side critical sections are completed.
+
+This requires that an instance of rcu_head is embedded
+
+Theory9:
+Can the RCU read-side critical sections be nested?
+==================================================
+
+Yes, as long as that code does not explicitly block or sleep
+
+Theory10:
+How does RCU/synchronize_cpu() know that all readers have finished reading?
+============================================================================
+
+We know RCU read-side critical sections delimited by rcu_read_lock() and rcu_read_unlock() are not permitted to block or sleep. 
+
+Therefore, when a given CPU executes a context switch, we are guaranteed that any prior RCU read-side critical sections will have completed. 
+
+synchronize_cpu() returns as soon as all the CPU's have completed one context switch.
+
+Theory11:
+RCU Terminology:
+====================
+
+Quiescent state:    Any code that is not in an RCU read-side critical section
+
+Readers could see stale data if they enter the read-side critical section before the writer finished updating.
+
+Writer has to wait until all the readers drop their references to the stale data or they have entered the quiescent state.
+
+Grace Period:   The above time span is called the grace period
+
+        Grace period ends after all CPUs execute a context switch
+
+                ------------------  Context Switch
+                |   RCU          |          |
+                V       Reader   V          V
+    CPU0        ----------------------------------------
+
+                    ------------------  Context Switch
+                    |   RCU          |          |
+                    V       Reader   V          V
+    CPU1        ---------------------------------------------------
+
+                    Synchronize_rcu()
+                        |
+                        V
+    CPU2        ---------------------------------------------------------
+                        |   Grace               |
+                        |   Period              |
+                        -------------------------
+
+Theory12:
+RCU Variants of Linked List API
+===============================
+
+Header File: <linux/rculist.h>
+
+void INIT_LIST_HEAD_RCU(struct list_head *list);
+
+void list_add_rcu(struct list_head *new, struct list_head *head);
+
+void list_add_tail_rcu(struct list_head *new, struct list_head *head);
+
+void list_del_rcu(struct list_head *entry);
+
+list_entry_rcu(ptr, type, member);
+
+list_for_each_entry_rcu(pos, head, member);
+....
+
+Theory13:
+Advantages of RCU's
+====================
+
+1. Performance
+
+2. Deadlock Immunity: As they do not use locks
+
+3. Realtime Latency: As they do not use locks
+
+Theory14:
+Do readers need to take lock while operating inside the critical section?
+=============================================================================
+
+Locks are not required in case of readers using RCU
+
+Do writers need to take lock while operating inside the critical section?
+=============================================================================
+
+Locks are required in case of writers using RCU to avoid another writer concurrently entering critical section
+
+What is quiescent state
+============================
+
+----
+threads are not in a read side critical section
+
+What is grace period?
+========================
+
+----
+from start of synchronize RCU to end of synchronize RCU
+
+Do the reader needs to retry the read operation like seqlock when the writer is also in critical section?
+=============================================================================================================
+
+Not required. Writer needs to handle this and atomically update the shared resource to the latest 
+
+What is the disadvantage of the RCU when compared to seqlock?
+=============================================================
+
+As we are performing copy operation to update the data structure, increased memory cost
+
+Can I sleep inside a region protected by RCU
+==============================================
+
+No, you cannot sleep inside a region protected by RCU.
+
+What is the similarity between read-write locks and RCU's?
+==========================================================
+
+Both have read-side critical sections that can execute in parallel

@@ -1,0 +1,24 @@
+Why do we need to call ioread instructions why can't i directly access by dereferencing?
+=========================================================================================
+
+Compiler can perform optimizations
+
+For example, the below logic:
+
+if (x)
+	y = *ptr
+
+Can be converted to 
+
+tmp = *ptr;
+if (x)
+	y = tmp
+
+Another example,
+*reg  = 1; *reg = 2;
+
+will be converted to 
+
+*reg = 2;
+
+MMIO registers will have side effects, so you must force the compiler to avoid optimizations by using volatile and avoid hardware caching using barriers. ioread functions internally perform these operations.

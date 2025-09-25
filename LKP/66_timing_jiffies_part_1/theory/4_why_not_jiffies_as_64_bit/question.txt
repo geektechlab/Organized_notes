@@ -1,0 +1,7 @@
+If the tick rate(HZ) is 100, 32-bit jiffies variable will overflow in about 497 days
+If the tick rate(HZ) is 1000, 32-bit jiffies variable will overflow in about 49.7 days
+
+Solution to avoid overflow is to store jiffies in 64-bit variable on all architectures.
+
+Why is jiffies not been directly declared as 64-bit unsigned long long integer on x86?
+======================================================================================

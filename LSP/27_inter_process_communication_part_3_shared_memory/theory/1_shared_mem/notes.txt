@@ -1,0 +1,50 @@
+Shared Memory
+=====================
+
+POSIX shared memory is an inter-process communication (IPC) mechanism defined in POSIX specification. 
+
+Shared memory is the fastest form of IPC available
+
+Once the memory is mapped into the address space of the processes that are sharing the memory region, no kernel
+involvement occurs in passing data between the processes
+
+What we mean by ‘‘no kernel involvement’’
+===========================================
+
+the processes do not execute any system calls into the kernel to pass the data
+
+The problem with these forms of IPC—pipes, FIFOs, and message queues—is that for two processes to exchange information, the information has to go through the kernel
+
+Shared memory provides a way around this by letting two or more processes share a region of memory
+
+The processes must, of course, coordinate or synchronize the use of the shared memory among themselves.
+
+A program using POSIX shared memory usually consists of these steps:
+
+1. Create or open a shared memory object with shm_open(). A file descriptor will be returned if shm_open() creates a shared memory object successfully.
+
+2. Set the shared memory object size with ftruncate().
+
+3. Map the shared memory object into the current address space with mmap() and MAP_SHARED.
+
+4. Read/write the shared memory.
+
+5. Unmap the shared memory with munmap().
+
+6. Close the shared memory object with close().
+
+7. Delete the shared memory object with shm_unlink()
+
+$man 7 shm_overview
+
+Use case of shared memory
+=========================
+As a simple example you could reserve just a few bytes and change the value in shared memory when you want the child process to quit. 
+
+----
+problem: sysnchronization is not taken care by kernel. We have to do that for multiple processes.
+
+----
+share memory objects have kernel persistence. Shared memory object will exist untill the system is shut down or untill all processes have umapped the object and it has been deleted with shm_unlink()
+
+shared memory objects are created in tmpfs virtual filesystem and mounted under /dev/shm. tmpfs in mounted on /dev/shm and it similar to a filesystems like /proc.

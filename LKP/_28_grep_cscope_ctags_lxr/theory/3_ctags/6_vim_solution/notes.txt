@@ -1,0 +1,15 @@
+Vim expects the tags file in the current directory.
+
+$ cd kernel/locking
+$ vi semaphore.c +182
+
+If you do ctrl + ] it will throw an error: tag not found.
+
+Solution: 
+==========
+
+Add 'set tags=tags;' to ~/.vimrc file
+
+The last semicolon is the key here
+
+When Vim tries to locate the 'tags' file, it first looks at the current directory, then the parent directory, then the parent of the parent, and so on

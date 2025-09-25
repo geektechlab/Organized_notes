@@ -1,0 +1,7 @@
+Want to include only files which are compiled:
+
+$ make ARCH=x86 COMPILED_SOURCE=1 cscope
+
+This way, the cscope database will only contain symbols that have already been used in the compile process before
+
+Advantage: Better performance when searching for symbols

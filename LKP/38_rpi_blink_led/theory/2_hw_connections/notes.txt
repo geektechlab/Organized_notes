@@ -1,0 +1,32 @@
+Blinking LED
+============
+
+You need:
+-----------
+
+        ---> Breadboard
+
+        ---> LED
+
+        ---> 330 Ohm resistor
+
+        ---> Two Male-Female Jumper Wires
+
+Why Resistor?
+-------------------
+
+You must ALWAYS use resistors to connect LEDs up to the GPIO pins of the Raspberry Pi.
+
+The Raspberry Pi can only supply a small current (about 60mA).
+
+The LEDs will want to draw more, and if allowed to they will burn out the Raspberry Pi.
+
+Therefore putting the resistors in the circuit will ensure that only this small current will flow and the Raspberry Pi will not be damaged.
+
+Connections
+---------------
+
+First identify which is the anode and cathode,the shorter leg is the cathode(negative) and longer leg is anode(positive).
+
+Connect the anode to resistor and then to GPIO pin
+Connect Cathode to Ground

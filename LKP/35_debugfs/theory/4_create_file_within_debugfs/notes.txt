@@ -1,0 +1,24 @@
+Create a file within debugfs
+=============================
+
+struct dentry *debugfs_create_file(const char *name, umode_t mode,
+				       struct dentry *parent, void *data,
+				       const struct file_operations *fops);
+
+name -> Name of the file to create
+
+mode -> access permissions the file should have
+
+parent -> the directory which should hold the file
+
+data -> will be stored in the i_private field of the resulting inode structure
+
+fops -> set of file operations which implement the file's behavior
+
+At a minimum, the read() and/or write() operations should be provided; others can be included as needed.
+
+Return Value:
+==============
+
+Success: dentry pointer to the created file
+Failure: ERR_PTR(-ERROR)

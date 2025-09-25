@@ -1,0 +1,21 @@
+Where do executables look for shared objects at runtime?
+===========================================================
+
+	directories listed in the LD_LIBRARY_PATH environment variable
+
+	directories listed in the executable's rpath;
+
+	directories on the system search path, which (on Linux at least) consists of the entries in /etc/ld.so.conf plus /lib and /usr/lib
+
+	export LD_DEBUG=all to see some more debug output from the loader
+
+rpath
+===========
+	rpath designates the run-time search path hard-coded in an executable file
+
+	$gcc main.c -o main -I.. -larith -L.. -Wl,-rpath=..
+
+LD_LIBRARY_PATH
+====================
+
+	export LD_LIBRARY_PATH=..

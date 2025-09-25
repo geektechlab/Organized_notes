@@ -1,0 +1,10 @@
+How -300*HZ wraps 5 minutes after boot
+===========================================
+
+HZ is the number of clock ticks (jiffies) in 1 second.
+
+300 seconds is 5 minutes.
+
+Therefore 300 x HZ is the number of jiffies in 5 minutes.
+
+Therefore after 5 minutes, an initial value of -300 * HZ will have been incremented to 0.

@@ -1,0 +1,7 @@
+to find out number of cores:
+
+getconf -a | grep _NPROCESSORS_ONLN | awk '{print $2}'
+
+or
+
+cat /proc/cpuinfo

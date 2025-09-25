@@ -1,0 +1,23 @@
+Speaker
+============
+
+8254 PIT performs timing and counting functions using three 16-bit counters
+
+Timer channel 2 of 8254 is assigned to PC Speaker on PC's.
+
+Timer chip has 4 I/O Ports
+
+Port 0x40: Counter 0
+Port 0x41: Counter 1
+Port 0x42: Counter 2
+Port 0x43: Control Word Register (shared)
+
+To program a timer, an instruction must be written in 0x43.
+
+outb(0xb6, 0x43);
+10 11 011 0
+10 -> Counter 2
+11 -> First LSB then MSB
+011 -> Timer Mode (Square wave)
+
+After this write the counter value in 0x42

@@ -1,0 +1,20 @@
+Mutexes
+===========
+
+Almost all semaphores found in the Linux kernel are used for mutual exclusion by count of 1.
+
+Using semaphore for mutual exclusion is overhead, so kernel provides a new interface: mutex
+
+The mutex subsystem checks and enforces the following rules:
+
+	Only one task can hold the mutex at a time
+
+	Whoever locked a mutex must unlock it.
+
+	That is you cannot lock a mutex in one context and unlock in another
+
+	Recursive locks and unlocks are not allowed
+
+	Process cannot exit while holding a mutex
+
+	Mutex cannot be acquired from an interrupt handler

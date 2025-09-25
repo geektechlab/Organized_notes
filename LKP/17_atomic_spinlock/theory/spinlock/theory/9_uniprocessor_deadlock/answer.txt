@@ -1,0 +1,6 @@
+Is the kernel preemption disabled when the spinlock is acquired?
+=================================================================
+
+Any time kernel code holds a spinlock, preemption is disabled on the relevant processor. Otherwise any holidng task/process may get preempted and other scheduled process might be always waiting for that spinlock. This scenario is more profound in uniprocssor system where only single process can be scheduled at a time.
+
+Lock/unlock methods disable/enable kernel preemption

@@ -1,0 +1,261 @@
+Theory0:
+What is the default operation in Linux when you call read() and there is no data: block/nonblock ?
+Default: Blocking
+
+Read:
+	No data is available, the process must block.
+	Data available, process is awakened, even if available data < requested data 
+
+Write:
+	No space is available in write buffer, process must block
+	Space available, process is awakened, even if available space < requested write data
+
+Theory1:
+Do we need a separate buffer in the kernel for write operation? No. The data can remain in the user space buffer
+
+Benefit of a separate buffer for write:
+	Reduced number of context switches and user-level/kernel-level transitions.
+
+Consider a slow device where the hardware can only accepts data transfer in few bytes.
+Kernel Driver without output buffer.
+
+1. User Process tries to write more than 100 bytes, as there is no output buffer, process writes few bytes:write()
+2. Kernel driver tries to write few bytes to the hardware and puts the process to sleep until write completes
+3. During this time, the context switch can happen, another process is given a chance
+4. Once the write on the hardware completes, the process is resumed (context switch)
+5. write() returns (kernel level to user level transition)
+6. User process loops until it performs the same operation.
+
+With an output buffer in the kernel.
+
+1. Write call succeed with a single system call 
+2. Data is copied into the kernel output buffer
+3. Buffered data will be pushed later to device.
+
+So, as no going back to user space for second or third write and increased performance. 
+
+Theory2:
+How do i specify a non blocking I/O in linux through my user application? Explicitly nonblocking I/O is indicated by the O_NONBLOCK flag in filp->f_flags.
+
+Header File in user space : <fcntl.h>
+
+Read:
+        No data is available, return -EAGAIN
+        Data available, it is returned even if available data < requested data
+
+Write:
+        No space is available in write buffer, return -EAGAIN
+        Space available, it is written even if available space < requested write data
+
+theory3:
+Problem with blocking/non-blocking I/O:
+If we want to read from multiple devices, read system call with blocking is not a good solution. If one device has no data, the process will be blocked even though there is data available from the other device.
+
+        Application                     Kernel
+
+   ---- read    ------------------->    no data available --------
+   |                                                              |
+   |                                                              | Wait for data
+   | process                                                      |
+   | blocks             data ready     ----------------------------
+   |  in                copy data      ----------------------------
+   |  read                |                                       |  Copy data from
+   |                      v                                       |  kernel to user
+   ---- process <-------------------    copy complete   -----------
+    data
+
+Another option is open the device in nonblocking mode, and continuously check whether there is data available, if there are more devices, it will consume lot of CPU. So, this is waste of time.
+
+        Application                     Kernel
+
+        read    ------------------->    no data available ------------
+   |            <------------------                                   |
+   |    read    ------------------->    no data available             | Wait for data
+   |            <------------------                                   |
+   |    read    ------------------->    data ready     ---------------
+   |-----                               copy data      ---------------
+   |    process                           |                           | Copy data from
+   |    blocks                            v                           | kernel to user
+   ---- process <-------------------    copy complete   --------------
+        data
+
+I/O Multiplexing:
+    poll and select allow a process to determine whether it can read from or write to one or more open files without blocking. They are often used in applications that use multiple input or output streams without getting struck on any one of them.
+
+                 Application                     Kernel
+
+            ---- select  ------------------->    no data available --------
+process    |                                                               |
+blocks     |                                                               | Wait for data
+waiting    |                                                               |
+one of many|                                                               |
+fds        |                                                               |
+           -----        <------------------      data available -----------
+           |    read    ------------------->     data ready     ------------
+           |-----                                copy data      ------------
+           |   process                            |                        |  Copy data from
+           |    blocks                            v                        |  kernel to user
+           ---- process <-------------------    copy complete   -----------
+           ---  read
+
+What are the advantages of multithreading over I/O Multiplexing:
+I/O Multiplexing is better over purely multithreaded/multiprocess approaches in which a thread/process is launched to handle each file descriptor, since each thread/process requires additional memory, context switching overhead, etc. which may not scale well in handling large numbers of concurrent connections.
+
+process gives all file descriptor it wants to read/write. Then select system call comes from userspace to kernel space and checks if any file decsriptors are available. If no, then wait for data. If one the file descriptor is available to read, then it will return a file decscriptor available to read in select system call. Then user can now give read system call.
+
+Theory4:
+select system call:
+int select(int nfds, fd_set *readfds, fd_set *writefds,
+                  fd_set *exceptfds, struct timeval *timeout);
+
+Select system call is used to instruct kernel 
+	1. what file descriptors we are interested in (for reading, writing or an exception)
+	2. How long to wait.
+
+Arguments:
+timeout: tells the kernel how long to wait for one of the specified descriptors to become ready
+Header file: <sys/time.h>
+	struct timeval {
+               long    tv_sec;         /* seconds */
+               long    tv_usec;        /* microseconds */
+           };
+
+Three possiblities with timeout:
+	1. Wait forever (timeout is specified as a null pointer):
+		 Return only when one of the specified descriptors is ready for I/O.
+	2. Wait up to a fixed amount of time (timeout points to a timeval structure).
+		Return when one of the specified descriptors is ready for I/O
+		 but do not wait beyond the number of seconds and microseconds specified in the timeval structure.
+	3. Do not wait at all (seconds = 0, microseconds = 0)
+		Return immediately after checking the descriptors. This is called polling.
+
+Note: The wait in the first two scenarios is normally interrupted if the process catches a signal
+Descriptor Sets: (readfds,writefds, exceptfds)
+	Descriptor sets are arrays of integers, each bit in each integer corresponding to a descriptor.
+	Header File: <sys/select.h>
+	typedef struct {
+		
+		 __fd_mask __fds_bits[__FD_SETSIZE / __NFDBITS];
+	};
+	typedef long int __fd_mask;
+	#define __FD_SETSIZE    1024
+	#define __NFDBITS	(8 * (int) sizeof (__fd_mask))
+
+	In 64-bit sizeof long int = 8 bytes
+	In 32-bit sizeof long int = 4 bytes
+
+	typedef struct {
+		long int __fds_bits[1024 / 64]; //16 or 32
+	} fd_set;
+	With 32-bit integers, 
+		First element of the array corresponds to descriptors 0 to 31
+		Second element corresponds to descriptors 32 to 63.
+
+	readfds	 	--> Notify when data is available to read
+	writefds	--> Notify when write buffer is having space to write
+	exceptfds	--> Used in sockets (out-of-band data)
+
+    A given set may be NULL, in which case select() does not watch for that event.
+
+nfds:
+	It should be set to the highest numbered file descriptor in any of the three sets, plus 1.
+	The indicated file descriptors in each set are checked up to this limit.
+    ex: if we have 5 file descriptors but the highest number is 100, the select will check any bit from 0 to
+    100.
+
+	Reason for this argument exists is for efficiency. Although each fd_set has room for many descriptors, typically 1024, this is much more than the number used by a typical process. The kernel gains efficiency by not copying unneeded portions of the descriptor set between the process and the kernel, and by not testing bits that are always 0.
+
+Theory5:
+Macros for fd_set datatype:
+	– FD_ZERO(fd_set *fdset);  // clear all bits in fdset
+	– FD_SET(int fd, fd_set *fdset);  // turn on the bit for fd in fdset
+	– FD_CLR(int fd, fd_set *fdset);   // turn off the bit for fd in fdset 
+	– int FD_ISSET(int fd, fd_set *fdset);  // is the bit for fd on in fdset? 
+
+Return:
+	select modifies the descriptor sets pointed to by the readset, writeset, and exceptset pointers. When we call the function, we specify the values of the descriptors that we are interested in, and on return, the result indicates which descriptors are ready. We use the FD_ISSET macro on return to test a specific descriptor in an fd_set structure. Any descriptor that is not ready on return will have its corresponding bit cleared in the descriptor set. The return value from this function indicates the total number of bits that are ready across all the descriptor sets. If the timer value expires before any of the descriptors are ready, a value of 0 is returned. A return value of –1 indicates an error (which can happen, for example, if the function is interrupted by a caught signal).
+
+Theory6:
+Support for select/poll system call requires support from the device driver: poll method
+
+unsigned int (*poll) (struct file *, poll_table *);
+
+Header file for poll_table structure : <linux/poll.h>
+
+Theory7:
+Driver Poll Implementation:
+It needs to perform the following two operations:
+    1. Call kernel's poll_wait() function on one or more wait queues
+    2. Return a bitmask describing operations that could be immediately performed without blocking.
+     void poll_wait (struct file *, wait_queue_head_t *, poll_table *);
+
+Bitmask:
+POLLIN  -->  This bit must be set if the device can be read without blocking.
+POLLRDNORM  -->  This bit must be set if "normal'' data is available for reading.
+                    A readable device returns (POLLIN | POLLRDNORM).
+POLLOUT  --> This bit is set in the return value if the device can be written to without blocking.
+POLLWRNORM  -->   This bit has the same meaning as POLLOUT, and sometimes it actually is the same number. 
+                    A writable device returns (POLLOUT | POLLWRNORM).
+
+Device Drivers need not worry about poll_wait internals. They must use it as an opaque object
+
+Theory8:
+Problem with select:
+What happens when i have file descriptors:1005, 1006 which i want to verify whether they are ready to read from. I will call select with nfds of 1007 and the appropriate value of readfds. Kernel gets a request from a user space program to monitor some file descriptors for reading. It knows that the file descriptors are smaller than 1007, but that's all it knows. To figure out which file descriptors the program is interested, the kernel needs to check all 1007 file descriptors, safely one by one. Checking 1007 file descriptors when the program really only cares about two is quite inefficient. What happens when the file descriptors were 10010 and 100019. select() performs very poorly once the file descriptors get large. maximum limit of file descriptor is [ uname -r ].
+
+Second Problem with select: How many file descriptors should fd_set be able to hold? Ideally, it should be able to hold as many file descriptors as a process can have open.
+
+$ ulimit -a
+
+Traditionally, Linux allowed only 1,024 file descriptors per process, so this was reasonable.
+
+FD_SETSIZE: macro is the maximum number of file descriptors that a fd_set object can hold information about.
+
+From man page of select:
+select() can monitor only file descriptors numbers that are less than FD_SETSIZE. Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior. See Bugs section of select man page.
+
+Third problem with select:
+select modifies the readfds/writefds/exceptfds passed as input, you should either
+    1. Reinitialize them for the next call
+    2. Backup your readfds/writefds/exceptfds
+
+Theory9: overcomes previous problems.
+poll function:
+poll() performs a similar task to select(2): it waits for one of a set of file descriptors to become
+       ready to perform I/O.
+
+Header File: #include <poll.h>
+
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+
+Arguments:
+fds: must point to an array of struct pollfd.
+     Each element in the array specifies a file descriptor that the program is interested in monitoring,
+     and what events on that file descriptor the program would like to know about.
+struct pollfd {
+    int     fd;       /* descriptor to check */
+    short   events;   /* events of interest on fd */
+    short   revents;  /* events that occurred on fd */
+};
+
+nfds: Number of items which are present in the fds argument.
+timeout: the number of milliseconds that poll() should block waiting for a file descriptor to become ready
+
+Returns:
+    count of ready descriptors on success
+    0 on timeout
+    -1 on error
+
+Theory10:
+events/revents:
+events: input parameter, a bit mask specifying the events the application is  interested in for the file descriptor fd
+revents: output parameter, filled by the kernel with the events that actually  occurred.
+
+Input to Events:
+POLLIN          There is data to read.
+POLLOUT         Writing is now possible
+
+Error value in revents:
+POLLERR:        This is set if an error condition has occurred on the file descriptor.
+POLLHUP:        This is set when the file descriptor refers to a terminal that has been hung upon.
+POLLNVAL:       Invalid request: fd not open

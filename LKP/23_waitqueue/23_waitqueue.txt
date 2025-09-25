@@ -1,0 +1,218 @@
+Theory0:
+Little issue while waking:
+	Processes which are blocked/sleeping using wait_event() are moved to running state using wake_up(). Scheduler will run them in future. There is no guarantee when these waking-up processes will be allocated CPU time nor in what order. The above can happen to multiple processes at the same time, if they are non-exclusive. Once woken up, there is no guarantee that the condition which the process is waiting for using wait_event() is true. That is if the process was waiting for condition = 1 after waking up, this may not be true. Another process in the wait queue can change the condition = 0 after they woke up. So, the waking processes needs to check the state of the condition after waking up and act accordingly.
+
+Theory1:
+Thundering Herd Problem:
+	When a process calls wake_up on a wait queue, all processes waiting on the wait queue are made runnable. Consider a scenario in which a set of processes are sleeping on wait queue, wanting to acquire lock.
+	--->	The process that has acquired the lock is done with it, releases the lock
+	--->	All the processes that are sleeping for it will wake up
+	--->	All processes try to grab lock
+	--->	Only one of these acquires the lock and the rest goes back to sleep
+
+	If the number of procesess in the wait queue is large, it seriously degrades the performance of system. As, it consumes valuable CPU cycles and incur context-switching overheads.
+
+Theory2:
+To address the thundering herd problem, we need an exclusive sleeping system that only wakes up one task from the wait queue at a time. Exclusive wait can be set up by using this macro:
+
+wait_event_interruptible_exclusive(wait_queue_head_t wq, int condition);
+
+Theory3:
+void wake_up_all (wait_queue_head_t *wq);
+void wake_up_interruptible_all (wait_queue_head_t *wq);
+
+The above functions will wake up all threads.
+
+Theory4:
+Why are the wait_event() implemented as macros?
+    1. Use of macros will expand the code and removes a function call/return pair.
+    2. Using macros avoid the race condition which can happen     
+        CPU1            CPU2
+        wait_event      wake_up
+
+       How?
+        wait_event(condition) {
+            prepare_to_wait();            //add ‘current’ to wait-queue, set state to !runnable
+            if (!condition) schedule(); //check condition, possibly give up the CPU
+            finish_wait();                    //remove from wait-queue, set state to runnable
+        }
+
+        Condition can be 
+            1. A variable that evaluates to true/false (eg. x)
+            2. Test ( eg x == 1234)
+            3. Function (atomic_read(&counter))
+
+        If wait_event() was implemented as a function, condition argument will be passed as a value
+        and it would be stale/old when evaluated at if (!condition) schedule();
+
+        It will have the value when wait_event will be called and not the latest value of condition. Using macros, condition argument is always latest value.
+
+Theory5:
+wake_up_interruptible()	-->	Can only wake up Tasks which are sleeping in interruptible state
+wake_up()	-->	Can wake up both tasks which are in interruptible/non interruptible
+
+Theory6:
+waitqueue_active -- locklessly test for waiters on the queue
+
+it checks if waitqueue is empty or not. It checks it by checking if HEAD linked list is empty or not.
+
+Theory7:
+In many situations, wait_event() does not provide enough flexibility. Alternative is to do full manual sleep.
+
+wait_queue_entry_t:
+Wait queue = Wait Queue Head + Wait Queue Elements
+
+A wait queue is a doubly linked list of wait_queue_entry_t structures. Each element in the wait queue list represents a sleeping process, which is waiting for some event to occur;
+struct wait_queue_entry {
+        unsigned int            flags;
+        void                    *private;
+        wait_queue_func_t       func;
+        struct list_head        entry;
+};
+
+typedef struct wait_queue_entry wait_queue_entry_t;
+flags = 1 -> Exclusive process
+flags = 0 -> Non Exclusive process
+
+private -> used to store task_struct
+func -> Function which will wake up the sleeping process
+entry -> used for linked list 
+
+    ---------------
+    |    lock     |    --------------------------------------------------------------   
+    |             |    |                                                            |
+    ---------------    |                                                            |
+    |             |<----            -----------                     ----------      |
+    |    head     |<--------------->|entry    |<------------------->|entry   |<------
+    ---------------                 |---------|                     |--------|
+                                    |func     |                     |func    |
+    wait_queue_head_t               |---------|                     |--------|
+                                    |private  |                     |private |
+                                    |---------|                     |--------|
+                                    |flags    |                     |flags   |
+                                    -----------                     ---------
+                                    wait_queue_entry_t      wait_queue_entry_t
+
+Thoery8:
+Initialization of wait queue entry:
+
+Static:
+DEFINE_WAIT(wait);
+
+	Declares a new wait_queue_entry variable and initialize its with the descriptor of the process
+	currently executing and function is assigned to autoremove_wake_function()
+
+#define DEFINE_WAIT(name) DEFINE_WAIT_FUNC(name, autoremove_wake_function)
+#define DEFINE_WAIT_FUNC(name, function)                                        \
+        struct wait_queue_entry name = {                                        \
+                .private        = current,                                      \
+                .func           = function,                                     \
+                .entry          = LIST_HEAD_INIT((name).entry),                 \
+        }
+
+Dynamic:
+void init_waitqueue_entry(struct wait_queue_entry *wq_entry, struct task_struct *p);
+static inline void init_waitqueue_entry(struct wait_queue_entry *wq_entry, struct task_struct *p)
+{
+        wq_entry->flags         = 0;
+        wq_entry->private       = p;
+        wq_entry->func          = default_wake_function;
+}
+
+int wake_up_process(struct task_struct *p)
+{
+        return try_to_wake_up(p, TASK_NORMAL, 0);
+}
+
+int default_wake_function(wait_queue_entry_t *curr, unsigned mode, int wake_flags,
+                          void *key)
+{
+        return try_to_wake_up(curr->private, mode, wake_flags);
+}
+
+int autoremove_wake_function(struct wait_queue_entry *wq_entry, unsigned mode, int sync, void *key)
+{
+        int ret = default_wake_function(wq_entry, mode, sync, key);
+
+        if (ret)
+                list_del_init(&wq_entry->entry);
+
+        return ret;
+}
+
+Theory8:
+Adding an element into wait queue: Once an element is defined, it must be inserted into a wait queue. Two different functions are used to add sleeping processes into a wait queue.
+
+	add_wait_queue()
+	add_wait_queue_exclusive()
+
+add_wait_queue() function inserts a nonexclusive process in the first position of a wait queue list.
+void add_wait_queue(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry);
+add_wait_queue_exclusive() function inserts an exclusive process in the last position of a wait queue list.
+void add_wait_queue_exclusive(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry);
+The remove_wait_queue( ) function removes a process from a wait queue list.
+void remove_wait_queue(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry);
+
+Implementation: kernel/sched/wait.c
+
+Theory9:
+Change the state of the process:
+You don't need to fiddle with current->state. prepare_to_wait() and finish_wait() will do that.
+
+void prepare_to_wait(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry, int state);
+void prepare_to_wait_exclusive(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry, int state);
+
+The above functions set the process state to the value passed as the third parameter. Running prepare_to_wait() when you're already on the waitqueue_head is fine. After this, we schedule out the process by invoking the schedule() API.
+
+Cleaning up:
+Once schedule returns, it is cleanup time.
+
+void finish_wait(wait_queue_head_t *queue, wait_queue_t *wait);
+
+DEFINE_WAIT(wait);
+
+prepare_to_wait(wq_head, &wait, TASK_UNINTERRUPTIBLE);
+if (!condition)
+	schedule();
+finish_wait(wq_head, &wait);
+
+Theory10:
+signal_pending: The above function can be used to check whether the wait was interrupted by signal.
+
+Returns : 1	-> If the process has pending signals
+	      0     -> If no signal
+
+static inline int signal_pending(struct task_struct *p)
+{
+        return unlikely(test_tsk_thread_flag(p,TIF_SIGPENDING));
+}
+
+kernel/signal.c(signal_wake_up/signal_wake_up_state) 	->	Sets the TIF_SIGPENDING whenever a signal is delivered.
+
+Theory11:
+Does this code have lost wake up problem?
+
+DEFINE_WAIT(wait);
+add_wait_queue(queue, &wait);
+while (!condition) {
+    prepare_to_wait(&queue, &wait, TASK_INTERRUPTIBLE);
+    if (signal_pending(current))
+        /* handle signal */
+    schedule();
+}
+finish_wait(&queue, &wait);
+
+What will happen if a wake_up comes just before prepare_to_wait() and after the while condition? The wakeup will be lost. prepare_to_wait() must be called before the condition is checked.
+
+DEFINE_WAIT(wait); // defining wait queue entry
+add_wait_queue(queue, &wait); // adding wait queue entry
+while (!condition) { // checking condition if list is empty or not, if list is not empty, come inside
+    prepare_to_wait(&queue, &wait, TASK_INTERRUPTIBLE); // set state to interruptible
+    if (signal_pending(current)) //
+        /* handle signal */
+    schedule();
+}
+finish_wait(&queue, &wait);
+
+at line no.11 signal may get lost if process is preempted
+( video : 35:00 - 40:00 )

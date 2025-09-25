@@ -1,0 +1,126 @@
+Theory0:
+Programmable Interval Timer(PIT)
+--------------------------------
+
+In embedded systems, a programmable interval timer (PIT) is a counter that generates an output signal when it reaches a programmed count. The output signal may trigger an interrupt.
+
+PIT's may be
+    One-Shot: Signal only once and stop counting
+    Periodic: Signal every time they reach a specific value and restart
+
+X86 machine has one PIT, implemented by an 8254 chip
+
+PIT is accessed on ports 0x40-0x43
+
+The chip itself has 3 channels: 
+
+Channel 0 is tied to is tied to IRQ0, to interrupt the CPU at predictable and regular times, 
+Channel 1 is system specific, and 
+Channel 2 is connected to the system speaker.
+
+I/O port     Usage
+0x40         Channel 0 data port (read/write)
+0x41         Channel 1 data port (read/write)
+0x42         Channel 2 data port (read/write)
+0x43         Mode/Command register (write only, a read is ignored)
+
+Frequency: 1.193182 MHZ
+
+Initial version of Linux before 2.6 PIT was used as system timer.
+
+Theory1:
+nolapic
+----------
+
+Kernel command line parameter to Disable local apic 
+
+Theory2:
+Local APIC
+==============
+
+Problem with PIT is it is system wide resource, there is only one PIT even when there are multiple CPUs.
+
+The Local APIC is a functional part of the APIC architecture, physically located in the CPU chip
+
+Each Intel processor has Local APIC(Advance Programmable Interrupt Controller).
+
+        ----------------
+        |       CPU     |
+        |  --------     |
+        |  | Local|     |
+        |  | APIC |     |
+        |  -------      |
+        ----------------
+
+The local APIC includes a timer device with 32-bit counter
+
+The timer can be configured by a special timer register.
+
+Modes:
+1. one-shot 
+2. periodic
+3. deadline
+
+The local APIC timer sends an interrupt only to its processor, while the PIT raises a global interrupt, which may be handled by any CPU in the system.
+
+The frequency of the LAPIC timer depends on the CPU bus clock and can  be configured within the range between the bus clock frequency and 1/128 of the bus clock frequency by setting a divider to any power of two between 1 and 128.
+
+$ watch -n 0.1 -d "cat /proc/interrupts | grep 'Local timer interrupts'"
+
+Theory3:
+Modes
+---------
+
+1) Periodic
+------------
+	software sets a "initial count" and the local APIC uses it for a "current count"
+	local APIC decrements the current count until it reaches zero
+	generates a timer IRQ 
+	resets the current count to the initial count
+	begins decrementing the current count again
+
+In this way the local APIC generates IRQs at a fixed rate depending on the initial count.
+
+Frequency: The current count is decremented at a rate that depends on the CPU's external frequency ("bus frequency") divided by the value in the local APIC's "Divide Configuration Register".
+
+2) One-Shot
+------------
+
+	the local APIC decrements the current count 
+	generates a timer IRQ when count reaches zero
+	
+it doesn't reset the current count to the initial count when the current count reaches zero
+software has to set a new count each time if it wants more timer IRQs
+Advantage:    software can have precise control over when timer IRQs occur. 
+Disadvantage: special care needs to be taken to avoid race conditions; especially if a new count is set before the old count expires
+
+3)TSC Deadline
+---------------
+
+	software sets a "deadline" 
+	local APIC generates a timer IRQ when the value of the CPU's time stamp counter is greater than or equal to the deadline
+Advantage: Comparing to one-shot You get higher precision as TSC runs at higher precision (CPU's internal freq)
+	smp_apic_timer_interrupt is the handler routine for this particular IRQ
+	lapic_next_deadline is responsible for setting the next deadline on each interrupt(setup_apic_timer)
+
+	$ dmesg | grep 'TSC deadline'
+
+Theory4:
+HPET (High Precision Event Timer)
+---------------------------------
+
+HPET is a timer chip developed by Intel and Microsoft.
+
+An HPET chip consists of a 64-bit up-counter (main counter) counting at a frequency of at least 10 MHz, and a set of (at least three, up to 256) comparators.
+
+These comparators are 32- or 64-bit-wide.
+
+Each comparator can generate an interrupt when the least significant bits are equal to the corresponding bits of the 64-bit main counter value. 
+
+The comparators can be put into one-shot mode or periodic mode which means interrupts can be generated either once or periodically.
+
+The HPET is programmed via a memory mapped I/O and have relocatable address space
+
+During system bootup, the BIOS sets up the registers address space and passes it to the kernel.
+
+$ sudo cat /proc/iomem | grep -i hpet

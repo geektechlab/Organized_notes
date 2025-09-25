@@ -1,0 +1,45 @@
+Loader
+================
+
+Compiler output is assembly files
+
+Assembler output is obj files
+
+-----------
+a.out name came because it is assembler's output
+-----------
+
+Linker joins object files into one executable
+
+So what is a Loader?
+
+Loader brings executable into memory and starts execution
+
+Dynamic Linking (.so)
+=======================
+
+When using a static linking, the linker finds the bits that the program modules need, and physically copies them into the executable output file that it generates. 
+
+For dynamic linking, it doesn't copy instead it leaves a note in the executable saying `when this program is run, it will first have to load this library'. 
+
+Dynamic linking can occur when executable is first loaded and run (load‐time linking).
+
+Dynamic linking can also occur after program has begun (run‐time linking).
+
+Advantages of Dynamic Linking
+======================================
+
+Dynamic libraries provide a means to use code that can be loaded anywhere in the memory. Dynamic library has relocatable address.
+
+Once loaded, the library code can be used by any number of programs.
+
+This way the size of programs using dynamic library can be kept low as a lot of code is kept common in form of a shared library
+
+-----------
+[ ldd ] can be used to find dependent libraries.
+
+[ gcc hello.c -o hello ]
+[ strace hello ]
+here, hello first loads libraries and then calls hello.
+So, dynamic libraries are loaded first and then execution starts.
+------------

@@ -1,0 +1,6 @@
+Use shorcuts
+=============
+
+nmap <C-@> :cs find g <C-R>=expand("<cword>")<CR><CR>
+
+Add it to your .vimrc file

@@ -1,0 +1,13 @@
+schedule_timeout
+------------------
+
+long schedule_timeout (signed long timeout);
+
+Make the current task sleep until timeout jiffies have elapsed.
+
+Implementation
+---------------
+
+It internally uses kernel timers
+
+File: kernel/time/timer.c

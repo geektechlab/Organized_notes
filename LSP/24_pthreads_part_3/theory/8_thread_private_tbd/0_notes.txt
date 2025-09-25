@@ -1,0 +1,22 @@
+"Private" thread data - Thread-Specific Data
+===============================================
+
+In "normal", single-thread programs, we sometimes find the need to use a global variable. 
+
+It is frequently a bad practice to have global variables, but they sometimes do come handy.
+
+Especially if they are static variables - meaning, they are recognized only on the scope of a single file.
+
+In multi-threaded programs, we also might find a need for such variables.
+
+We should note, however, that the same variable is accessible from all the threads, so we need to protect access to it using a mutex, which is extra overhead. 
+
+Further more, we sometimes need to have a variable that is 'global', but only for a specific thread.
+
+Or the same 'global' variable should have different values in different threads. 
+
+For example, consider a program that needs to have one globally accessible linked list in each thread, but not the same list.
+
+Further, we want the same code to be executed by all threads. In this case, the global pointer to the start of the list should be point to a different address in each thread.
+
+In order to have such a pointer, we need a mechanism that enables the same global variable to have a different location in memory. This is what the thread-specific data mechanism is used for.

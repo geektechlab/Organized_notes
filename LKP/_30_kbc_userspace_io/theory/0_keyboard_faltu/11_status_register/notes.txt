@@ -1,0 +1,39 @@
+Status Register (Read 0x64h)
+==============================
+
+Bit	Meaning
+0	Output buffer status 
+	0 = empty -  Okay to write to port 0x60
+	1 = full  - Don't write to port 0x60
+
+1	Input buffer status 
+	0 = empty - No unread input at port 0x60
+	 1 = full - New input can be read from port 0x60
+
+2	System Flag
+	1 =  System has already beed initialized.
+	0 = System is in power-on reset.
+3	Command/data
+	0 = data available at port 60h
+	1 = command available at port 64h
+
+4	Keyboard Active
+	0 = disabled
+	1 = enabled
+
+5	Error Detected
+	0 = No Error
+	1 = Error in transmission
+
+6	Time-out error 
+	0 = no error
+	1 = time-out error
+
+7	Parity error 
+	0 = no error
+	1 = parity error
+
+References
+===========
+
+https://www.phatcode.net/res/223/files/html/Chapter_20/CH20-2.html

@@ -1,0 +1,35 @@
+Other Variants
+==================
+
+	unsigned long wait_for_completion_timeout(struct completion *done, unsigned long timeout)
+
+	The task is marked as TASK_UNINTERRUPTIBLE and will wait at most 'timeout' jiffies. 
+
+	Return Value: 0 on Timeout, else the remaining time in jiffies
+
+
+	long wait_for_completion_interruptible_timeout(struct completion *done, unsigned long timeout)
+
+	This function passes a timeout in jiffies and marks the task as TASK_INTERRUPTIBLE. 
+
+	Return value: 0 on Timeout
+		      Remaining time in jiffies if complete() was called
+		       -ERESTARTSYS on receiving a signal
+
+
+	long wait_for_completion_killable(struct completion *done)
+	long wait_for_completion_killable_timeout(struct completion *done, unsigned long timeout)
+
+	Uses state as TASK_KILLABLE
+
+	bool try_wait_for_completion(struct completion *done);
+
+	Returns 
+	false: if the thread not to be blocked and will not put into the wait queue
+	true: if the thread consumes one posted completion.
+
+	bool completion_done(struct completion *done)
+
+	Returns:
+	False: If there are waiters
+	True: otherwise

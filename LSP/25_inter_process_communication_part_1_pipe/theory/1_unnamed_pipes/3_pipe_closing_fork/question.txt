@@ -1,0 +1,6 @@
+What happens if a child process won't close the pipe from writing, while reading
+===============================================================================
+
+If the process — parent or child — is not going to use the write end of a pipe, it should close that file descriptor. Similarly for the read end of a pipe.
+
+The system will assume that a write could occur while any process has the write end open, even if the only such process is the one that is currently trying to read from the pipe, and the system will not report EOF, 

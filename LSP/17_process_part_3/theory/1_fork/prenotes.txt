@@ -1,0 +1,62 @@
+An existing process can create a new one by calling the fork function
+
+#include <unistd.h>
+pid_t fork(void);
+
+Returns: 0 in child, process ID of child in parent, −1 on error
+
+The new process created by fork is called the child process. and already existing process is called parent process.
+
+This function is called once but returns twice
+
+The only difference in the returns is that the return value in the child is 0, whereas the return value in the parent is the process ID of the new child
+
+The reason the child’s process ID is returned to the parent is that a process can have more than one child, and there is no function that allows a process to obtain the process IDs of its children.
+
+The reason fork returns 0 to the child is that a process can have only a single parent, and the child can always call getppid to obtain the process ID of its parent.
+
+(Process ID 0 is reserved for use by the kernel, so it’s not possible for 0 to be the process ID of a child.)
+
+What does fork do?
+=====================
+
+The fork system call clones the current process to create a new process.
+
+It creates a new process (the child process) by duplicating the state of the existing process with a few minor differences 
+
+Thus, when a child process is created, the OS will copy the parent's 
+	text, 
+	data (three of them), 
+	library (and other mappings), plus 
+	the stack segment to the child.
+
+Hang on though; it does not stop there: There is more, much more, to a process than just its VAS.
+
+Open files 
+Process credentials 
+Scheduling information 
+Filesystem (VFS) structures 
+Paging tables 
+Namespaces 
+Signal dispositions 
+Resource limits 
+IPC structures 
+Profiling (perf) information 
+Security information:
+Thread stacks and TLS 
+Hardware context
+
+The following attributes of the parent process are not inherited by the child process upon forking: 
+PID, 
+PPID 
+Locks 
+Pending and blocked signals (cleared for child) 
+Timers, 
+alarms (cleared for child) 
+Audit information (CPU/time counters are reset for child) 
+Semaphore adjustments made via semop(2) 
+Asynchronous IO (AIO) ops and contexts
+
+Note:
+==========
+The child process does not start from main. Instead it returns from fork() just as the parent process does.

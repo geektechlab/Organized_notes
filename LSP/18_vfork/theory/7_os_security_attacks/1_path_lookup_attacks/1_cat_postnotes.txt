@@ -1,0 +1,4 @@
+$ echo "hello world" | ./system_cat
+My cat version
+
+This is not just a problem with the system() command, but also execvp(), which will also look up commands along the path.

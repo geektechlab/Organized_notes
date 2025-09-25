@@ -1,0 +1,8 @@
+Setting/Getting Value
+=====================
+
+/* GPIO INPUT:  return zero or nonzero */
+int gpio_get_value(unsigned gpio);
+
+	/* GPIO OUTPUT */
+void gpio_set_value(unsigned gpio, int value);

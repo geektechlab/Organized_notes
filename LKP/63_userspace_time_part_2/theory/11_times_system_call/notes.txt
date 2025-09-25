@@ -1,0 +1,25 @@
+times() system call
+======================
+
+#include <sys/times.h>
+
+clock_t times(struct tms *buf);
+
+The times system call gets the user time and system time used by the current process and its children.
+
+User time: Time spent by the process executing in user space
+
+System Time:  Time spent by the process executing in kernel space.
+
+struct tms {
+	clock_t tms_utime;  /* user time */
+	clock_t tms_stime;  /* system time */
+	clock_t tms_cutime; /* user time of children */
+	clock_t tms_cstime; /* system time of children */
+};
+
+All times reported are in clock ticks.
+
+The number of clock ticks per second can be obtained using
+
+sysconf(_SC_CLK_TCK);

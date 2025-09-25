@@ -1,0 +1,29 @@
+Linux Device Model
+====================
+
+Linux Device Model was introduced in 2.6
+
+Purpose:
+=========
+
+To provide information like:
+
+	1. what devices are in the system
+	2. how they are in terms of power management
+	3. what bus they are attached to
+	4. what drivers they have
+
+The device model provides a single mechanism for representing devices and describing their topology in the system.
+
+Benefits:
+============
+
+--> The capability to enumerate all the devices in the system, view their status, and see to what bus they attach
+
+--> The capability to generate a complete and valid tree of the entire device structure of the system, including all buses and interconnections
+
+--> The capability to link devices to their drivers and vice versa
+
+--> The capability to categorize devices by their class, such as input device, without the need to understand the physical device topology
+
+--> The capability to walk the tree of devices from the leaves up to the root, powering down devices in the correct order

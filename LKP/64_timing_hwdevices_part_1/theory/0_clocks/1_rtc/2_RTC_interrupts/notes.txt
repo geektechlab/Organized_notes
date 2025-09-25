@@ -1,0 +1,17 @@
+RTC Interrupts
+----------------
+
+The RTC can also generate interrupts.
+
+       *  on every clock update (i.e., once per second);
+
+       *  at periodic intervals with a frequency that can be set to any
+          power-of-2 multiple in the range 2 Hz to 8192 Hz;
+
+       *  on reaching a previously specified alarm time.
+
+IRQ Line: 8
+
+Frequency of Interrupts: 2 HZ to 8192 HZ
+
+References: https://wiki.osdev.org/RTC#Setting_the_Registers

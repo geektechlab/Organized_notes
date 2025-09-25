@@ -1,0 +1,14 @@
+In older UNIX systems, the entire address space of the parent process was directly copied (regardless of whether the resource was modified or not).
+
+These days, kernel performs copy-on-write, which saves a lot of resources, while being very time efficient.
+
+Copy on Write
+====================
+
+Modern implementations don’t perform a complete copy of the parent’s data, stack, and heap, since a fork is often followed by an exec.
+
+Instead, a technique called copy-on-write (COW) is used.
+
+These regions are shared by the parent and the child and have their protection changed by the kernel to read-only.
+
+If either process tries to modify these regions, the kernel then makes a copy of that piece of memory only, typically a ‘‘page’’ in a virtual memory system.

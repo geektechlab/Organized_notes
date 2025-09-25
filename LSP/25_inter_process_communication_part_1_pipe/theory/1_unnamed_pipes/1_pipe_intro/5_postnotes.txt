@@ -1,0 +1,3 @@
+A pipe has a limited capacity.  If the pipe is full, then a write(2) will block or fail, depending on whether the O_NONBLOCK flag is set 
+
+ulimit -a  ( 8*512)

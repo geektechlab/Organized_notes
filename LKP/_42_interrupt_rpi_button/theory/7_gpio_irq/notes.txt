@@ -1,0 +1,12 @@
+GPIOs mapped to IRQ
+====================
+
+Input GPIOs can often be used as IRQ signals. Such IRQs can be edge-triggered or level-triggered.
+
+The GPIO controller is responsible for providing the mapping between the GPIO and its IRQ. 
+
+You can use gpio_to_irq() to map a given GPIO number to its IRQ number:
+
+int gpio_to_irq(unsigned gpio);
+
+The return value is the IRQ number, on which you can call request_irq()

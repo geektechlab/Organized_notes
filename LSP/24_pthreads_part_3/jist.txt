@@ -1,0 +1,391 @@
+Theory0:
+What is the Reader Writer Problem?
+==================================
+
+There is a shared resource which should be accessed by multiple processes. 
+
+There are two types of processes in this context. They are reader and writer.
+
+Any number of readers can read from the shared resource simultaneously, but only one writer can write to the shared resource.
+
+When a writer is writing data to the resource, no other process can access the resource
+
+A writer cannot write to the resource if there are non zero number of readers accessing the resource at that time.
+
+read() {
+  lock(&m)
+  // do read stuff
+  unlock(&m)
+}
+
+write() {
+  lock(&m)
+  // do write stuff
+  unlock(&m)
+}
+
+At least our first attempt does not suffer from data corruption (readers must wait while a writer is writing and vice versa)! 
+
+However, readers must also wait for other readers.
+
+Reader-Writer Locks
+===================
+
+Reader–writer locks are similar to mutexes, except that they allow for higher degrees of parallelism.
+
+With a mutex, the state is either locked or unlocked, and only one thread can lock it at a time.
+
+Three states are possible with a reader–writer lock: 
+	locked in read mode, 
+	locked in write mode, and 
+	unlocked.
+
+Only one thread at a time can hold a reader–writer lock in write mode, but multiple threads can hold a reader–writer lock in read mode at the same time
+
+When a reader–writer lock is write locked, all threads attempting to lock it block until it is unlocked.
+
+When a reader–writer lock is read locked, all threads attempting to lock it in read mode are given access, but any threads attempting to lock it in write mode block until all the threads have released their read locks
+
+Reader–writer locks are well suited for situations in which data structures are read more often than they are modified
+
+Reader–writer locks are also called shared–exclusive locks. When a reader–writer lock is read locked, it is said to be locked in shared mode. When it is write locked, it is said to be locked in exclusive mode.
+
+As with mutexes, reader–writer locks must be initialized before use and destroyed before freeing their underlying memory.
+
+#include <pthread.h>
+int pthread_rwlock_init(pthread_rwlock_t *restrict rwlock,
+const pthread_rwlockattr_t *restrict attr);
+int pthread_rwlock_destroy(pthread_rwlock_t *rwlock);
+Both return: 0 if OK, error number on failure
+
+A reader–writer lock is initialized by calling pthread_rwlock_init. We can pass a null pointer for attr if we want the reader–writer lock to have the default attributes
+
+Before freeing the memory backing a reader–writer lock, we need to call pthread_rwlock_destroy to clean it up.
+
+To lock a reader–writer lock in read mode, we call pthread_rwlock_rdlock. To  write lock a reader–writer lock, we call pthread_rwlock_wrlock. Regardless of how we lock a reader–writer lock, we can unlock it by calling pthread_rwlock_unlock.
+
+#include <pthread.h>
+int pthread_rwlock_rdlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_wrlock(pthread_rwlock_t *rwlock);
+int pthread_rwlock_unlock(pthread_rwlock_t *rwlock);
+
+Theory1:
+Condition Variables
+=========================
+
+What Is A Condition Variable?
+=============================
+
+A condition variable is a mechanism that allows threads to wait (without wasting CPU cycles) for some even to occur.
+
+Several threads may wait on a condition variable, until some other thread signals this condition variable (thus sending a notification).
+
+At this time, one of the threads waiting on this condition variable wakes up, and can act on the event
+
+It is possible to also wake up all threads waiting on this condition variable by using a broadcast method on this variable.
+
+Note that a condition variable does not provide locking. 
+
+Thus, a mutex is used along with the condition variable, to provide the necessary locking when accessing this condition variable.
+
+Creating And Initializing A Condition Variable
+================================================
+
+Creation of a condition variable requires defining a variable of type pthread_cond_t, and initializing it properly.
+
+We can assign the constant PTHREAD_COND_INITIALIZER to a statically allocated condition variable, but if the condition variable is allocated dynamically, we can use the pthread_cond_init function to initialize it.
+
+We can use the pthread_cond_destroy function to deinitialize a condition variable before freeing its underlying memory.
+
+#include <pthread.h>
+int pthread_cond_init(pthread_cond_t *restrict cond,
+const pthread_condattr_t *restrict attr);
+
+int pthread_cond_destroy(pthread_cond_t *cond);
+Both return: 0 if OK, error number on failure
+
+Unless you need to create a conditional variable with nondefault attributes, the attr argument to pthread_cond_init can be set to NULL.
+
+Signaling A Condition Variable
+==================================
+
+In order to signal a condition variable, one should either the pthread_cond_signal() function (to wake up a only one thread waiting on this variable), or the pthread_cond_broadcast() function (to wake up all threads waiting on this variable)
+
+int rc = pthread_cond_signal(&got_request); 
+
+Or by using the broadcast function: 
+
+int rc = pthread_cond_broadcast(&got_request); 
+
+Both return: 0 if OK, error number on failure
+
+Waiting On A Condition Variable
+=================================
+
+If one thread signals the condition variable, other threads would probably want to wait for this signal.
+
+They may do so using one of two functions, pthread_cond_wait() or pthread_cond_timedwait().
+
+Each of these functions takes a condition variable, and a mutex (which should be locked before calling the wait function), unlocks the mutex, and waits until the condition variable is signaled, suspending the thread's execution
+
+If this signaling causes the thread to awake (see discussion of pthread_cond_signal() earlier), the mutex is automagically locked again by the wait funciton, and the wait function returns.
+
+The only difference between these two functions is that pthread_cond_timedwait() allows the programmer to specify a timeout for the waiting, after which the function always returns, with a proper error value (ETIMEDOUT) to notify that condition variable was NOT signaled before the timeout passed.
+
+The pthread_cond_wait() would wait indefinitely if it was never signaled.
+
+Destroying A Condition Variable
+===============================
+
+After we are done using a condition variable, we should destroy it, to free any system resources it might be using. 
+
+This can be done using the pthread_cond_destroy()
+
+What does pthread_cond_wait do?
+==================================
+
+The call pthread_cond_wait performs three actions:
+
+1. unlock the mutex
+2. waits (sleeps until pthread_cond_signal is called on the same condition variable). It does 1 and 2 atomically.
+3. Before returning, locks the mutex
+
+Why do Condition Variables also need a mutex?
+==============================================
+
+Reason 1:
+=========
+The simplest to understand is that it prevents an early wakeup message (signal or broadcast functions) from being 'lost.'
+
+Imagine the following sequence of events (time runs down the page) where the condition is satisfied just before pthread_cond_wait is called. In this example the wake-up signal is lost!
+
+Thread 1			Thread 2
+while (answer < 42) {	 
+ 				answer++
+ 				p_cond_signal(cv)
+p_cond_wait(cv, m)	 
+
+If both threads had locked a mutex, the signal can not be sent until after pthread_cond_wait(cv, m) is called (which then internally unlocks the mutex)
+
+Reason 2:
+===========
+A second common reason is that updating the program state (answer variable) typically requires mutual exclusion - for example multiple threads may be updating the value of answer.
+
+Theory2:
+Thread Cancellation
+==========================
+
+Cancellation allows one thread to terminate another. 
+
+One reason you may want to cancel a thread is to save system resources (such as CPU time) when your program determines that the thread's activity is no longer necessary.
+
+A simple example of a thread you might want to cancel would be a thread performing a read-only data search. If one thread returns the results you are looking for, all other threads running the same routine could be canceled.
+
+When we want to terminate a thread, we can use the pthread_cancel function.
+
+This function gets a thread ID as a parameter, and sends a cancellation request to this thread. It will only sends request, doesn't cancel.
+
+int pthread_cancel(pthread_t thread);
+
+The target thread when it recives a cancellation request the reaction depends on the 2 attributes.
+        1. state
+        2. type
+
+1. state :
+                pthread_setcancelstate(int state, int *oldstate);
+
+                This function sets the cancelability state of the calling thread to the given value in the state,
+    the previous state of the thread is returned in the buffer pointed by old state.
+
+    The value of the state can be PTHREAD_CANCEL_ENABLE, PHTREAD_CANCEL_DISABLE
+
+    The default value is PTHREAD_CANCEL_ENABLE.
+
+2. type:
+            pthread_setcanceltype(int type, int *oldtype);
+
+            This function sets
+
+                        .
+    the type values can be PTHREAD_CANCEL_DEFERRED, PTHREAD_CANCEL_ASYNCHRONOUS
+    The default option is PTHREAD_CANCEL_DEFERRED.
+            It means the cancellation request is deferred until the thread calls a function that is a cancellation point.
+    PTHREAD_CANCEL_ASYNCHRONOUS
+            Threads can be cancel at any time upon receiving the cancellation request.
+
+    what is CANCELLATION_POINT ?
+    ---------------------------
+            They are certain functions which posix standard defines to allow the thread to be cancelled.
+                man pthreads ->cancellation points
+
+    Pthread provides user specific cancellation point :
+                pthread_testcancel()
+
+----
+read more about cancelleation at [ man pthreads ]
+----
+
+Theory3:
+Barriers
+===============
+
+How do I wait for N threads to reach a certain point before continuing onto the next step?
+
+Suppose we wanted to perform a multi-threaded calculation that has two stages, but we don't want to advance to the second stage until the first stage is completed.
+
+We could use a synchronization method called a barrier. 
+When a thread reaches a barrier, it will wait at the barrier until all the threads reach the barrier, and then they'll all proceed together.
+
+Think of it like being out for a hike with some friends. You agree to wait for each other at the top of each hill (and you make a mental note how many are in your group). Say you're the first one to reach the top of the first hill. You'll wait there at the top for your friends. One by one, they'll arrive at the top, but nobody will continue until the last person in your group arrives. Once they do, you'll all proceed.
+
+Pthreads has a function pthread_barrier_wait() that implements this.
+You'll need to declare a pthread_barrier_t variable and initialize it with pthread_barrier_init()
+pthread_barrier_init() takes the number of threads that will be participating in the barrier as an argument
+
+#include <pthread.h>
+int pthread_barrier_init(pthread_barrier_t *restrict barrier,
+const pthread_barrierattr_t *restrict attr,
+unsigned int count);
+int pthread_barrier_destroy(pthread_barrier_t *barrier);
+
+int pthread_barrier_wait(pthread_barrier_t *barrier);
+
+The thread calling pthread_barrier_wait is put to sleep if the barrier count (set in the call to pthread_barrier_init) is not yet satisfied. If the thread is the last one to call pthread_barrier_wait, thereby satisfying the barrier count, all of the threads are awakened.
+
+Theory4:
+Setting Thread Cleanup Functions
+=================================
+
+One of the features the pthreads library supplies is the ability for a thread to clean up after itself, before it exits. 
+
+This is done by specifying one or more functions that will be called automatically by the pthreads library when 
+1. the thread exits, 
+2. due to its own will (e.g. calling pthread_exit()), or due to it being canceled.
+
+Two functions are supplied for this purpose. 
+
+The pthread_cleanup_push() function is used to add a cleanup function to the set of cleanup functions for the current thread. 
+
+The pthread_cleanup_pop() function removes the last function added with pthread_cleanup_push(). 
+
+When the thread terminates, its cleanup functions are called in the reverse order of their registration. 
+
+So the the last one to be registered is the first one to be called.
+
+When the cleanup functions are called, each one is supplied with one parameter, that was supplied as the second parameter to the pthread_cleanup_push() function call
+
+#include <pthread.h>
+
+void pthread_cleanup_push(void (*rtn)(void *), void *arg);
+
+void pthread_cleanup_pop(int execute);
+
+Theory5:
+When you create many threads that cooperate to accomplish a single task, you must sometimes perform a single operation up front so that all of these threads can proceed.
+
+For instance, you may need to open a file or initialize a mutex.
+
+Up to now, we've had our boss thread handle these chores, but that's not always feasible.
+
+The pthread_once mechanism is the tool of choice for these situations. 
+
+It, like mutexes and condition variables, is a synchronization tool, but its specialty is handling synchronization among threads at initialization time. 
+
+If the pthread_once function didn't exist, we'd have to initialize all data, mutexes, and condition variables before we could create any thread that uses them.
+
+pthread_once (once_control, init_routine)
+
+pthread_once executes the init_routine exactly once in a process. The first call to this routine by any thread in the process executes the given init_routine, without parameters. Any subsequent call will have no effect.
+
+The once_control parameter is a synchronization control structure that requires initialization prior to calling pthread_once. For example:
+pthread_once_t once_control = PTHREAD_ONCE_INIT;
+
+Theory6:
+Per-thread signal masks
+============================
+
+Like a traditional process, a thread has a signal mask that indicates which asynchronous signals it's willing to handle (these are considered unblocked) and which ones it's not (these are considered blocked). 
+
+threads inherit the signal mask of the thread that issued the pthread_create that created them.
+
+Use the pthread_sigmask call to block and unblock signals in the mask. 
+
+When an asynchronously generated signal arrives at a process, it is handled once by exactly one thread in the process. 
+
+The system selects this thread by referring to the collection of per-thread signal masks of all the threads.  If more than one thread has the signal unblocked, the system arbitrarily selects one of them.
+
+Signals and Threads
+===========================
+
+What happens to a multithreaded Linux process if it gets a signal?
+====================================================================
+
+Each thread has its own signal mask, but the signal disposition is shared by all threads in the process.
+
+As a consequence, individual threads can block signals, but when a thread modifies the action associated with a given signal, all threads share the action.
+
+Thus, if one thread chooses to ignore a given signal, another thread can undo that choice by restoring the default disposition or installing a signal handler for that signal.
+
+Theory7:
+"Private" thread data - Thread-Specific Data
+===============================================
+
+In "normal", single-thread programs, we sometimes find the need to use a global variable. 
+
+It is frequently a bad practice to have global variables, but they sometimes do come handy.
+
+Especially if they are static variables - meaning, they are recognized only on the scope of a single file.
+
+In multi-threaded programs, we also might find a need for such variables.
+
+We should note, however, that the same variable is accessible from all the threads, so we need to protect access to it using a mutex, which is extra overhead. 
+
+Further more, we sometimes need to have a variable that is 'global', but only for a specific thread.
+
+Or the same 'global' variable should have different values in different threads. 
+
+For example, consider a program that needs to have one globally accessible linked list in each thread, but not the same list.
+
+Further, we want the same code to be executed by all threads. In this case, the global pointer to the start of the list should be point to a different address in each thread.
+
+In order to have such a pointer, we need a mechanism that enables the same global variable to have a different location in memory. This is what the thread-specific data mechanism is used for.
+
+Thread-Specific Data
+====================
+
+In the thread-specific data (TSD) mechanism, we have notions of keys and values.
+
+Each key has a name, and pointer to some memory area.
+
+Keys with the same name in two separate threads always point to different memory locations - this is handled by the library functions that allocate memory blocks to be accessed via these keys.
+
+We have a function to
+	create a key (invoked once per key name for the whole process)
+	a function to allocate memory (invoked separately in each thread)
+	and functions to de-allocate this memory for a specific thread
+	and a function to destroy the key, again, process-wide
+	functions to access the data pointed to by a key, either setting its value, or returning the value it points to
+
+The pthread_key_create() function is used to allocate a new key. 
+This key now becomes valid for all threads in our process. 
+When a key is created, the value it points to defaults to NULL
+
+/* rc is used to contain return values of pthread functions */
+int rc;
+/* define a variable to hold the key, once created.         */
+pthread_key_t list_key;
+/* cleanup_list is a function that can clean up some data   */
+/* it is specific to our program, not to TSD                */
+extern void* cleanup_list(void*);
+
+/* create the key, supplying a function that'll be invoked when it's deleted. */
+rc = pthread_key_create(&list_key, cleanup_list);
+
+After we have created a key, we may access its value using two pthread functions
+	pthread_getspecific()
+	pthread_setspecific()
+
+The first is used to get the value of a given key, and the second is used to set the data of a given key.
+A key's value is simply a void pointer (void*), so we can store in it anything that we want.
+
+The pthread_key_delete() function may be used to delete keys.

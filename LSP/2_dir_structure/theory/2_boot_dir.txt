@@ -1,0 +1,25 @@
+In Linux however, the root of the filesystem doesn’t correspond with a physical device or location, it’s a logical location of simply “/”. 
+
+ / (Root) : Primary hierarchy root and root directory of the entire file system hierarchy.
+
+	Every single file and directory starts from the root directory
+
+
+/boot : 
+	Contains files required for starting your system
+	Boot loader files, e.g., kernels, initrd.
+	Eg. config-* - contains kernel configuration settings
+					e.g. if we want to know if HID is enable, we can run [ cat /boot/config-`uname -r`-generic | grep HIDRAW
+
+		initrd.img-* - initrd - initial ram disk is loaded by the kernel at boot time, it loads temporary file system into RAM at the time of booting, before actually mounting actual file system
+
+		vmlinuz-* - Vmlinuz stands for virtual memory Linux kernel zipped. 
+					vmlinuz is a compressed Linux Kernel image which is used at the time of booting Linux operating system
+					vmlinuz used by Intel. Arm uses uimage if we use u-boot. x86, grub uses vmlinuz. When grub starts, it uncompresses this image and starts loading.
+
+		System.map-* - the System.map file is a symbol table used by the kernel.
+					A symbol table is a look-up between symbol names and their addresses in memory.
+					A symbol name may be the name of a variable or the name of a function.
+					It is useful when kernel panics it will print various address, then we can use directly this system.map file to convert those addresses into function or variable names.
+
+		grub/grub.conf - This file is used for boot loader grub to load grub related configuration. If we want to modify any configuration in grub bootloader, we use this.

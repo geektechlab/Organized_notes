@@ -1,0 +1,1 @@
+how might we unschedule a previously scheduled alarm. The way to do that is by scheduling an alarm for 0 seconds, alarm(0). For example, we can finish our alarm clock by adding an "off" switch that listens for Ctrl-\ or SIGQUIT, which will unschedule the alarm and reset the signal handler for Ctrl-c back to the default.

@@ -1,0 +1,14 @@
+Deleting a node from Linked List
+==================================
+
+To delete a node from a linked list, use list_del.
+
+static inline void list_del(struct list_head *entry)
+{
+        __list_del_entry(entry);
+        entry->next = LIST_POISON1;
+        entry->prev = LIST_POISON2;
+}
+
+Note: This does not free any memory; this function merely removes the element from the list.
+After calling this, you would typically destroy your data structure.

@@ -1,0 +1,231 @@
+1.
+
+#include<stdio.h>
+#include<string.h>
+
+int main()
+{
+	int fd[2];
+	int count;
+	char buffer[6];
+	if( pipe(fd) != 0)
+		perror("pipe");
+	memset(buffer,'\0',6);
+	count=write(fd[1],"Linux",6);
+	read(fd[0],buffer,6);
+	printf("%s\n",buffer);
+	return 0;
+}
+
+a) this program will print the string “Linux”
+b) this program will print nothing because the buffer is empty
+c) segmentation fault
+d) none of the mentioned
+
+2. 
+
+#include<stdio.h>
+#include<stdlib.h>
+
+int main()
+{
+	int fd[2];
+	int child;
+	char buff[6];
+	if(pipe(fd) != 0)               
+		perror("pipe");
+	child=fork();
+	switch(child){
+		case -1 :
+			perror("fork");
+			exit(1);
+		case 0 :
+			if (write(fd[1],"Linux",6) != 6)
+				perror("write");
+			break;
+		default :
+			read(fd[0],buff,6);
+			printf("%s\n",buff);
+			break;
+	}
+	return 0;
+}
+
+a) this program will print the string “Linux”
+b) this program will print nothing
+c) segmentation fault
+d) none of the mentioned
+
+3. 
+
+#include<stdio.h>
+#include<fcntl.h>
+
+int main()
+{
+	int fd;
+	char buff[512];
+	if( mkfifo("/tmp/test_fifo",0666) == -1)
+		perror("mkfifo");       
+	fd = open("/tmp/test_fifo",O_RDONLY);
+	read(fd,buff,512);
+	printf("%s\n",buff);
+	return 0;
+}
+
+a) this program will print the garbage of 512 bytes
+b) this program will print nothing
+c) segmentation fault
+d) none of the mentioned
+
+4. This program will print the _____ string.
+
+   #include<stdio.h>
+ 
+   int main()
+   {
+       int fd[2];
+       char buff[11];
+       if (pipe(fd) != 0)
+           perror("pipe");
+       write(fd[1],"Hello World",11);
+       lseek(fd[0],0,6);
+       read(fd[0],buff,11);
+       printf("%s\n",buff);
+       return 0;
+   }
+a) “Hello World”
+b) “Hello”
+c) “World”
+d) none of the mentioned
+
+
+5.
+
+#include<stdio.h>
+
+int main()
+{
+	if (mkfifo("/tmp/test_fifo",0666) != 0)
+		perror("mkfifo");
+	if (mkfifo("/tmp/test_fifo",0666) != 0)
+		perror("mkfifo");
+	return 0;
+}
+
+a) this program will create two named pipes “test_fifo” in the /tmp directory
+b) this program will create one named pipe “test_fifo” in the /tmp directory
+c) segmentation fault
+d) none of the mentioned
+
+6. 
+
+#include<stdio.h>
+#include<fcntl.h>
+
+int main()
+{
+	int fd, count;
+	char buff[10];
+	if (mkfifo("/tmp/test_fifo",0666) != 0)
+		perror("mkfifo");
+	fd = open("/tmp/test_fifo",O_RDONLY|O_NONBLOCK);
+	count = read(fd,buff,10);
+	printf("%d\n",count);
+	return 0;
+}
+
+a) 0
+b) -1
+c) 10
+d) none of the mentioned
+
+7.
+
+#include<stdio.h>
+#include<fcntl.h>
+
+int main()
+{
+	int rfd, wfd, count;
+	char buff[11];
+	if (mkfifo("/tmp/test_fifo",0666) != 0)
+		perror("mkfifo");
+	wfd = open("/tmp/test_fifo",O_WRONLY|O_NONBLOCK);
+	count = write(wfd,"Sanfoundry",11);
+	printf("%d\n",count);
+	rfd = open("/tmp/test_fifo",O_RDONLY|O_NONBLOCK);
+	count = read(rfd,buff,11);
+	return 0;
+}
+
+a) 0
+b) -1
+c) 11
+d) none of the mentioned
+
+8.
+
+#include<stdio.h>
+
+int main()
+{
+	int fd[3],count;
+	if (pipe(fd) != 0)
+		perror("pipe");
+	count = write(fd[2],"Hello",6);
+	printf("%d\n",count);
+	return 0;
+}
+
+
+a) 6
+b) 0
+c) -1
+d) segmentation fault
+
+9.
+
+#include<stdio.h>
+
+int main()
+{
+	if (mkfifo("my_fifo",0666) != 0)
+		perror("mkfifo");
+	return 0;
+}
+
+a) can not be created
+b) will be created in present working directory
+c) will have the execute permissions
+d) none of the mentioned
+
+10.
+
+#include<stdio.h>
+
+int main()
+{
+	int ret_val;
+	int fd[2];
+	ret_val = pipe(fd);
+	printf("%d\n",ret_val);
+	return 0;
+}
+
+a) 0
+b) -1
+c) 1
+d) none of the mentioned
+
+11. Which is true regarding pipes?
+	a) half duplex
+b) full duplex
+c) message boundaries are preserved
+d) unordered data
+
+12. The persistency of a FIFO is
+a) process
+b) kernel
+	c) file system
+d) none of the mentioned

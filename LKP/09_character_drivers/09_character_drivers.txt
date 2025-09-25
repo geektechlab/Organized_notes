@@ -1,0 +1,61 @@
+Theory3:
+If we pass structure having a pointer member then copying functions will do shallow copy instead of deep copy. Because it will copy contents from user/kernel space to kernel/space of structure. Not the reference of memory pointed to user space. To avoid this issue, copy individual members.
+
+Theory5:
+strlen can't work directly on user space memory. Proper way to do that it to copy in kernel space.
+
+Theory6:
+strnlen_user gets the size of a NULL-terminated string in user space.
+
+long strnlen_user (const char __user *s, long  	n);
+s 	The string to measure.
+n	The maximum valid length
+
+Theory9:
+The *offp should be updated after each data transfer to represent the current file position after successful completion of the system call (copy_to_user, copy_from_user etc. ). Othrwise it will take same one as previous call. That's why previous example was failing.
+
+Theory11:
+Check The llseek Implementation. The llseek method implements the lseek and llseek system calls. If your device is unseekable, you should return -ESPIPE
+
+Theory12:
+If we create multiple device nodes then While allocating the device numbers, we need to specify the number of minor devices in the count argument.
+
+int alloc_chrdev_region (dev_t * dev, unsigned  baseminor, unsigned  count, const char * name);
+We need to create an array of struct cdev, and register each of the cdev with one minor number.
+
+check 5 device nodes created:
+ls /dev/msg*
+
+Compare 12 example with previous examples and check how it is different. Only alloc_chrdev_region() gets updated and all system calls and its argumnets remain unchanged.
+
+Theory13:
+In our previous program, each one is operation on same user buffer. But if I want private user buffer for each, use this example.
+#define offsetof(TYPE, MEMBER)	((size_t) &((TYPE *)0)->MEMBER)
+
+#define container_of(ptr, type, member)	({	\
+						const typeof ( ((type *)0)->member) *__mptr = (ptr); \
+						(type *)( (char *)__mptr - offsetof(type, member));})
+
+Theory14:
+What happens when a user-space application calls write on a device file, for example we wrote our own null device: [ /dev/my_null ]. So, we execute write using: [ echo "Hello" > /dev/my_null ]. Userspace internally calls GLibC write call which calls write System Call.
+
+Step1: Write system call in kernel is executed which is present in fs/read_write.c, which calls ksys_write
+Step2: The fd passed by user is an index in the file descriptor table present in the kernel, fdget_pos fetches the struct fd of the particular file
+struct fd {
+    struct file *file;
+    unsigned int flags;
+};
+static inline loff_t file_pos_read(struct file *file)
+{
+    return file->f_pos;
+}
+This position extracts the offset within the file, and calls vfs_write, and then the return value of write call is updated with offset
+Step 3: In vfs_write,
+	It checks whether the file was opened in read-only mode
+	Checks whether this file has write method
+	Whether the passed user buffer is a valid buffer for reading
+	Verifies the area for writing is valid and for security permissions
+	And calls __vfs_write 
+Step 4: Finally in __vfs_write, it calls our write function present in the fops (struct file_operations) present in the struct file. So, this is the way, even if we pass only three arguments from user space, kernel reads the offset from the file and pass it to our write function defined in our driver.
+
+go to ~/linux-5.2.8/fs and grep -nr 'vfs_write' .

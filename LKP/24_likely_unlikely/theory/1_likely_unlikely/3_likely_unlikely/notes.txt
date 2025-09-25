@@ -1,0 +1,30 @@
+likely/unlikely:
+===================
+
+The gcc has __builtin_expect function using which you can provide the compiler/CPU with branch prediction information.
+
+long __builtin_expect (long exp, long c)
+
+This construct tells the compiler that the expression 'exp' most likely will have the value 'c'
+
+Return value: return value of exp.
+
+How it optimizes?
+==================
+
+It optimizes things by ordering the generated assembly code correctly, to optimize the usage of the processor pipeline.
+
+Arranges the code so that the likeliest branch is executed without performing any jmp instruction
+
+Kernel has two macros which internally uses builtin_expect to provide branch prediction information.
+
+#define likely(x)       __builtin_expect(!!(x), 1)
+#define unlikely(x)     __builtin_expect(!!(x), 0)
+
+----
+!! converts it to boolean. Just think
+----
+
+Header File: <linux/compiler.h>
+
+Examples:  if (likely(sem->count > 0))

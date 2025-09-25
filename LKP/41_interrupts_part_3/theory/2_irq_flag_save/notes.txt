@@ -1,0 +1,10 @@
+Enabling/Disabling Interrupts
+=============================
+
+local_irq_disable() routine is dangerous if some of interrupts were already disabled prior to its invocation.
+
+The corresponding call to local_irq_enable() unconditionally enables interrupts, despite the fact that they were off to begin with.
+
+local_irq_save(flags); saves the interrupt state ( which interrupts were already disabled/enabled ) on flags and disables interrupt on that processor.
+
+local_irq_restore(flags); restores the previous interrupt state and enables interrupt on that processor. 

@@ -1,0 +1,36 @@
+Modes
+---------
+
+1) Periodic
+------------
+	software sets a "initial count" and the local APIC uses it for a "current count"
+	local APIC decrements the current count until it reaches zero
+	generates a timer IRQ 
+	resets the current count to the initial count
+	begins decrementing the current count again
+
+In this way the local APIC generates IRQs at a fixed rate depending on the initial count.
+
+Frequency: The current count is decremented at a rate that depends on the CPU's external frequency ("bus frequency") divided by the value in the local APIC's "Divide Configuration Register".
+
+2) One-Shot
+------------
+
+	the local APIC decrements the current count 
+	generates a timer IRQ when count reaches zero
+	
+it doesn't reset the current count to the initial count when the current count reaches zero
+software has to set a new count each time if it wants more timer IRQs
+Advantage:    software can have precise control over when timer IRQs occur. 
+Disadvantage: special care needs to be taken to avoid race conditions; especially if a new count is set before the old count expires
+
+3)TSC Deadline
+---------------
+
+	software sets a "deadline" 
+	local APIC generates a timer IRQ when the value of the CPU's time stamp counter is greater than or equal to the deadline
+Advantage: Comparing to one-shot You get higher precision as TSC runs at higher precision (CPU's internal freq)
+	smp_apic_timer_interrupt is the handler routine for this particular IRQ
+	lapic_next_deadline is responsible for setting the next deadline on each interrupt(setup_apic_timer)
+
+	$ dmesg | grep 'TSC deadline'

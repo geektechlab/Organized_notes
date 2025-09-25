@@ -1,0 +1,29 @@
+Each file on the system has a set of permissions that determine which users can access the files and what type of access they have.
+
+When you create a file/directory in Linux, it gets the default permissions set by the system administrator.
+
+For example, when I created a file in Linux, I got permissions: '0664'
+
+When creating a directory, the permissions in my system are: '0775'
+
+File creation mask determines default permissions. If no mask were used the permissions would be:
+
+666 for files
+777 for directories
+
+File creation mask is set by system administrators. To set this mask or know the current mask, 'umask' command is used.
+
+Running 'umask' without any arguments will show the current mask.
+
+To set filemask: 'umask <octal value of permissions> or 'umask -S <symbolic notation>'
+
+The permissions of file will be : Base Permission (0666) - umask value(0002) in my case = (0664)
+
+The permissions of directory will be : Base Permission (0777) - umask value(0002) in my case = (0775)
+
+The umask function sets the file mode creation mask for the process and returns the previous value
+
+#include <sys/stat.h>
+mode_t umask(mode_t cmask);
+
+The cmask argument is formed as the bitwise OR of any of the nine constants: S_IRUSR, S_IWUSR, and so on.

@@ -1,0 +1,16 @@
+Distribution Kernels
+==========================
+
+Many Linux distributions provide their own "longterm maintenance" kernels that may or may not be based on those maintained by kernel developers. 
+
+These kernel releases are not hosted at kernel.org and kernel developers can provide no support for them
+
+How to find out whether my kernel is a distribution kernel or not?
+==================================================================
+
+Unless you downloaded, compiled and installed your own version of kernel from kernel.org, you are running a distribution kernel.
+
+# uname -r
+5.0.0-32-generic
+
+If you see anything at all after the dash, you are running a distribution kernel.

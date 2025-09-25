@@ -1,0 +1,6 @@
+Matching Constraints
+----------------------
+
+In some cases, a single variable may serve as both input and output operand
+
+Such cases may be specified in asm by using matching constraints.

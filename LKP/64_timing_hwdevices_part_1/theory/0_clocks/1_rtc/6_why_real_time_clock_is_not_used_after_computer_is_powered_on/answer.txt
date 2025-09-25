@@ -1,0 +1,4 @@
+Why Real Time clock is not used after computer is powered on?
+---------------------------------------------------------------
+
+The RTC is not used often because its registers are very slow to access.

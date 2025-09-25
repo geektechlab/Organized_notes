@@ -1,0 +1,10 @@
+What are the advantages of using named pipe over unnamed pipe?
+=================================================================
+
+Named pipes (fifo) have the below advantages:
+
+	--->	you don't have to start the reading/writing processes at the same time
+
+	--->	you can have multiple readers/writers which do not need common ancestry
+
+	--->	as a file you can control ownership and permissions

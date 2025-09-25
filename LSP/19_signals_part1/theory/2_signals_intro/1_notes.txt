@@ -1,0 +1,17 @@
+killall -SIGSEGV ./1
+
+explore some of the more esoteric signals and see similar results occur when the program terminates
+
+killall -SIGPWR ./1
+
+killall -SIGSTOP ./1
+
+If we were to run jobs, we can see that ./1 is stopped in the background. This is the same as typing Ctrl-z in the terminal.
+
+killall -SIGCONT ./1
+
+And, after we run jobs, the loop program is running in the background:
+
+The Ctrl-c from the terminal actually generates the SIGINT signal, which stands for "interrupt" because a Ctrl-c initiates an interrupt of the foreground process, which by default terminates the process.
+
+killall -SIGINT ./1

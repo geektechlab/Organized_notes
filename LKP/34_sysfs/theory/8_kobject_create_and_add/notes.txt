@@ -1,0 +1,38 @@
+Adding and Removing kobjects from sysfs
+=========================================
+
+Initialized kobjects are not automatically exported to sysfs.
+
+To represent a kobject to sysfs,you use kobject_add():
+
+int kobject_add(struct kobject *kobj, struct kobject *parent, const char *fmt, ...);
+
+A given kobject’s location in sysfs depends on the kobject’s location in the object hierarchy.
+
+If the kobject’s parent pointer is set, the kobject maps to a subdirectory in sysfs inside its parent.
+
+If the parent pointer is not set, the kobject maps to a subdirectory inside kset->kobj
+
+If neither the parent nor the kset fields are set in the given kobject, the kobject is assumed to have no parent and maps to a root-level directory in sysfs
+
+Regardless, the name of the directory representing the kobject in sysfs is given by fmt, which accepts a printf()-style format string
+
+kobject_create_and_add()
+--------------------------
+
+combines the work of kobject_create() and kobject_add() into one function
+
+struct kobject * kobject_create_and_add(const char *name, struct kobject *parent);
+
+kobject_del()
+--------------
+
+Removing a kobject’s sysfs representation is done via kobject_del():
+
+void kobject_del(struct kobject *kobj);
+
+Implementation: lib/kobject.c
+
+
+-----
+using [ grep ] for kobject_create_and_add will tell which file is creating particular sysfs entry.

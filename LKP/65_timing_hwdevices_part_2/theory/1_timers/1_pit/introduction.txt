@@ -1,0 +1,28 @@
+Programmable Interval Timer(PIT)
+--------------------------------
+
+In embedded systems, a programmable interval timer (PIT) is a counter that generates an output signal when it reaches a programmed count. The output signal may trigger an interrupt.
+
+PIT's may be
+    One-Shot: Signal only once and stop counting
+    Periodic: Signal every time they reach a specific value and restart
+
+X86 machine has one PIT, implemented by an 8254 chip
+
+PIT is accessed on ports 0x40-0x43
+
+The chip itself has 3 channels: 
+
+Channel 0 is tied to is tied to IRQ0, to interrupt the CPU at predictable and regular times, 
+Channel 1 is system specific, and 
+Channel 2 is connected to the system speaker.
+
+I/O port     Usage
+0x40         Channel 0 data port (read/write)
+0x41         Channel 1 data port (read/write)
+0x42         Channel 2 data port (read/write)
+0x43         Mode/Command register (write only, a read is ignored)
+
+Frequency: 1.193182 MHZ
+
+Initial version of Linux before 2.6 PIT was used as system timer.

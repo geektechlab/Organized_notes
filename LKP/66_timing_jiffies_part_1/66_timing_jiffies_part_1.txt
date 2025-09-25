@@ -1,0 +1,215 @@
+Theory0:
+HZ
+--------
+
+We know Linux works with timer interrupt.
+
+But how often should the interrupt trigger?
+------------------------------------------
+
+The frequency of the timer interrupt is programmed on system boot based on static preprocessor define HZ.
+
+Example: If HZ = 100, Frequency = 100 hz, interrupt happens every 1/100 of second = 10ms
+
+The value of HZ differs for each supported architecture.
+
+Kernel defines the value in <asm/param.h>
+
+$ vi include/asm-generic/param.h
+
+How to check the value of HZ in the terminal?
+=================================================
+
+$ grep 'CONFIG_HZ=' /boot/config-$(uname -r)
+
+Theory1:
+jiffies
+------------
+
+Kernel maintains a global variable called "jiffies" which holds the number of ticks/timer interrupts from system boot.
+
+Every time a timer interrupt occurs, the value of an internal kernel counter is incremented.
+
+Header File: <linux/jiffies.h>
+
+extern unsigned long volatile jiffies;
+
+Theory2:
+What is the size of jiffies
+==============================
+As jiffies is unsigned long.
+
+On 32-bit architectures size = 4 bytes
+On 64-bit architectures size = 8 bytes
+
+Theory3:
+If the tick rate(HZ) is 100, 32-bit jiffies variable will overflow in about 497 days
+If the tick rate(HZ) is 1000, 32-bit jiffies variable will overflow in about 49.7 days
+
+Solution to avoid overflow is to store jiffies in 64-bit variable on all architectures.
+
+Why is jiffies not been directly declared as 64-bit unsigned long long integer on x86?
+======================================================================================
+
+Why is jiffies not been directly declared as 64-bit unsigned long long integer on x86?
+======================================================================================
+
+Access to 64-bit variables in 32-bit architectures cannot be done atomically. 
+
+Every read operation on the whole 64-bit requires some synchronization technique to ensure that the counter is not updated while the two 32-bit half counters are read. 
+
+A second variable is also defined in <linux/jiffies.h>
+
+extern u64 jiffies_64;
+
+The ld(1) script used to link the main kernel image (arch/x86/kernel/vmlinux.lds.S on x86) then overlays the jiffies variable over the start of the jiffies_64 variable
+
+#ifdef CONFIG_X86_32
+	OUTPUT_ARCH(i386)
+	ENTRY(phys_startup_32)
+	jiffies = jiffies_64;                                                                                         
+#else
+	OUTPUT_ARCH(i386:x86-64)
+	ENTRY(phys_startup_64)
+	jiffies_64 = jiffies;
+#endif
+
+In the case of x86 the jiffies will be the lower 32 bits of the jiffies_64 variable.
+
+                    jiffies_64
++-----------------------------------------------------+
+|                       |                             |
+|                       |                             |
+|                       |       jiffies on `x86`      |
+|                       |                             |
+|                       |                             |
++-----------------------------------------------------+
+63                     31                             0
+
+Code that accesses jiffies simply reads the lower 32 bits of jiffies_64.
+The function get_jiffies_64() can be used to read the full 64-bit value
+
+Defined in : kernel/time/jiffies.c
+
+#if (BITS_PER_LONG < 64)
+u64 get_jiffies_64(void)
+{
+        unsigned int seq;
+        u64 ret;
+
+        do {
+                seq = read_seqbegin(&jiffies_lock);
+                ret = jiffies_64;
+        } while (read_seqretry(&jiffies_lock, seq));
+        return ret;
+}
+EXPORT_SYMBOL(get_jiffies_64);
+#endif
+
+On 64-bit architectures, jiffies_64 and jiffies refer to the same thing. Code can either read jiffies or call get_jiffies_64() as both actions have the same effect.
+
+Theory4:
+Jiffies Wraparound
+======================
+
+The jiffies variable, like any C integer experiences overflow when its value is increased beyond its maximum storage limit.
+
+For a 32-bit unsigned integer, the maximum value is 2^32 - 1.
+
+When the tick count is equal to the maximum and it is incremented, it wraps around to zero.
+
+What happens if jiffies wrapped back to zero after setting timeout?
+
+unsigned long timeout = jiffies + 10 * HZ;
+
+if (timeout  > jiffies) 
+
+Then the first condition will fail because the jiffies value would be smaller than timeout despite logically being larger.
+
+Theory5:
+Kernel provides four macros for comparing tick counts that correctly handle the wrap around in the tick count.
+
+#define time_after(a,b)         \
+        (typecheck(unsigned long, a) && \
+         typecheck(unsigned long, b) && \
+         ((long)((b) - (a)) < 0))
+#define time_before(a,b)        time_after(b,a)
+
+#define time_after_eq(a,b)      \
+        (typecheck(unsigned long, a) && \
+         typecheck(unsigned long, b) && \
+         ((long)((a) - (b)) >= 0))
+#define time_before_eq(a,b)     time_after_eq(b,a)
+
+time_after(a,b) returns true if the time a is after time b
+
+Ex: time_after(10, 20) = (20 - 10) < 0 = 10 < 0 = false
+    time_after(20, 10) = (10 - 20) < 0 = -10 < 0 = true
+
+time_before(a,b) returns true if the time a is before time b
+
+time_after_eq(a,b) returns true if the time a is after or equal to time b
+
+time_before_eq(a,b) returns true if the time a is before or equal to time b
+
+Theory6:
+What is the initial value of jiffies on boot?
+=================================================
+
+At boot time jiffies is not initialized to zero, it is initialized to INITIAL_JIFFIES constant.
+
+Header File: <linux/jiffies.h>
+
+  /*
+   * Have the 32 bit jiffies value wrap 5 minutes after boot
+   * so jiffies wrap bugs show up earlier.
+   */
+   #define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))   
+
+some bugs where found that occurred when the jiffies counter overflowed (wrapped back to zero)
+
+By initializing jiffies so the counter overflows after 5 mins, anybody testing a patch that creates a new jiffy-overflow-related bug  will see the problem during normal testing - and fix it
+
+since it uses negative value while jiffies will be read as unsigned integer, it will be read as "very big" positive number. Thus, it will reach the upper limit of integer very quickly
+
+Theory7:
+How -300*HZ wraps 5 minutes after boot
+===========================================
+
+HZ is the number of clock ticks (jiffies) in 1 second.
+
+300 seconds is 5 minutes.
+
+Therefore 300 x HZ is the number of jiffies in 5 minutes.
+
+Therefore after 5 minutes, an initial value of -300 * HZ will have been incremented to 0.
+
+Theory8:
+Why do we have double casting in the below code
+
+#define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))
+
+the negative signed int (-300*HZ) is converted to an unsigned int with sign extension to whatever size an unsigned int is on that implementation (typically 32 bits)
+
+then the second cast (to unsigned long) casts that up to the size of an unsigned long (32 or 64 bits depending on implementation) with zero extension
+
+In the case of 32 bit unsigned long, the second (leftmost) cast does nothing
+
+In the case of 64 bit unsigned long, the second cast would cause the upper 32 bits to be set to 0.
+
+Theory9:
+How can i convert jiffies in seconds/milliseconds?
+-----------------------------------------------------
+
+Jiffies can be converted to other time units such as milliseconds, microseconds, and nanoseconds
+using routines jiffies_to_msecs(), jiffies_to_usecs(), jiffies64_to_nsecs()
+
+unsigned int jiffies_to_msecs(const unsigned long j);
+
+unsigned int jiffies_to_usecs(const unsigned long j);
+
+u64 jiffies_to_nsecs(const unsigned long j);
+
+Header File: <linux/jiffies.h>
+
+Definition: kernel/time/time.c

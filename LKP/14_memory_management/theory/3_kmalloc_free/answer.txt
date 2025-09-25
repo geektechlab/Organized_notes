@@ -1,0 +1,2 @@
+Kernel memory is never freed automatically, even after module removal. [ RAM size/available can be fetched [ cat /proc/meminfo ] ]. ( watch video 25:00 - 35:00 )
+Unlike this, in user space, malloc allocated memory gets leaked but claimed back when process is removed.

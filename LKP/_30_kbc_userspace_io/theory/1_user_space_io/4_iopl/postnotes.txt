@@ -1,0 +1,3 @@
+use ioperm(2)  or  alternatively iopl(2) to tell the kernel to allow the user space application to access the I/O ports in question. 
+
+Failure to do this will cause the application to receive a  segmentation fault.

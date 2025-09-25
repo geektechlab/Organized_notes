@@ -1,0 +1,28 @@
+Hardware Random Number Generator
+=================================
+
+Device that generates random numbers from a physical process.
+
+The Intel 82802 Firmware Hub (FWH) chip included a hardware RNG.
+
+The RNG is dedicated hardware that harnesses system thermal noise to generate random and indeterministic values.
+
+Registers
+==============
+
+1. Hardware Status ( 0xFFBC015F )
+
+	used to determine whether or not an RNG device is present on the Firmware Hub
+	If present, whether it is enabled for use
+
+	Bit Mask 				Description
+	====================================================
+	0x40 (Bit 6 – read only) RNG Present: 
+						If this bit is read as 1, an RNG is present on the Firmware Hub device. 
+						If it is read as 0, the RNG is absent.
+
+	0x01 (Bit 0 – read/write) RNG Enabled: 
+
+						This bit indicates whether or not the RNG is enabled. 
+						If the bit is set to 1, the RNG will generate random data.
+						 If this bit is 0, the RNG is disabled.

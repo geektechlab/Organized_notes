@@ -1,0 +1,12 @@
+Does this code have lost wake up problem?
+=========================================
+
+DEFINE_WAIT(wait);
+add_wait_queue(queue, &wait);
+while (!condition) {
+    prepare_to_wait(&queue, &wait, TASK_INTERRUPTIBLE);
+    if (signal_pending(current))
+        /* handle signal */
+    schedule();
+}
+finish_wait(&queue, &wait);

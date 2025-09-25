@@ -1,0 +1,5 @@
+What is the problem in the below code?
+=======================================
+
+Memory Leak
+- at write thread we are allocating memeory but not freeing.

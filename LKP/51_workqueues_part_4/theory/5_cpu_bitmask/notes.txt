@@ -1,0 +1,4 @@
+# echo 2 > /sys/devices/virtual/workqueue/my_queue/cpumask 
+
+---
+can be used to run work queues to run on particular CPU

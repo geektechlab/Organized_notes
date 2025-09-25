@@ -1,0 +1,22 @@
+Enabling SSH on Raspberry Pi
+===============================
+
+SSH is by default disabled on Raspbian images.
+
+Advantage of SSH: No need of HDMI display or keyboard
+
+To enable ssh, create an empty file name 'ssh.txt' in the boot partition of the SD Card
+
+$ sudo mount /dev/sdb1 /media
+
+$ sudo touch /media/ssh
+
+$ sudo umount /media
+
+Connect SD Card to Raspberry Pi and Ethernet Cable and boot
+
+You can get the IP Address of Raspberry Pi from your Router Admin Page.
+
+$ ssh pi@<ip_address>
+
+Password: raspberry

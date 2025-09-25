@@ -1,0 +1,13 @@
+Jiffie Conversions
+---------------------
+
+User space programs represent time values with struct timeval and struct timespec
+
+The kernel exports four helper functions to convert time values expressed as jiffies to and from those structures
+
+Header File: #include <linux/time.h>
+
+unsigned long timespec_to_jiffies(struct timespec *value);
+void jiffies_to_timespec(unsigned long jiffies, struct timespec *value);
+unsigned long timeval_to_jiffies(struct timeval *value);
+void jiffies_to_timeval(unsigned long jiffies, struct timeval *value);

@@ -1,0 +1,17 @@
+man 2 msync
+
+One key issue with memory-mapped files is the timing of when updates get copied back into the file on disk.
+
+For instance, if another process opens and reads the file using read(), will this other process see any updates that were written to the memory-mapped region?
+
+The answer is that it depends on a number of timing factors.
+
+The first factor is the kernel itself. When a file is mapped into memory with mmap(), the kernel will occasionally trigger a write to copy updated portions back to disk.
+
+A second factor is the file system of the underlying file.
+	Some file systems do not commit changes to the file until the writing process has closed its connection to the file.
+
+Processes can insert control over this issue by using the msync() function.
+This function takes a flags parameter that can initiate a synchronous, blocking write (MS_SYNC) or an asynchronous, non-blocking one (MS_ASYNC).
+
+In the case of the asynchronous write, the data will get copied to disk at a later point; however, the updated data would be immediately available to any process that reads from the file with read().

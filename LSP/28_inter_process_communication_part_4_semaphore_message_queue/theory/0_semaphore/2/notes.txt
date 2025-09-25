@@ -1,0 +1,8 @@
+Two fundamental operations:
+sem_post(): increment by 1
+sem_wait(): decrement by 1
+
+sem_getvalue - get the value of a semaphore
+
+int sem_getvalue(sem_t *sem, int *sval);
+

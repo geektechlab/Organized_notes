@@ -1,0 +1,50 @@
+What is Virtual Memory
+==========================
+
+In computing, virtual memory is a memory management technique that is implemented using both hardware and software.
+
+Addresses used by program are virtual addresses which are converted to physical addresses using Memory Management Unit (MMU)(Hardware)
+
+Benefits of Virtual Memory
+============================
+
+freeing applications from having to manage a shared memory space, 
+increased security due to memory isolation,
+being able to conceptually use more memory than might be physically available, using the technique of paging
+
+Key Points of Virtual Memory
+=============================
+
+Each process has its own virtual memory
+
+The amount of virtual memory depends on your system's architecture
+
+Each OS handles virtual memory differently, but for most modern operating systems, the virtual memory of a process looks like this:
+
+         address|-------------------| command-line arguments
+                |-------------------| and environment variables
+                |        stack      |
+                |-------------------|
+                |                   |
+                |                   |
+                |                   |
+                |-------------------|
+                |               heap|
+                |-------------------|
+                |uninitialized data | initialized to
+                |               (bss| zero by exec
+                |-------------------|
+                | initialized data  | read from
+                |-------------------| program file 
+                |               text| by exec
+    low address |-------------------|
+            Typical memory arrangement
+
+High Memory Addresses : Command Line Arguments + Environmental Variables + Stack Growing downwards
+Low Memory Addresses:  Heap Growing Upwards + Executable
+
+The heap is a portion of memory that is dynamically allocated (i.e. containing memory allocated using malloc).
+
+The size of text, data, .bss segments, and the total size is examined as follows with help of the size command. 
+
+The fourth and fifth columns are the total of the three sizes, displayed in decimal and hexadecimal, respectively. You can read man page of size for more details.

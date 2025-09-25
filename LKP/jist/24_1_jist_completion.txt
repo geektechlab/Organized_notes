@@ -1,0 +1,153 @@
+Theory0:
+Completions: Completions is a code synchronization mechanism which is preferable to any misuse of locks/semaphores and busy loops.
+
+When to use them: If you have one or more threads that must wait for some kernel activity to have reached a point or state. Completions can provide a race-free solution to this problem. Completions are built on top of the waitqueue and wakeup infrastructure of the Linux scheduler. The event the threads on the waitqueue are waiting for is reduced to a simple flag in 'struct completion', appropriately called "done".
+
+Implementation: kernel/sched/completion.c
+
+Without completions:
+int condition = 0;
+DECLARE_WAIT_QUEUE_HEAD(queue);
+
+Thread 1;                                       Thread 2
+============                                    =============
+.....                                           ......
+wait_event_interruptible(queue, condition);     condition = 1;
+....                                            wake_up_interruptible(queue);
+....                                            ......
+
+With Completions:
+DECLARE_COMPLETION(my_comp);
+
+Thread 1;                       Thread 2
+============                        =============
+.....                           ......
+wait_for_completion(&my_comp);              complete(&my_comp);
+
+Can't i use this semaphore for this purpose or What is the difference between semaphore and completion?
+    Yes, you can use semaphore for the above scenario. You have a semaphore initially in the locked state. Waiting process will call down() and gets blocked. The one who is waking up will call up().
+
+Theory1:
+Advantages of Completions over Semaphores:
+	1. the semaphores are optimized (on purpose) for the non-contention case. Means initially it will not be in locked state. It will be in unlocked state initially. completion usage has the opposite default case.
+	2. Multiple threads can wait for a completion, and they can be released with one call
+	   It's more complex to have a semaphore wake up an unknown number of threads.
+	   3. Semaphores usage is for mutual exclusion
+           Completion usages is typically for synchronization
+
+Theory2:
+Header File: <linux/completion.h>
+
+Data Structure: struct completion
+struct completion {
+        unsigned int done;
+        wait_queue_head_t wait;
+};
+
+wait --> wait queue to place tasks on for waiting
+done --> indicating whether it is completed or not
+
+Usage:
+There are three main parts to using completions:
+1. the initialization of the 'struct completion' synchronization object
+2. the waiting part through a call to one of the variants of wait_for_completion(),
+3. the signaling side through a call to complete() or complete_all().
+
+Initialization:
+Static:		DECLARE_COMPLETION(my_comp);
+Dynamic:	init_completion(&my_comp);
+
+In initialization:
+	1. we initialize the waitqueue
+	2. set done to 0, i.e. "not completed" or "not done".
+
+Theory3:
+Waiting for Completion: For a thread to wait for some concurrent activity to finish, it calls wait_for_completion() on the initialized completion structure.
+    void wait_for_completion(struct completion *done);
+
+When some other part of your code has decided that the completion has happened, it can wake up anybody
+    void complete(struct completion *comp);
+
+A typical usage scenario is:
+
+    CPU#1                                   CPU#2
+
+    struct completion setup_done;
+    init_completion(&setup_done);
+    initialize_work(...,&setup_done,...);
+    /* run non-dependent code */            /* do setup */
+    wait_for_completion(&setup_done);       complete(setup_done);
+
+Theory4:
+What happens when a call to complete happens before wait_for_completion?
+
+the waiting side simply will continue immediately as all dependencies are satisfied. If not, it will block until completion is signalled by complete().
+
+Theory5:
+wait_for_completion will places the task in 'TASK_UNINTERRUPTIBLE' state, if you want the process to be placed in 'TASK_INTERRUPTIBLE' state.
+int wait_for_completion_interruptible(struct completion *done)
+
+Theory6:
+Other Variants:
+	unsigned long wait_for_completion_timeout(struct completion *done, unsigned long timeout)
+	The task is marked as TASK_UNINTERRUPTIBLE and will wait at most 'timeout' jiffies. 
+	Return Value: 0 on Timeout, else the remaining time in jiffies
+
+	long wait_for_completion_interruptible_timeout(struct completion *done, unsigned long timeout)
+	This function passes a timeout in jiffies and marks the task as TASK_INTERRUPTIBLE. 
+	Return value: 0 on Timeout
+		      Remaining time in jiffies if complete() was called
+		       -ERESTARTSYS on receiving a signal
+
+	long wait_for_completion_killable(struct completion *done)
+	long wait_for_completion_killable_timeout(struct completion *done, unsigned long timeout)
+	Uses state as TASK_KILLABLE
+
+	bool try_wait_for_completion(struct completion *done);
+	Returns 
+	false: if the thread not to be blocked and will not put into the wait queue
+	true: if the thread consumes one posted completion.
+
+	bool completion_done(struct completion *done)
+	Returns:
+	False: If there are waiters
+	True: otherwise
+
+Theory7:
+complete_all:
+void complete_all(struct completion *);
+
+complete_all, wakes up all processing waiting for the completion.
+
+Theory8:
+what is the meaning of done in struct completion?
+Each time complete is called, the counter is incremented by 1, The wait_for functions only puts the caller to sleep if done is not equal to 0. complete_all works similarly, but sets the counter to the largest possible value (UINT_MAX);
+
+void complete_all(struct completion *x)
+{
+        unsigned long flags;
+
+        spin_lock_irqsave(&x->wait.lock, flags);
+        x->done = UINT_MAX;
+        __wake_up_locked(&x->wait, TASK_NORMAL, 0);
+        spin_unlock_irqrestore(&x->wait.lock, flags);
+}
+EXPORT_SYMBOL(complete_all);
+
+Theory9:
+Can wait_for_completion() and its variants are safe to use in atomic/interrupt contexts? No, as they sleep.
+
+Theory10:
+If complete() is called multiple times then this will allow for that number of waiters to continue - each call to complete() will simply increment the done field.
+
+Theory11:
+Can i call complete() or complete_all() from interrupt/atomic context?
+Signaling completion from IRQ context is fine as it will appropriately lock with spin_lock_irqsave()/spin_unlock_irqrestore() and it will never sleep.
+
+Theory12:
+static inline void reinit_completion(struct completion *x)
+{
+        x->done = 0;
+}
+
+This inline function should be used to reinitialize a completion structure so it can be reused. This is especially important after complete_all() is used. Calling init_completion() on the same completion object twice is most likely a bug.

@@ -1,0 +1,20 @@
+File Access Permissions
+=============================
+
+The st_mode value also encodes the access permission bits for the file.
+
+There are nine permission bits for each file, divided into three categories.
+
+st_mode mask Meaning
+====================
+S_IRUSR user-read
+S_IWUSR user-write
+S_IXUSR user-execute
+S_IRGRP group-read
+S_IWGRP group-write
+S_IXGRP group-execute
+S_IROTH other-read
+S_IWOTH other-write
+S_IXOTH other-execute
+
+The term user in the first three rows refers to the owner of the file

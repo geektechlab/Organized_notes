@@ -1,0 +1,23 @@
+Driver Poll Implementation
+==============================
+
+It needs to perform the following two operations:
+
+    1. Call kernel's poll_wait() function on one or more wait queues
+    2. Return a bitmask describing operations that could be immediately performed without blocking.
+
+     void poll_wait (struct file *, wait_queue_head_t *, poll_table *);
+
+Bitmask:
+
+POLLIN  -->  This bit must be set if the device can be read without blocking.
+
+POLLRDNORM  -->  This bit must be set if "normal'' data is available for reading.
+                    A readable device returns (POLLIN | POLLRDNORM).
+
+POLLOUT  --> This bit is set in the return value if the device can be written to without blocking.
+
+POLLWRNORM  -->   This bit has the same meaning as POLLOUT, and sometimes it actually is the same number. 
+                    A writable device returns (POLLOUT | POLLWRNORM).
+
+Device Drivers need not worry about poll_wait internals. They must use it as an opaque object

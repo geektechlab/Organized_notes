@@ -1,0 +1,32 @@
+Opening a Message Queue
+=========================
+
+To set up a message queue, 
+	first create a new message queue or
+	open an existing queue
+using the mq_open function.
+
+If a message queue of the specified name does not already exist, a new message queue is allocated and initialized
+
+If one already exists, the mq_open function checks permissions.
+
+#include <mqueue.h>
+mqd_t mq_open(const char *name, int oflag);
+mqd_t mq_open(const char *name, int oflag, mode_t mode,
+                     struct mq_attr *attr);
+
+ Link with -lrt
+
+Closing a Message Queue
+=========================
+
+int mq_close(mqd_t mqdes);
+	
+Deleting a Message Queue
+============================
+
+int mq_unlink(const char *name);
+
+On Linux, message queues are created in a virtual filesystem.
+$ ls /dev/mqueue
+$ cat /dev/mqueue/my_queue

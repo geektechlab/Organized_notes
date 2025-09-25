@@ -1,0 +1,122 @@
+Theory0:
+debugfs: debugfs helps kernel developers export large amounts of debug data into user-space.
+
+procfs  - Used for information about process
+sysfs   - Has strict one-value-per-file rule
+debugfs - no rules, any information can be placed by developers
+
+CONFIG_DEBUG_FS: To compile a Linux kernel with the debugfs facility, the CONFIG_DEBUG_FS option must be set to yes.
+$ cat /boot/config-`uname -r` | grep CONFIG_DEBUG_FS
+
+Mounting debugfs:
+$ mount | grep debugfs
+
+If debugfs is not already mounted, you can mount it with the below command,
+$ mount -t debugfs none /sys/kernel/debug
+
+Note:
+1. Debugfs directory is accessible to only root user by default, can be changed with uid/gid/mode options while mounting.
+2. Can be used by only GPL Modules
+
+Theory1:
+Why can't i use printk instead of putting data into debugfs?
+Sometimes putting in a few printk() calls is sufficient, but, often, that is not the best way to go. The debugging information may only be useful occasionally, but the printed output clogs up the logs all the time. Using printk() also does not help if the developer wishes to be able to change values from user space.
+
+Theory2:
+Creating a directory in debugfs:
+Header File: <linux/debugfs.h>
+
+struct dentry *debugfs_create_dir(const char *name, struct dentry *parent);
+If parent is NULL, the directory will be created in the debugfs root.
+
+Return Value:
+	Success - struct dentry * which can be used to create files in the directory
+	Failure - ERR_PTR(-ERROR)
+		  ERR_PTR(-ENODEV) is returned, when kernel has been built without debugfs
+
+To remove directory:
+void debugfs_remove(struct dentry *dentry);
+
+Theory3:
+Create a file within debugfs:
+struct dentry *debugfs_create_file(const char *name, umode_t mode,
+				       struct dentry *parent, void *data,
+				       const struct file_operations *fops);
+
+name -> Name of the file to create
+mode -> access permissions the file should have
+parent -> the directory which should hold the file
+data -> will be stored in the i_private field of the resulting inode structure
+fops -> set of file operations which implement the file's behavior
+
+At a minimum, the read() and/or write() operations should be provided; others can be included as needed.
+
+Return Value:
+Success: dentry pointer to the created file
+Failure: ERR_PTR(-ERROR)
+
+Theory4:
+What happens if i forget to delete call debugfs_remove? There is no automatic cleanup of any directories created in debugfs. If a module is unloaded without explicitly removing debugfs entries, the result will be a lot of stale pointers.
+
+Theory5:
+debugfs_remove_recursive:
+   void debugfs_remove_recursive(struct dentry *dentry);
+
+If you pass a pointer for the dentry corresponding to the top-level directory, the entire hierarchy below that directory will be removed.
+
+Theory6:
+Debugfs code provides a number of helper functions for simple situations. If you need to write to and read from a single value, you can use this to create an unsigned 8-bit value:
+struct dentry *debugfs_create_u8(const char *name, mode_t mode, struct dentry *parent, u8 *value);
+
+name - a pointer to a string containing the name of the file to create.
+mode - the permission that the file should have
+parent - a pointer to the parent dentry for this file
+value  - a pointer to a variable that needs to be read and written to.
+
+A few other helper functions to create files with single integer values are:
+    struct dentry *debugfs_create_u16(const char *name, umode_t mode,
+				      struct dentry *parent, u16 *value);
+    struct dentry *debugfs_create_u32(const char *name, umode_t mode,
+				      struct dentry *parent, u32 *value);
+    struct dentry *debugfs_create_u64(const char *name, umode_t mode,
+				      struct dentry *parent, u64 *value);
+
+Implementation: fs/debugfs/file.c
+
+Theory7:
+How to provide a read only file? By appropriately setting the mode bits.
+
+Theory8:
+The values in the previous files are in decimal; if hexadecimal is more appropriate, the following functions can be used instead:
+    struct dentry *debugfs_create_x8(const char *name, umode_t mode,
+				     struct dentry *parent, u8 *value);
+    struct dentry *debugfs_create_x16(const char *name, umode_t mode,
+				      struct dentry *parent, u16 *value);
+    struct dentry *debugfs_create_x32(const char *name, umode_t mode,
+				      struct dentry *parent, u32 *value);
+    struct dentry *debugfs_create_x64(const char *name, umode_t mode,
+				      struct dentry *parent, u64 *value);
+
+Theory9:
+Boolean Values: Boolean values can be placed in debugfs with:
+
+struct dentry *debugfs_create_bool(const char *name, umode_t mode,
+				       struct dentry *parent, bool *value);
+
+Read: Y (for non-zero values) or N, followed by a newline
+Write: Upper or lower case values, or 1 or 0
+
+Theory10:
+Pointers and Error Values: Many internal kernel functions return a pointer value to the caller. Many of those functions can also fail. In most cases, failure is indicated by returning a NULL pointer value. This technique works, but it is unable to communicate the exact nature of the problem. Some interfaces really need to return an actual error code so that the caller can make the right decision based on what actually went wrong. A number of kernel interfaces return this information by encoding the error code in a pointer value. A function returning a pointer type can return an error value with:
+
+void *ERR_PTR(long error);
+where error is the usual negative error code.
+
+Header File: <linux/err.h>
+The caller can use IS_ERR to test whether a returned pointer is an error code or not:
+
+long IS_ERR(const void *ptr);
+If you need the actual error code, it can be extracted with:
+
+long PTR_ERR(const void *ptr);
+Note: use PTR_ERR only on a value for which IS_ERR returns a true value;

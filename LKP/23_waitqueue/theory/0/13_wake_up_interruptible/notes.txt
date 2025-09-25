@@ -1,0 +1,3 @@
+wake_up_interruptible()	-->	Can only wake up Tasks which are sleeping in interruptible state
+
+wake_up()	-->	Can wake up both tasks which are in interruptible/non interruptible

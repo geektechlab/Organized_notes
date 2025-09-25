@@ -1,0 +1,191 @@
+Theory0:
+Building Kernel: The process of building a kernel has two parts
+	1. Configuring the kernel options
+	2. Building the source with those options
+
+Configuring Kernel: The kernel configuration is kept in a file called .config in the top directory of the kernel source tree. After downloading the sources, there will be no .config file, it needs to be created. It can be created from
+	1. Scratch
+	2. Default configuration from a running kernel version ( it is present in /boot/config-`uname -r` )
+
+Copying the configuration file of your distribution is the safest approach for the very first kernel install on any system. Run the following command to generate a kernel configuration file based on the current configuration.
+$ make oldconfig
+
+[ make oldconfig V=1 ]
+
+The above command reads the existing .config file and prompts the user for options in the current kernel source that are not found in this file.
+
+Theory1:
+Building the Linux Kernel: To compile the Linux Kernel, run
+$ make
+
+Running make causes the kernel build system to use the configuration you have selected to build a kernel and all modules needed to support that configuration. While the kernel is building, make displays the individual file names of what is currently happening, along with any build warnings or errors. To build the kernel in a multithreaded way, use the -j option to the make program. It is best to give a number to the -j option that corresponds to twice the number of processors in the system. Example with four processors.
+
+$ make -j8
+
+Older kernel versions prior to 2.6 release required the additional step of 'make modules' to build all needed kernel modules. That is no longer needed.
+
+Theory2:
+What are the codes such as CC, LD and CC[M] output when compiling the Linux kernel?
+CC: Compiles the C file into an designated object file.
+      The object file contains the architecture assembler code of that .c file. 
+CC [M]: CC is compiling a core part of the kernel
+	CC [M] when compiling it as a  module
+LD: File listed is being linked from a number of object files by the linker (ld).
+
+Theory3:
+Installing the new kernel: Once the kernel compilation is complete, install the new kernel with:
+$ sudo make modules_install
+
+This will install all the modules that you have built and place them in the proper location in the filesystemfor the new kernel to properly find. Modules are placed in the /lib/modules/kernel_version directory.
+
+kernel_version is the kernel version of the new kernel you have just built. After the modules have been successfully installed, the main kernel image must be installed.
+$ sudo make install
+
+The above command will perform the below steps:
+1. Kernel build system will verify that the kernel has been successfully built properly
+2. Kernel build system will install the static kernel into the /boot directory and name it based on the kernel version
+3. Any needed initial ramdisks images will be automatically created, using the modules that have been just installed during the modules_install phase
+4. The bootloader program will be properly notified that a new kernel is present, and it will be added to the appropriate menu so the user can select it next time the machine is booted. ( for example, GRUB is updated ).
+5. After this is finished, the kernel is successfully installed, and you can safely reboot and try out your new kernel image.
+
+IMP Note: Installation does not overwrite older kernel images.
+
+Very IMP: watch linux boot process at ( video 47 - 50 )
+
+Theory4:
+Different Architecture:
+The kernel build system allows you to specify a different architecture from the current system with the ARCH= argument
+
+The build system also allows you to specify the specific compiler that you wish to use for the build by using the CC= argument or a cross-compile toolchain with the CROSS_COMPILE argument.
+
+$ make ARCH=x86_64 defconfig
+$ make ARCH=arm CROSS_COMPILE=/usr/local/bin/arm-linux
+
+Theory5:
+make help
+	gives a quick listing of all of the make targets
+
+help is divided into two parts
+	1. First part is hard coded
+	2. Second part changes based on the architecture
+
+$ make ARCH=arm help
+$ make ARCH=powerpc help
+$ make ARCH=blackfin help
+
+Theory6:
+There are many methods available for configuring the kernel.
+
+$ make defconfig
+Creates a ".config" file with default options from the ARCH supplied defconfig. Default Configurations are generally stored in the directory: arch/$(ARCH)/configs
+
+When you run "make defconfig" on "x86" machine, it copies the configuration options from arch/x86/configs/i386_defconfig
+
+on "x86_64" machine, it copies the configuration options from arch/x86/configs/x86_64_defconfig
+
+If you say "make ARCH=arm defconfig", it copies the configuration options from arch/arm/configs/multi_v7_defconfig
+
+If you want to use a different defconfig as ARM has lot of them,
+
+$ make ARCH=ARM imx_v6_v7_defconfig
+
+If you diff the defconfig and .config, you will find they are not same why? .config vs defconfig
+
+The .config file is a full config file: it contains the value for all options. A defconfig stores only the values for options for which the non-default value is chosen. When .config file is being generated, kernel build system goes through all Kconfig files (from all subdirs), checking all options in those Kconfig files:
+	if option is mentioned in defconfig, build system puts that option into .config with value chosen in defconfig
+	if option isn't mentioned in defconfig, build system puts that option into .config using its default value, specified in corresponding Kconfig
+
+Theory7:
+make config:
+	Text-based Configuration. 
+	Options are prompted one after another.
+	All options need to be answered
+	Access to former options is not possible
+
+make menuconfig:
+	Menu-driven user interface
+	Allows to navigate forwards and backward directly between features
+	Allows to load and save files with filenames different from ".config"
+	Provides search feature
+	It uses ncurses library for GUI. 
+	If the ncurses library is not installed, make menuconfig option fails. 
+	To install ncurses library on Ubuntu: sudo apt-get install libncurses5-dev
+	[ ] --> Yes/No
+		[ ]  excluded
+		[*]  built-in
+	< > -> built-in/module/excluded
+		<M>  Module
+		<*>  Built-In
+		< >  Left out altogether
+
+Theory8:
+xconfig	  - Update current config utilising a Qt based front-end
+gconfig	  - Update current config utilising a GTK+ based front-end
+nconfig   - Update current config utilising a ncurses menu based program
+allnoconfig	  - New config where all options are answered with no
+allyesconfig	  - New config where all options are accepted with yes
+allmodconfig	  - New config selecting modules when possible
+alldefconfig    - New config with all symbols set to default
+randconfig	  - New config with random answer to all options
+savedefconfig     - Save current config as ./defconfig (minimal config)
+localmodconfig  - Update current config disabling modules not loaded
+localyesconfig  - Update current config converting local mods to core
+
+diffconfig:
+Diffconfig is a simple utility for comparing two .config files
+diffconfig .config config_with_changes
+./scripts/diffconfig .config.old .config
+
+.config.old:
+.config.old is created when you run the make *config second time, kbuild copies the current .config into .config.old, then update .config
+
+Theory9:
+Cleaning Targets:
+$ make clean
+	Remove most generated files
+	keeps the config
+	enough build support to build external modules
+
+$ make mrproper
+	Remove all generated files
+	Removes config
+	Removes various backup files (include/config, include/generated, scripts/basic, scripts/fixdep)
+
+$ make distclean
+	Performs all operations of make mrproper
+	Deletes temporary code navigation files:tags, cscope*
+	Deletes files generated as a side-effect of working with patches: *.orig *.rej *.bak
+	Deletes core dump files
+
+Theory10:
+Source in one place, Output in Another: Sometimes it is easier to have the source code for the kernel tree in a read-only location, and place the output of the kernel build elsewhere, so that you do not disturb the original source tree. You can achieve it with 'O=' option.
+
+ $ make O=destdir menuconfig   [configure]
+ $ make O=destdir              [build]
+
+Advantages of this technique:
+1. Several users can be sharing the same kernel source tree.
+2. Even if there is only one user, that user can be working with multiple configurations, perhaps even multiple architectures, simultaneously.
+3. This approach leaves your source tree clear to, perhaps, continue searching for strings or phrases without having to wade through all of the object files that are generated as part of a build
+
+Note:All of your make commands must be run from the top of the source tree, not the destination tree
+
+Theory12:
+Building Only a Portion of the Kernel:
+Kernel build system allows you to easily build a portion of the kernel. For example, if you want to build the files in drivers/pci
+
+$ make drivers/pci
+
+The above command will not build the modules in that directory. To build modules
+
+$ make M=drivers/pci
+
+Finally execute 
+
+$ make
+
+to have the build system check all changed object files and do the final kernel image link properly. To build only a particular module
+
+$ make drivers/usb/serial/usb-serial.ko
+
+The build system will build all needed files for the usb-serial.ko kernel module, and do the final link to create the module.

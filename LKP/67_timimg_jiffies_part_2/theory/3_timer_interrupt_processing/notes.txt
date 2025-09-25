@@ -1,0 +1,44 @@
+Timer Interrupt Processing
+------------------------------
+
+Constitutes of two parts
+	a) Architecture Dependent
+	b) Architecture Independent
+
+Architecture Dependent:
+-----------------------
+For x86: arch/x86/kernel/time.c (Interrupt Handler for PIT/HPET)
+
+/*
+ * Default timer interrupt handler for PIT/HPET
+ */
+static irqreturn_t timer_interrupt(int irq, void *dev_id)
+{
+        global_clock_event->event_handler(global_clock_event);
+        return IRQ_HANDLED;
+}
+
+This finally calls architecture independent code
+
+Architecture Independent:
+------------------------
+
+Code: kernel/time/tick-common.c (tick_handle_periodic, tick_periodic)
+
+It does the following:
+
+1. Increment jiffies64
+
+void do_timer(unsigned long ticks)
+{
+        jiffies_64 += ticks;
+        calc_global_load(ticks);
+}
+
+2. Update statistics for the currently running process and the entire system (load average)
+
+void update_process_times(int user_tick);
+
+3. Run dynamic timers
+
+4. Run scheduler_tick() (Update timeslices information)

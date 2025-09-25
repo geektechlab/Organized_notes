@@ -1,0 +1,70 @@
+Condition Variables
+=========================
+
+What Is A Condition Variable?
+=============================
+
+A condition variable is a mechanism that allows threads to wait (without wasting CPU cycles) for some even to occur.
+
+Several threads may wait on a condition variable, until some other thread signals this condition variable (thus sending a notification).
+
+At this time, one of the threads waiting on this condition variable wakes up, and can act on the event
+
+It is possible to also wake up all threads waiting on this condition variable by using a broadcast method on this variable.
+
+Note that a condition variable does not provide locking. 
+
+Thus, a mutex is used along with the condition variable, to provide the necessary locking when accessing this condition variable.
+
+Creating And Initializing A Condition Variable
+================================================
+
+Creation of a condition variable requires defining a variable of type pthread_cond_t, and initializing it properly.
+
+We can assign the constant PTHREAD_COND_INITIALIZER to a statically allocated condition variable, but if the condition variable is allocated dynamically, we can use the pthread_cond_init function to initialize it.
+
+We can use the pthread_cond_destroy function to deinitialize a condition variable before freeing its underlying memory.
+
+#include <pthread.h>
+int pthread_cond_init(pthread_cond_t *restrict cond,
+const pthread_condattr_t *restrict attr);
+
+int pthread_cond_destroy(pthread_cond_t *cond);
+Both return: 0 if OK, error number on failure
+
+Unless you need to create a conditional variable with nondefault attributes, the attr argument to pthread_cond_init can be set to NULL.
+
+Signaling A Condition Variable
+==================================
+
+In order to signal a condition variable, one should either the pthread_cond_signal() function (to wake up a only one thread waiting on this variable), or the pthread_cond_broadcast() function (to wake up all threads waiting on this variable)
+
+int rc = pthread_cond_signal(&got_request); 
+
+Or by using the broadcast function: 
+
+int rc = pthread_cond_broadcast(&got_request); 
+
+Both return: 0 if OK, error number on failure
+
+Waiting On A Condition Variable
+=================================
+
+If one thread signals the condition variable, other threads would probably want to wait for this signal.
+
+They may do so using one of two functions, pthread_cond_wait() or pthread_cond_timedwait().
+
+Each of these functions takes a condition variable, and a mutex (which should be locked before calling the wait function), unlocks the mutex, and waits until the condition variable is signaled, suspending the thread's execution
+
+If this signaling causes the thread to awake (see discussion of pthread_cond_signal() earlier), the mutex is automagically locked again by the wait funciton, and the wait function returns.
+
+The only difference between these two functions is that pthread_cond_timedwait() allows the programmer to specify a timeout for the waiting, after which the function always returns, with a proper error value (ETIMEDOUT) to notify that condition variable was NOT signaled before the timeout passed.
+
+The pthread_cond_wait() would wait indefinitely if it was never signaled.
+
+Destroying A Condition Variable
+===============================
+
+After we are done using a condition variable, we should destroy it, to free any system resources it might be using. 
+
+This can be done using the pthread_cond_destroy()

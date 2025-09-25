@@ -1,0 +1,54 @@
+What is cscope
+==============
+
+Cscope is a tool for efficient navigation of C sources.
+
+Lot of time is saved with fast search rather than random grepping through the source files by hand.
+
+Installation
+===============
+
+$ sudo apt install cscope
+
+How to use it
+==============
+
+To use it, a cscope database must be generated from the existing sources.
+
+In Linux Sources, 
+
+$ make cscope
+
+or
+
+$ make ARCH=arm cscope
+
+ARCH variable is optional but recommended, otherwise, some architecture dependent functions will appear multiple times in the database
+
+In case of ARM, you can also use SUBARCH field
+
+SUBARCH will be used to determine arch/arm/mach-* and arch/arm/plat-* directories, and these directories will be indexed
+
+$ make ARCH=arm SUBARCH=omap2 cscope
+
+Files Created:
+=================
+
+$ls cscope* -lh
+
+1. cscope.files : this is the list of files that were indexed by cscope
+
+2. cscope.out : cscope database
+
+3. cscope.out.in, cscope.out.po : reverse index, to speed up lookups in the database.
+
+The above make command is equivalent to:
+
+cscope -bqkR
+
+Where,
+
+-b Build the cross-reference only
+-q Enable fast symbol lookup via an inverted index
+-k for kernel mode (avoids indexing /usr/include and other system directories)
+-R Recursive for all directories

@@ -1,0 +1,17 @@
+Debugging programs with multiple processes
+=============================================
+
+GDB provides support for debugging programs that create additional processes using the fork or vfork function.
+
+By default, when a program forks, GDB will continue to debug the parent process and the child process will run unchecked
+
+If you want to follow the child process instead of the parent process, use the command set follow-fork-mode. 
+
+Syntax:
+=======
+
+set follow-fork-mode parent
+set follow-fork-mode child
+show follow-fork-mode
+Default mode:-
+The default value for the follow-fork-mode setting is 'parent'.

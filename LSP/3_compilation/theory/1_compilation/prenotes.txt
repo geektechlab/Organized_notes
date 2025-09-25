@@ -1,0 +1,16 @@
+GCC -- GNU Gompiler collection 
+	Supports languages  such as C (gcc), C++ (g++), Objective-C, Objective-C++, Java(gcj) etc.
+
+
+To compile the hello.c:
+
+$ gcc hello.c
+
+The default output executable is "a.out" 
+
+To specify the output filename, use -o option:
+
+$ gcc -o hello hello.c
+$ ./hello
+
+

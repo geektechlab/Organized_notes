@@ -1,0 +1,146 @@
+list of commands:
+sudo -- super user do
+
+If you prefix “sudo” with any command, it will run that command with elevated privileges or in other words allow a user with proper permissions to execute a command as another user, such as the superuser. This is the equivalent of “run as administrator” option in Windows.
+
+ls
+
+cd - Change directory. Allow the user to change between file directories.
+Absolute Path : Path of the file or directory from the root directory (/)
+Relative Path : Path related to the present working directory
+
+1. cd /etc --> Will change from current directory to /etc
+	Here we are giving absolute path.
+2. cd gdb --> Will change to gdb folder present in /etc
+	Here we are giving relative path
+3. cd --> Will change to the home directory
+4. cd .. --> Will move back to the parent directory
+5. cd - --> Will switch to the old directory
+6. cd ~ --> Will move to the home directory
+$ cd ~/Linux_System_Prog
+
+just cd will move to home directory. it is same as cd ~. cd ~ is useful when we want to provide further path to ~.
+
+pwd: Will print the current working directory
+
+touch: Allows user to make files from the command line Interface
+
+rm: This command is used to remove files
+$ rm <filename>.<extension>
+
+mkdir: Allows user to create a new directory.
+$ mkdir <directory_name>
+
+rmdir: Allows user to remove a directory
+$ rmdir <directory_name>
+
+mv: Allows user to move file from one place to another
+mv /home/user1/file1.txt /home/user/test/file1.txt
+
+Other use case of mv is to rename
+mv /home/user1/file1.txt /home/user/file.txt
+
+cp
+$ cp file1 file2
+
+clear: clear command will take the user back to the start prompt of whatever directory you are currently operating in
+
+man
+man -- Manual
+Use to show the manual of the command passed
+$ man man
+man has various sections, same command can be executable program, shell command, system call, library call, etc., so to differentiate we can specify
+man <number> <command>
+e.g., man 2 man
+number can be found using [man man]
+
+locate
+
+find: $find <path> -name 'filename'
+
+Differences between locate and find:
+locate uses a prebuilt database ( probably in cache ), which should be regularly updated
+find iterates over the filesystem to find the files
+
+locate is much faster as it uses a database(to update the database use updatedb command)
+find can select files based on not only name but also permissions, owner, file type etc
+
+$find / -name "*conf" -mtime 7
+command returns a list of all files in the entire file system that end with the characters conf and have been modified in the last 7 days.
+
+echo command: It prints the strings that are passed as arguments to the standard output. echo is usually used in shell scripts to display a message or output the results of other commands.
+
+echo can be used with redirect operator to output to a file and not standard output.
+	$ echo "Test Page" > testpage 
+To append to a file
+	$ echo "Test Page" >> testpage 
+
+cat: cat stands for concatenate
+Display the contents of the file
+	$ cat /etc/passwd
+Create a file with cat command
+	cat > file.txt
+	Will create a file 'file.txt' and allows user to type the content on the console, until user press CTRL-D to exit
+Redirect output of a file to a new file
+	cat file1.txt > file2.txt
+	Careful, existing contents of file2.txt will be overwritten by contents of file1.txt file.
+
+more: view contents of text file one page at a time.
+
+less: linux utility which can be used to read contents of text file one page(one screen) per time.
+
+head: outputs the first part (the head) of a file or files. head, by default, prints the first 10 lines of each FILE to standard output. 
+
+tail: prints the last few number of lines (10 lines by default) of a certain file, then terminates.
+$ tail /path/to/file
+
+pipe | : Linux systems allow stdout of a command to be connected to stdin of another command. You can make it do so by using the pipe character ‘|’. Pipe is used to combine two or more commands, and in this, the output of one command acts as input to another command.
+
+Syntax:
+command_1 | command_2 | command_3 | .... | command_N 
+
+$ cat sample2.txt | head -7 | tail -5
+This command select first 7 lines and last 5 lines from the file and print those lines which are common to both of them.
+
+tee : reads from the standard input and writes to both standard output and one or more files at the same time
+$ df -h | tee disk_usage.txt
+
+we are using the df command to get information about the amount of available disk space on the file system. The output is piped to the tee command, which displays the output to the terminal and writes the same information to the file disk_usage.txt.
+
+ps : Provides information about currently running processes, including their process identification numbers (PIDs). When ps is used without any option, it provides information about two processes : shell and ps
+
+daemon can be created by &.
+
+generally ssh runs as daemon.
+[./hello &] will run hello executable as daemon.
+we can see all running jobs by [jobs] command.
+and can kill by [ kill %<number> ] given by jobs command.
+
+grep : It searches for the given string in the specified file.
+
+wc -- word count
+[ wc filename.txt ] will show number of lines, words and bytes
+
+top : displays the top processes in the system ( by default sorted by cpu usage ). 
+
+df : Displays the file system disk space usage.
+
+uname : displays important information about the system such as — Kernel name, Host name, Kernel release number, Processor type, etc.,
+
+date : Set the system date:
+
+ping : Check network connectivity
+
+which : which command in Linux is a command which is used to locate the executable file associated with the given command by searching it in the path environment variable.
+
+whoami : whoami command print the name of current user
+
+lsof : lsof mean List of all open files.
+
+history command
+
+time: Find time taken by a command/program on Linux Shell
+The time taken is shown in three forms.
+	real: Total end to end time taken by program/command
+	user: Time taken in user mode.
+	sys: Time taken in kernel mode

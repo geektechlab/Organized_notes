@@ -1,0 +1,23 @@
+Timing Measurements in Linux Kernel
+=====================================
+Many computer activities are based on timing measurements.
+
+E.g. Your Computer display is turned off, if you have not pressed a key or moved your mouse for a particular time.
+
+Linux timing subsystem mainly handles two types of timing activities
+
+	1. Keeping the current time and date
+		a. time() , gettimeofday() and clock_gettime()
+		b. Time stamps for files and network packets
+
+	2. Maintaining Timers
+		a. Mechanisms to notify kernel and user space (ex. alarm()) that a certain interval of time has elapsed.
+
+Hardware Devices
+================
+Linux depends on hardware devices to maintain time. These devices can be basically classified into two types:
+
+	1. Clocks/Counters:  provide precise time measurements
+		Used to keep track of current time of day
+	2. Timers: Issue interrupts at fixed, predefined frequency.
+		Used for implementing software timers

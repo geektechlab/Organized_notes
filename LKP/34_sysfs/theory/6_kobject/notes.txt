@@ -1,0 +1,49 @@
+kobject (Kernel Object)
+=======================
+
+Linux Device Model provides a number of structures to ensure the interaction between a hardware device and a device driver.
+
+kobject is the heart of the device model.
+
+kobject provides various functionalities:
+
+	---> Reference Counting
+	
+	---> Parent Pointer which enables creation of hierarchy of objects
+
+struct kobject {
+        const char              *name;
+        struct list_head        entry;
+        struct kobject          *parent;
+        struct kset             *kset;
+        struct kobj_type        *ktype;
+        struct kernfs_node      *sd; /* sysfs directory entry */
+        struct kref             kref;
+#ifdef CONFIG_DEBUG_KOBJECT_RELEASE
+        struct delayed_work     release;
+#endif
+        unsigned int state_initialized:1;
+        unsigned int state_in_sysfs:1;
+        unsigned int state_add_uevent_sent:1;
+        unsigned int state_remove_uevent_sent:1;
+        unsigned int uevent_suppress:1;
+};
+
+name --> Points to the name of this kobject, will show in sysfs
+parent --> Points to this kobject's parent, this makes object hierarchical structure
+kref --> Provides reference counting
+ktype,kset --> Used to group kobjects
+
+Kobjects are usually embedded in other structures and are generally not interesting on their own.
+
+For example, the cdev structure has the following definition <linux/cdev.h>
+
+/* cdev structure - object representing a character device */
+struct cdev {
+	struct kobject kobj;
+	struct module *owner;
+	const struct file_operations *ops;
+	struct list_head list;
+	dev_t dev;
+	unsigned int count;
+};

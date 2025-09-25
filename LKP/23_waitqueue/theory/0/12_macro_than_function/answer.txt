@@ -1,0 +1,31 @@
+Why are the wait_event() implemented as macros
+=================================================
+
+    1. Use of macros will expand the code and removes a function call/return pair.
+
+    2. Using macros avoid the race condition which can happen 
+    
+        CPU1            CPU2    
+
+        wait_event      wake_up
+
+       How?
+    =============
+
+        wait_event(condition) {
+            prepare_to_wait();            //add ‘current’ to wait-queue, set state to !runnable
+            if (!condition) schedule(); //check condition, possibly give up the CPU
+            finish_wait();                    //remove from wait-queue, set state to runnable
+        }
+
+        Condition can be 
+            1. A variable that evaluates to true/false (eg. x)
+            2. Test ( eg x == 1234)
+            3. Function (atomic_read(&counter))
+
+        If wait_event() was implemented as a function, condition argument will be passed as a value
+        and it would be stale/old when evaluated at if (!condition) schedule();
+
+        It will have the value when wait_event will be called and not the latest value of condition.
+
+        Using macros, condition argument is always latest value.

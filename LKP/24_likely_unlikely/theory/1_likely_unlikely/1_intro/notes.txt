@@ -1,0 +1,21 @@
+Basics
+===========
+
+Each instruction in C is translated into machine instruction.
+
+To complete each machine instruction, the processor goes through these (and more) stages:
+
+1. Fetch: Read the next instruction
+2. Decode: Determine the meaning of the instruction
+3. Execute: Perform the 'real work' of the instruction
+4. Store: Store results into memory
+
+Instruction1        Fetch   ->  Decode  ->  Execute ->  Store
+Instruction2                    Fetch   ->  Decode  ->  Execute ->  Store
+Instruction3                                Fetch   ->  Decode  ->  Execute  -> Store
+
+Each instruction in the above takes four clock cycles to complete execution.
+With pipeline, you will have the total execution of 1 clock cycle/instruction.
+
+Modern processors have pipelines with 10-31 stages.
+For optimum performance, it is very important to keep all the stages as busy as possible.

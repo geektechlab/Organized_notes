@@ -1,0 +1,52 @@
+Thread Cancellation
+==========================
+
+Cancellation allows one thread to terminate another. 
+
+One reason you may want to cancel a thread is to save system resources (such as CPU time) when your program determines that the thread's activity is no longer necessary.
+
+A simple example of a thread you might want to cancel would be a thread performing a read-only data search. If one thread returns the results you are looking for, all other threads running the same routine could be canceled.
+
+When we want to terminate a thread, we can use the pthread_cancel function.
+
+This function gets a thread ID as a parameter, and sends a cancellation request to this thread. It will only sends request, doesn't cancel.
+
+int pthread_cancel(pthread_t thread);
+
+The target thread when it recives a cancellation request the reaction depends on the 2 attributes.
+        1. state
+        2. type
+
+1. state :
+                pthread_setcancelstate(int state, int *oldstate);
+
+                This function sets the cancelability state of the calling thread to the given value in the state,
+    the previous state of the thread is returned in the buffer pointed by old state.
+
+    The value of the state can be PTHREAD_CANCEL_ENABLE, PHTREAD_CANCEL_DISABLE
+
+    The default value is PTHREAD_CANCEL_ENABLE.
+
+2. type:
+            pthread_setcanceltype(int type, int *oldtype);
+
+            This function sets
+
+                        .
+    the type values can be PTHREAD_CANCEL_DEFERRED, PTHREAD_CANCEL_ASYNCHRONOUS
+    The default option is PTHREAD_CANCEL_DEFERRED.
+            It means the cancellation request is deferred until the thread calls a function that is a cancellation point.
+    PTHREAD_CANCEL_ASYNCHRONOUS
+            Threads can be cancel at any time upon receiving the cancellation request.
+
+    what is CANCELLATION_POINT ?
+    ---------------------------
+            They are certain functions which posix standard defines to allow the thread to be cancelled.
+                man pthreads ->cancellation points
+
+    Pthread provides user specific cancellation point :
+                pthread_testcancel()
+
+----
+read more about cancelleation at [ man pthreads ]
+----

@@ -1,0 +1,70 @@
+Every process has six or more IDs associated with it.
+
+who we really are
+====================
+        real user ID
+        real group ID
+
+used for file access permission checks
+=========================================
+        effective user ID
+        effective group ID
+
+saved by exec functions
+=============================
+        saved set-user-ID
+        saved set-group-ID
+
+uid_t getuid(void);
+Returns: real user ID of calling process
+
+uid_t geteuid(void);
+Returns: effective user ID of calling process
+
+gid_t getgid(void);
+Returns: real group ID of calling process
+
+gid_t getegid(void);
+Returns: effective group ID of calling process
+
+Real User ID/Group ID
+=====================
+
+The real user ID/group ID is the uid of the user who originally ran the process
+
+These two fields are taken from our entry in the password file when we log in
+
+Effective User ID/Group ID
+=========================
+
+When we execute a program file, the effective user ID of the process is usually the real user ID, and the effective group ID is usually the real group ID.
+
+Every file has an owner and a group owner.
+
+However, we can also set a special flag in the file’s mode word (st_mode) that says, ‘‘When this file is executed, set the effective user ID of the process to be the owner of the file (st_uid).’’
+
+Similarly, we can set another bit in the file’s mode word that causes the effective group ID to be the group owner of the file (st_gid).
+
+These two bits in the file’s mode word are called the set-user-ID bit and the set-group-ID bit.
+
+For example, if the owner of the file is the superuser and if the file’s set-user-ID bit is set, then while that program file is running as a process, it has superuser privileges.
+
+This happens regardless of the real user ID of the process that executes the file.
+
+As an example, the UNIX System program that allows anyone to change his or her password, passwd(1), is a set-user-ID program.
+
+This is required so that the program can write the new password to the password file, typically either /etc/passwd or /etc/shadow, files that should be writable only by the superuser
+
+Saved User ID/Group ID
+======================
+
+The saved user ID is the process's original effective user ID.
+
+Upon an exec call, the kernel sets the Saved User ID to the effective user ID.
+
+This is used to switch back and forth between a privileged to unprivileged state for our process
+
+$ sudo chown -R root:root pid
+
+$ sudo chmod u+s pid
+$ sudo chmod g+s pid

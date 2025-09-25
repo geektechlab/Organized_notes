@@ -1,0 +1,8 @@
+RDTSCP
+----------
+
+Starting with the Pentium Pro, Intel processors have practiced out-of-order execution, where instructions are not necessarily performed in the order they appear in the program
+
+This can cause the processor to execute RDTSC later than a simple program expects, producing a misleading cycle count
+
+rdtscp instruction ensures that this machine instruction is issued in order without any additional work.

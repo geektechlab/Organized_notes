@@ -1,0 +1,58 @@
+Every ELF file have a ELF header where there is a e_entry field which contains the program memory address from which the execution of executable will start. 
+
+This memory address point to the _start()
+
+$ objdump -f ./1
+
+OR
+
+$ This memory address point to the _start()
+
+This outputs following critical information of executable on my machine.
+
+Have a look at start address below, this is the address pointing to _start() function.
+
+./1:     file format elf64-x86-64
+architecture: i386:x86-64, flags 0x00000112:
+EXEC_P, HAS_SYMS, D_PAGED
+start address 0x0000000000400400
+
+We can cross check this address by deassembling the executable
+
+$ objdump --disassemble ./1
+
+
+The role of _start() function
+====================================
+
+The _start() function prepare the input arguments for another function _libc_start_main() which will be called next. 
+
+__libc_start_main is a function in libc.so.6
+
+If you look for __libc_start_main in glibc source code, the prototype looks like this.
+
+int __libc_start_main(int (*main) (int, char * *, char * *), int argc, /* number of command line args*/
+char ** ubp_av, /* command line arg array*/
+void (*init) (void), /* address of init function*/
+void (*fini) (void), /* address of fini function*/
+void (*rtld_fini) (void), /* address of dynamic linker fini function */
+void (* stack_end) /* end of the stack address*/
+);
+
+
+void (*init)(void)	Constructor of this program.
+
+void (*fini)(void)	Destructor of this program
+
+__libc_start_main initializes necessary stuffs, especially C library(such as malloc) and thread environment and calls our main. 
+
+The role of _libc_start_main() function
+============================================
+
+The role of _libs_start_main() function is following 
+
+	Preparing environment variables for program execution
+
+	Calls _init() function which performs initialization before the main() function start.
+
+	Register _fini() and _rtld_fini() functions to perform cleanup after program terminates

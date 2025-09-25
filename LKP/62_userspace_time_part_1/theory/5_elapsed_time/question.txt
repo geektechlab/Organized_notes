@@ -1,0 +1,2 @@
+Can I use gettimeofday() to determine elapsed time?
+========================================================

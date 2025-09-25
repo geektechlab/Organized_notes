@@ -1,0 +1,10 @@
+/proc/devices
+===============
+
+This file displays the various character and block devices currently configured 
+
+The output from /proc/devices includes the major number and name of the device
+
+Output is broken into two major sections:
+	Character devices and 
+	Block devices.

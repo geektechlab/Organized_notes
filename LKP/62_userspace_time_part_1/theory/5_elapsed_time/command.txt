@@ -1,0 +1,7 @@
+To stop ntp service
+-------------------------
+$sudo systemctl stop systemd-timesyncd.service
+
+To start ntp service
+-------------------------
+$sudo systemctl start systemd-timesyncd.service

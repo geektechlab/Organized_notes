@@ -1,0 +1,3 @@
+with 4KB Page Size and 4GB of Physical Memory = 1048576 Pages
+
+Each page is taking 64 bytes = 1048576*64 = 64 MB is used to store all the physical pages

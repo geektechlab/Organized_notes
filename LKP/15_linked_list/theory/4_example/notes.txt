@@ -1,0 +1,36 @@
+List Heads
+==============
+
+The first thing to do is to create a list head, a start point for the data structure
+
+Header: <linux/list.h>
+
+Two ways:
+
+1. LIST_HEAD(list_start)
+
+    #define LIST_HEAD_INIT(name) { &(name), &(name) }
+
+    #define LIST_HEAD(name) \
+        struct list_head name = LIST_HEAD_INIT(name)
+
+    Eg. struct list_head list_start = { &list_start, &list_start };
+    
+2. struct list_head list_start;
+
+    INIT_LIST_HEAD(&list_start);
+
+    static inline void INIT_LIST_HEAD(struct list_head *list)
+    {
+        WRITE_ONCE(list->next, list);
+        list->prev = list;
+    }
+
+     -------------
+     |           |
+    -------------------
+    |prev   | next    |
+    |       |         |------
+    -------------------      |
+     |                       |
+     ------------------------

@@ -1,0 +1,4 @@
+Use of a mapped region can result in these signals:
+=======================================================
+
+SIGSEGV            Attempted write into a region mapped as read-only.

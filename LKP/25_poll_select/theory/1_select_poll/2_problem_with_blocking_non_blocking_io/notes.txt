@@ -1,0 +1,67 @@
+Problem with blocking/non-blocking I/O
+===========================================
+
+If we want to read from multiple devices, read system call with blocking is not a good solution.
+
+If one device has no data, the process will be blocked even though there is data available from the other device.
+
+        Application                     Kernel
+
+   ---- read    ------------------->    no data available --------
+   |                                                              |
+   |                                                              | Wait for data
+   | process                                                      |
+   | blocks             data ready     ----------------------------
+   |  in                copy data      ----------------------------
+   |  read                |                                       |  Copy data from
+   |                      v                                       |  kernel to user
+   ---- process <-------------------    copy complete   -----------
+    data
+
+Another option is open the device in nonblocking mode, and continuously check whether there is data available, if there are more devices, it will consume lot of CPU. So, this is waste of time.
+
+        Application                     Kernel
+
+        read    ------------------->    no data available ------------
+   |            <------------------                                   |
+   |    read    ------------------->    no data available             | Wait for data
+   |            <------------------                                   |
+   |    read    ------------------->    data ready     ---------------
+   |-----                               copy data      ---------------
+   |    process                           |                           | Copy data from
+   |    blocks                            v                           | kernel to user
+   ---- process <-------------------    copy complete   --------------
+        data
+
+I/O Multiplexing
+===================
+
+    poll and select allow a process to determine whether it can read from or write to one or more open files without blocking
+
+    They are often used in applications that use multiple input or output streams without getting struck on any one of them
+
+                 Application                     Kernel
+
+            ---- select  ------------------->    no data available --------
+process    |                                                               |
+blocks     |                                                               | Wait for data
+waiting    |                                                               |
+one of many|                                                               |
+fds        |                                                               |
+           -----        <------------------      data available -----------
+           |    read    ------------------->     data ready     ------------
+           |-----                                copy data      ------------
+           |   process                            |                        |  Copy data from
+           |    blocks                            v                        |  kernel to user
+           ---- process <-------------------    copy complete   -----------
+           ---  read
+
+What are the advantages of multithreading over I/O Multiplexing
+================================================================
+
+I/O Multiplexing is better over purely multithreaded/multiprocess approaches in which a thread/process is launched to handle each file descriptor, 
+
+since each thread/process requires additional memory, context switching overhead, etc. which may not scale well in handling large numbers of concurrent connections.
+
+----
+process gives all file descriptor it wants to read/write. Then select system call comes from userspace to kernel space and checks if any file decsriptors are available. If no, then wait for data. If one the file descriptor is available to read, then it will return a file decscriptor available to read in select system call. Then user can now give read system call.

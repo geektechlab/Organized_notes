@@ -1,0 +1,25 @@
+Address Bus: Identify the source or destination of data.
+
+Data Bus:    Carries data
+
+Control Bus: control and timing information ( Read/Write, Clock signals)
+
+How Memory Addressing Works (Simplified Version)
+====================================================
+
+1. CPU puts the address of memory on the address bus
+
+2. Sets the control signal indicating read/write operation.
+
+3. Data is placed by the corresponding memory chip on the data bus.
+
+Now a days, this is handled by the memory controller. CPU communicates with the memory controller
+
+We also have I/O devices: 
+
+	1. Serial Port
+	2. Parallel Port
+	3. Keyboard
+	4. Mouse
+
+How to read/write them?

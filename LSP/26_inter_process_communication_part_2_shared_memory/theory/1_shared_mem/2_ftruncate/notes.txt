@@ -1,0 +1,1 @@
+A new shared memory object initially has zero length--the size of the object can be set using ftruncate(2)

@@ -1,0 +1,8 @@
+Timer Flags
+---------------
+
+TIMER_DEFERRABLE
+------------------
+	A deferrable timer will work normally when the system is busy but will not cause a CPU to come out of idle just to service it
+
+	the timer will be serviced when the CPU eventually wakes up with a subsequent non-deferrable timer

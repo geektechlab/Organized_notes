@@ -1,0 +1,30 @@
+What does pthread_cond_wait do?
+==================================
+
+The call pthread_cond_wait performs three actions:
+
+1. unlock the mutex
+2. waits (sleeps until pthread_cond_signal is called on the same condition variable). It does 1 and 2 atomically.
+3. Before returning, locks the mutex
+
+Why do Condition Variables also need a mutex?
+==============================================
+
+Reason 1:
+=========
+The simplest to understand is that it prevents an early wakeup message (signal or broadcast functions) from being 'lost.'
+
+Imagine the following sequence of events (time runs down the page) where the condition is satisfied just before pthread_cond_wait is called. In this example the wake-up signal is lost!
+
+Thread 1			Thread 2
+while (answer < 42) {	 
+ 				answer++
+ 				p_cond_signal(cv)
+p_cond_wait(cv, m)	 
+
+If both threads had locked a mutex, the signal can not be sent until after pthread_cond_wait(cv, m) is called (which then internally unlocks the mutex)
+
+Reason 2:
+===========
+A second common reason is that updating the program state (answer variable) typically requires mutual exclusion - for example multiple threads may be updating the value of answer.
+

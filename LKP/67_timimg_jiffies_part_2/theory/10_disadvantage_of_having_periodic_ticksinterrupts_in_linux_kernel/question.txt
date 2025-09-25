@@ -1,0 +1,2 @@
+What is the disadvantage of having periodic ticks/interrupts in linux kernel
+------------------------------------------------------------------------------

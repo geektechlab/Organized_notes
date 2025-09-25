@@ -1,0 +1,36 @@
+There are many methods available for configuring the kernel.
+
+make defconfig
+======================================
+
+$ make defconfig
+
+Creates a ".config" file with default options from the ARCH supplied defconfig
+
+Default Configurations are generally stored in the directory: arch/$(ARCH)/configs
+
+When you run "make defconfig" on "x86" machine, it copies the configuration options from arch/x86/configs/i386_defconfig
+
+on "x86_64" machine, it copies the configuration options from arch/x86/configs/x86_64_defconfig
+
+If you say "make ARCH=arm defconfig", it copies the configuration options from arch/arm/configs/multi_v7_defconfig
+
+If you want to use a different defconfig as ARM has lot of them,
+
+$ make ARCH=ARM imx_v6_v7_defconfig
+
+If you diff the defconfig and .config, you will find they are not same why?
+===============================================================================
+
+.config vs defconfig
+========================
+
+The .config file is a full config file: it contains the value for all options
+
+A defconfig stores only the values for options for which the non-default value is chosen
+
+When .config file is being generated, kernel build system goes through all Kconfig files (from all subdirs), checking all options in those Kconfig files:
+
+	if option is mentioned in defconfig, build system puts that option into .config with value chosen in defconfig
+
+	if option isn't mentioned in defconfig, build system puts that option into .config using its default value, specified in corresponding Kconfig

@@ -1,0 +1,14 @@
+gcc -c main.c -O3
+objdump -dr main.o
+
+Function call order in  memory is unchanged.
+
+gcc -c main_builtin.c -O3
+objdump -dr main_builtin.o
+
+After adding builtin_expect, printf is moved to end of the function and puts after
+
+How should I use it ?
+====================
+
+You should use it only in cases when the likeliest branch is very very very likely, or when the unlikeliest branch is very very very unlikely.

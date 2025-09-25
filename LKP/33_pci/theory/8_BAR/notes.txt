@@ -1,0 +1,40 @@
+Base Address Registers (BAR)
+=============================
+
+Base Address Registers holds the memory addresses used by the device.
+
+PCI Configuration Registers provides space for up to 6 BARs.
+
+Each BAR is 32-bits wide to support 32-bit address space locations 
+
+Concatenating two 32-bit BARs provides 64-bit addressing capability
+
+Each region consists of either memory or I/O locations. 
+
+To identify whether address is memory mapped or I/O Mapped
+========================================================
+
+Check the value of lowest bit
+
+Lowest Bit = 0  --> Memory Map
+Lowest Bit = 1  --> I/O Map
+
+Memory Space BAR
+===============
+        31 - 4                              3      2-1    0
+    ---------------------------------------------------------------
+    |16-BYTE  Aligned Base Address | Prefetchable |Type   |Always 0|
+    ----------------------------------------------------------------
+
+Type Field: 0x00    BAR is 32-bit wide and can be mapped into 32-bit address space
+Type Field: 0x02    BAR is 64-bit wide and can be mapped into 64-bit address space
+
+Prefetchable:  region does not have read side effects  and it is allowed for the CPU to cache loads from that memory region
+
+IO Space BAR
+============
+    
+        31-2                             1     0
+    ------------------------------------------------------
+    |4 BYTE Aligned Base Address | Reserved |  Always 1  |
+    ------------------------------------------------------

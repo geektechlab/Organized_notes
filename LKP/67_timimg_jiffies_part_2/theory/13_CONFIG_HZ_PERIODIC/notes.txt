@@ -1,0 +1,21 @@
+CONFIG_HZ_PERIODIC=y
+-------------------------
+
+	Used by older versions from 1990s to 2000s
+
+Which scenarios this approach is useful?
+------------------------------------------
+
+	heavy workloads with lots of tasks that use short bursts of CPU
+	where there are very frequent idle periods
+	but where these idle periods are also quite short (tens or hundreds of microseconds).
+
+Which scenarios this approach is not useful?
+--------------------------------------------
+
+	running a light workload with long idle periods
+	scheduling-clock interrupts will result in excessive power consumption
+	bad on battery-powered devices, where it results in extremely short battery lifetimes
+
+	if you are running either a real-time workload or an HPC workload with short iterations
+	the scheduling-clock interrupts can degrade your applications performance.

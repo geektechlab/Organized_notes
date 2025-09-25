@@ -1,0 +1,95 @@
+Sockets
+==============
+
+Sockets provide point-to-point, two-way communication between two processes (Unix domain sockets/IPC Sockets)
+
+Sockets can also be used to communicate between processes on different systems.(Network Sockets)
+
+Sockets are used in a Client-Server model
+
+Client - Server Setup:
+=========================
+
+Sockets are used as follows:
+
+	each application: create a socket
+	server: bind its socket to a well-known address
+	client: locate server socket (via its well-known address) and “initiate communication” with the server
+
+Socket Creation
+=====================
+Sockets are created using the socket syscall which returns a file descriptor to be used for further operations on the underlying socket
+
+#include <sys/socket.h>
+
+int socket(int domain, int type, int protocol);
+
+Returns: file descriptor on success, -1 on error
+Each triple hdomain, type, protocol identifies a different “species” of sockets
+
+--------
+	domain differentiates if we are using IPC or network socket. If we use AF_UNIX, then it means IPC else network socket.
+--------
+
+	domain: AF_UNIX, AF_INET, AF_INET6
+
+	type: SOCK_STREAM, SOCK_DGRAM
+-----
+SOCK_STREAM: TCP protocol, reliable communication
+SOCK_DGRAM: UDP protocol, less reliable communication
+-----
+
+	protocol: always 0 for our purposes
+
+
+The file descriptor returned upon success is used to further reference the socket, for both communication and setup purposes.
+----
+we can't use normal file as socket, check in code how socket is being created.
+----
+
+Binding sockets to a well-known address
+=======================================
+
+To allow connections from other, we need to bind sockets to well-known addresses using bind
+
+#include <sys/socket.h>
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+Returns: 0 on success, -1 on error
+
+	sockfd references the socket we want to bind
+
+	addrlen/addr are, respectively, the length and the structure containing the well-known address we want to bind the socket to
+	The actual type of the addr structure depends on the socket domain.
+
+The address format varies with the domain:
+
+	UNIX domain uses pathnames
+	Internet domains use IP addresses
+
+bind is a generic system call that can bind sockets in any domain
+
+struct sockaddr {
+	sa_family_t sa_family ; /* address family ( AF_ * ) */
+	char sa_data[14]; /* socket address ( size varies with the socket domain ) */
+}
+
+	each socket domain has its own variant of sockaddr
+	you will fill the domain-specific struct
+	and cast it to struct sockaddr before passing it to bind
+	bind will use sa_family to determine how to use sa_data
+
+In the UNIX domain, addresses are pathnames. The corresponding C structure is sockaddr_un
+
+struct sockaddr_un {
+	sa_family_t sun_family ; /* = AF_UNIX */
+	char sun_path[108] ; /* socket pathname ,NULL−terminated */
+}
+
+When you bind a unique name to a UNIX domain socket by using the bind function, a file is created on the file system for the socket.
+
+$ man -s 7 unix
+
+----
+[ls -l] in file if start from s, it means it is socket.
+----

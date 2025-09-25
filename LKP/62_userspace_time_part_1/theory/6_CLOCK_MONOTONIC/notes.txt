@@ -1,0 +1,25 @@
+The familiar system clock which tells the time of day is referred to as a real-time clock or a wall-clock.
+
+To safely measure elapsed time in a program, you need a clock that ticks out time continuously, without any jumps when a user sets the system time. 
+
+This kind of clock is called a monotonic clock.
+
+int clock_gettime(clockid_t clk_id, struct timespec *tp);
+
+The above function can be used to retrieve the time from various clocks, including the real-time clock.
+
+clock_gettime vs gettimeofday
+================================
+
+1. Higher Precision
+
+	struct timespec {
+		time_t   tv_sec;        /* seconds */
+		long     tv_nsec;       /* nanoseconds */
+	};
+
+2. Ability to request specific clocks.
+
+	The clocks are identified by a clockid_t which is the first parameter of the function. 
+
+For monotonic clock: clk_id = CLOCK_MONOTONIC

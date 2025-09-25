@@ -1,0 +1,160 @@
+Theory0:
+CPUID
+-----------
+
+Request for CPU identification
+
+The CPUID instruction can be used to retrieve various amount of information about your cpu,
+	vendor string
+	model number
+	size of internal caches
+	the list of CPU features supported
+
+The idea of the CPUID instruction is that you can call it with different values in EAX,it will return different information about the processor
+
+CPU Vendor String
+------------------
+
+EAX = 0, ECX = 0
+Result of Vendor ID String in: EBX, ECX, EDX
+
+      MSB         LSB
+EBX = 'u' 'n' 'e' 'G'
+EDX = 'I' 'e' 'n' 'i'
+ECX = 'l' 'e' 't' 'n' 
+
+Where, MSB stands for "Most Significant Byte" and LSB is the "Least Significant Byte".
+
+Theory1:
+Processor Info and Feature Bits
+==============================
+
+When CPUID executes with EAX set to 1, version information is returned in EAX.
+
+Example: model, family, and processor type
+
+Theory2:
+Feature Information
+--------------------
+
+CPU ID with EAX = 1 returns feature information in ECX/EDX
+
+Theory3:
+Read Time Stamp Counter
+------------------------
+
+Instruction: rdtsc
+
+Read the current value of the CPU's time-stamp counter and store into EDX:EAX
+
+The time-stamp counter contains the amount of clock ticks that have elapsed since the last CPU reset
+
+Theory4:
+Control Register (CR0)
+---------------------
+
+The CR0 register is 32 bits long on the 386 and higher processors.
+
+On x86-64 processors in long mode, it (and the other control registers) is 64 bits long
+
+CR0 has various control flags that modify the basic operation of the processor.
+
+Bit 0 is Protection Enable:
+
+When PE = 0, CPU is in real mode
+
+When PE = 1, CPU is in protected mode
+
+lmsw instruction is used to turn on the PE Mode
+
+Theory5:
+Functions in kernel
+======================
+
+read_cr0, read_cr2 and other functions are present to read control registers
+
+File : arch/x86/include/asm/special_insns.h
+
+OOPS prints Control Registers value
+
+Theory6:
+MSR
+---------
+
+A model-specific register (MSR) is any of various control registers in the x86 instruction set used for
+        debugging
+        program execution tracing
+        computer performance monitoring
+        toggling certain CPU Features
+
+Instructions:
+-------------
+
+	rdmsr and wrmsr are used to read and write MSR registers.
+
+MSRs are 64-bit wide.
+Each MSR that is accessed by the rdmsr and wrmsr group of instructions is identified by a 32-bit integer. 
+The presence of MSRs on your processor is indicated by CPUID.01h:EDX[bit 5].
+
+Theory7:
+static inline void wrmsr(uint64_t msr, uint64_t value)
+{
+        uint32_t low = value & 0xFFFFFFFF;
+        uint32_t high = value >> 32;
+        asm volatile (
+                "wrmsr"
+                :
+                : "c"(msr), "a"(low), "d"(high)
+        );
+}
+
+static inline uint64_t rdmsr(uint64_t msr)
+{
+        uint32_t low, high;
+        asm volatile (
+                "rdmsr"
+                : "=a"(low), "=d"(high)
+                : "c"(msr)
+        );
+        return ((uint64_t)high << 32) | low;
+}
+
+Example
+------------
+
+Local APIC can be enabled/disabled by setting/clearing bit 11 of the IA32_APIC_BASE Model Specific Register (MSR) 
+
+disable_local_APIC is using it 
+
+File: arch/x86/kernel/apic/apic.c
+
+Theory8:
+cpu_relax
+----------------
+
+/* REP NOP (PAUSE) is a good thing to insert into busy-wait loops. */
+static __always_inline void rep_nop(void)
+{
+        asm volatile("rep; nop" ::: "memory");
+}
+
+static __always_inline void cpu_relax(void)
+{
+        rep_nop();
+}
+
+This function is used more than 800 times in the Linux kernel
+
+What is the use of this function?
+---------------------------------
+
+rep; nop is indeed the same as the pause instruction (opcode F390)
+
+On previous processors, this simply did nothing, just like nop but in two bytes
+
+On new processors which support hyperthreading, it is used as a hint to the processor that you are executing a spinloop to increase performance
+
+From Intel Manual
+-------------------
+
+Improves the performance of spin-wait loops. When executing a “spin-wait loop,” a Pentium 4 or Intel Xeon processor suffers a severe performance penalty when exiting the loop because it detects a possible memory order violation. The PAUSE instruction provides a hint to the processor that the code sequence is a spin-wait loop. The processor uses this hint to avoid the memory order violation in most situations, which greatly improves processor performance. For this reason, it is recommended that a PAUSE instruction be placed in all spin-wait loops.

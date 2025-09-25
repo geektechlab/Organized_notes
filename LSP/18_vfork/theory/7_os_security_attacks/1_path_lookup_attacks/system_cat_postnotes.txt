@@ -1,0 +1,10 @@
+It turns out, that this program, despite its simplicity, actually has a relatively bad security flaw.
+
+Let's quickly consider what might happen if we were to change the PATH value to include our local directory
+
+$ export PATH=.:$PATH
+
+$ echo $PATH
+.:/home/panther2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+So now the local directory is on the path, and if I were to create a program named cat, then that cat would run instead of the one you would expect

@@ -1,0 +1,8 @@
+Setting up expiration time
+---------------------------
+
+When the timer is initialized, we need to set its expiration before the callback gets fired
+
+int mod_timer( struct timer_list *timer, unsigned long expires); 
+
+The expires field represents the jiffies value when the timer is expected to run;

@@ -1,0 +1,10 @@
+MultiProcess vs Mulithreads
+==========================
+
+fork.c ====>create and destroy a process by calling fork(2) and subsequently exiting in a loop (50000 times)
+
+$ time ./fork
+
+thread.c ===> create and destroy threads using pthread_create in a loop (50000 times)
+
+$ time ./thread

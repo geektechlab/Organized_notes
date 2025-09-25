@@ -1,0 +1,5 @@
+matrix c = matrix a * matrix b
+
+We will write code in two ways: 
+	Sequentially, via the single threaded model 
+	In parallel, via the multithreaded model

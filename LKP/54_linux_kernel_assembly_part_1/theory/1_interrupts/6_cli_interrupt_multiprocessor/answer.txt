@@ -1,0 +1,8 @@
+Does executing CLI instruction disable interrupts on other processors
+------------------------------------------------------------------------
+
+In multiprocessor systems, executing a CLI instruction does not disable interrupts on other processors
+
+Thus, a driver/interrupt handler race condition can still occur because other processors may service interrupts and execute the offending interrupt handler.
+
+Other synchronization mechanisms such as locks must be used in addition to CLI/STI to prevent all race conditions.

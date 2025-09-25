@@ -1,0 +1,32 @@
+Status Register B
+===================
+
++--------------+---------------------------------------------------+
+|                                Status Register B                 |
++--------------+---------------------------------------------------+
+| Bit Position |               Interpretation                      |
++--------------+---------------------------------------------------+
+|  7           |            Enable Cycle Update                    |
++--------------+---------------------------------------------------+
+|  6           |         Enable Periodic Interrupt                 |
++--------------+---------------------------------------------------+
+|  5           |          Enable Alarm Interrupt                   |
++--------------+---------------------------------------------------+
+|  4           |        Enable Update-End Interrupt                |
++--------------+---------------------------------------------------+
+|  3           |         Enable Square Wave Output                 |
++--------------+---------------------------------------------------+
+|  2           |      Data Mode : 0 – BCD  /  1 – Binary           |
++--------------+---------------------------------------------------+
+|  1           | 12/24 Hour Mode : 0 – 12 Hour /  1 – 24 Hour      |
++--------------+---------------------------------------------------+
+|  0           | Day light saving enabled : 1 enabled / 0 disabled |
++--------------+---------------------------------------------------+
+
+--->    All the data stored in the locations are either in BCD (Binary Coded Decimal) format or in Binary.
+
+--->    The Hour byte could be in 24 hour format or a 12 hour format.
+
+--->    The year value is divided and stored in two locations. The century byte (RTC address 0x32), and the year byte (RTC address 0x09) which actually stores the decade.
+
+References: https://phoxis.org/2016/01/02/an-overview-of-the-pc-real-time-clock-rtc/

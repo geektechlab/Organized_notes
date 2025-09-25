@@ -1,0 +1,5 @@
+$ nc -U /var/run/socket
+
+-----
+[nc] sends connection request
+-----

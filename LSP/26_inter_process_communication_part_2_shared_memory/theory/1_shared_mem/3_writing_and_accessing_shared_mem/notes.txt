@@ -1,0 +1,31 @@
+mmap, munmap
+============
+
+mmap, munmap - map or unmap files or devices into memory
+
+ void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+
+ int munmap(void *addr, size_t length);
+
+  mmap()  creates a new mapping in the virtual address space of the calling process.
+
+  addr -- the starting address for the new mapping. If NULL, the kernel chooses the address at which to create the mapping
+
+  length -- specifies the length of the mapping
+
+  prot -- describes the memory protection of the mapping
+
+		
+	PROT_EXEC  Pages may be executed.
+
+       PROT_READ  Pages may be read.
+
+       PROT_WRITE Pages may be written.
+
+       PROT_NONE  Pages may not be accessed
+
+  flags -- determines whether updates to the mapping are visible to other processes mapping the same region
+
+	MAP_SHARED  	Share  this  mapping
+	MAP_PRIVATE	Create a private copy-on-write mapping.

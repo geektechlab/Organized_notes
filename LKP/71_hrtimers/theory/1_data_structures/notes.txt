@@ -1,0 +1,29 @@
+Data Structures
+-----------------
+
+hrtimers live on a time-sorted linked list, with the next timer to expire being at the head of the list. 
+
+A separate red/black tree is also used to enable the insertion and removal of timer events without scanning through the list
+
+Header File: <linux/hrtimer.h> 
+
+Data Structures: struct hrtimer
+
+Implementation: kernel/time/hrtimer.c
+
+Documentation: Documentation/timers/hrtimer.txt
+
+struct hrtimer {
+        struct timerqueue_node          node;
+        ktime_t                         _softexpires;
+        enum hrtimer_restart            (*function)(struct hrtimer *);
+        struct hrtimer_clock_base       *base;
+        u8                              state;
+        u8                              is_rel;
+        u8                              is_soft;
+};
+
+node is used to keep the timer on red-black tree
+base points to the timer base
+softexpires is expiration time
+function is callback function

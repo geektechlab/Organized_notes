@@ -1,0 +1,15 @@
+Unnamed Semaphores
+========================
+
+#include <semaphore.h>
+
+int sem_init(sem_t *sem, int pshared, unsigned int value);
+
+The sem_init() function initializes the unnamed semaphore specified by the sem argument and assigns that semaphore the value specified by the value argument.
+
+Once the semaphore has been successfully initializes, you can use it in subsequent calls to sem_wait and sem_post
+
+Semaphores created with sem_init() should only be destroyed with the sem_destroy() function 
+
+pshared -- a value of zero means semaphore is shared between threads
+           a value of non zero means sempahore is shared between processes.

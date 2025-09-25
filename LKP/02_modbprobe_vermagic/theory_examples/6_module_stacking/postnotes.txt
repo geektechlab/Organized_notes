@@ -1,0 +1,27 @@
+Build the modules by running "make", Load the first module and then second module using insmod.
+
+To use modprobe
+========================
+
+sudo ln -s /<givefullpath>/module1.ko  /lib/modules/$(uname -r)/kernel/drivers/misc
+sudo ln -s /<givefullpath>/module2.ko  /lib/modules/$(uname -r)/kernel/drivers/misc
+
+sudo depmod -a
+
+---------
+we can check created entry by sudo depmod -a
+cat /lib/modules/<kernel version>-generic/modules.depmod
+---------
+
+now, following command will work directky without giving error that module1 is missing
+sudo modprobe module2
+
+check lsmod, module1 should automatically be loaded.
+
+------
+
+sudo modprobe -r module2
+above will remove both module1 and module2
+
+we can check it by
+lsmod | grep module

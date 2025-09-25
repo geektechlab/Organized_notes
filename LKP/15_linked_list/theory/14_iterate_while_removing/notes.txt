@@ -1,0 +1,24 @@
+Iterating while removing
+=========================
+
+The standard list iteration methods are not appropriate if you are removing entries from the list.
+
+The standard methods rely on the fact that the list entries are not changing out from under them, and thus if the current entry is removed in the body of the loop, the subsequent iteration cannot advance to the next(or previous) pointer.
+
+The linux kernel provides a routine to handle this situation for you:
+
+list_for_each_entry_safe(pos, next, head, member)
+
+Additionally, you provide next pointer, which is of the same type as pos. 
+
+The next pointer is used by the list_for_each_entry_safe() macro to store the next entry in the list, making it safe to remove the current entry.
+
+/**
+ * list_for_each_safe - iterate over a list safe against removal of list entry
+ * @pos:        the &struct list_head to use as a loop cursor.
+ * @n:          another &struct list_head to use as temporary storage
+ * @head:       the head for your list.
+ */
+#define list_for_each_safe(pos, n, head) \
+        for (pos = (head)->next, n = pos->next; pos != (head); \
+                pos = n, n = pos->next)

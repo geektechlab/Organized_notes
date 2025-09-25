@@ -1,0 +1,12 @@
+Writing program without main()
+=================================
+
+Now we know how the call to the main() is made.
+
+As _start() function by default calls main(), we have to change it if we want to execute our custom startup code. 
+
+We can override the _start() function to make it call our custom startup code not main(). 
+
+$ gcc -nostartfiles -o nomain nomain.c
+
+Now we have to force compiler to not use its own implementation of _start().In GCC we can do this using -nostartfiles

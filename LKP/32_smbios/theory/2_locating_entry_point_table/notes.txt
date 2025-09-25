@@ -1,0 +1,8 @@
+Locating SMBIOS Entry Point Table
+==================================
+
+On boot, the SMBIOS will put a table somewhere in memory.
+
+The SMBIOS Entry Point Table is located somewhere between the addresses 0xF0000 and 0xFFFFF, and must be on a 16-byte boundary.
+
+To find the specific location of the start of the table it is necessary to search that region of memory for the string "_SM_".

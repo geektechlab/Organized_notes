@@ -1,0 +1,29 @@
+Macros for fd_set datatype
+============================
+
+	– FD_ZERO(fd_set *fdset);  // clear all bits in fdset
+
+	– FD_SET(int fd, fd_set *fdset);  // turn on the bit for fd in fdset
+
+	– FD_CLR(int fd, fd_set *fdset);   // turn off the bit for fd in fdset 
+
+	– int FD_ISSET(int fd, fd_set *fdset);  // is the bit for fd on in fdset? 
+
+Return
+========
+
+	select modifies the descriptor sets pointed to by the readset, writeset, and exceptset pointers. 
+
+	When we call the function, we specify the values of the descriptors that we are interested in,
+
+	 and on return, the result indicates which descriptors are ready
+
+	We use the FD_ISSET macro on return to test a specific descriptor in an fd_set structure.
+
+	Any descriptor that is not ready on return will have its corresponding bit cleared in the descriptor set. 
+
+	The return value from this function indicates the total number of bits that are ready across all the descriptor sets. 
+
+	If the timer value expires before any of the descriptors are ready, a value of 0 is returned.
+
+	A return value of –1 indicates an error (which can happen, for example, if the function is interrupted by a caught signal).

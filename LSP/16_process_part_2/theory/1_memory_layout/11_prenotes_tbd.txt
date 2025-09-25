@@ -1,0 +1,14 @@
+The 0x10 lost bytes
+=====================
+
+If we look at the output of the previous program 
+
+we can see that the first memory address returned by malloc doesn't start at the beginning of the heap, but 0x10 bytes  after
+
+0x1314010 vs 0x1314000
+
+Also, when we call malloc(1024) a second time, the address should be 0x1314010 (the returned value of the first call to malloc) + 1024 (or 0x400 in hexadecimal, since the first call to malloc was asking for 1024 bytes) = 0x1318010
+
+ But the return value of the second call to malloc is 0x1314420.
+
+We have lost 0x10 bytes again! Same goes for the subsequent calls

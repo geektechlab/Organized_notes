@@ -1,0 +1,132 @@
+Theory0:
+Can I ftruncate a shared memory object after it has ben mmap'ed?
+=================================================================
+
+You can truncate the underlying file anytime
+
+Are the changes in the shared memory to other processes before calling munmap()?
+
+Shared Memory
+=====================
+
+POSIX shared memory is an inter-process communication (IPC) mechanism defined in POSIX specification. 
+
+Shared memory is the fastest form of IPC available
+
+Once the memory is mapped into the address space of the processes that are sharing the memory region, no kernel
+involvement occurs in passing data between the processes
+
+What we mean by ‘‘no kernel involvement’’
+===========================================
+
+the processes do not execute any system calls into the kernel to pass the data
+
+The problem with these forms of IPC—pipes, FIFOs, and message queues—is that for two processes to exchange information, the information has to go through the kernel
+
+Shared memory provides a way around this by letting two or more processes share a region of memory
+
+The processes must, of course, coordinate or synchronize the use of the shared memory among themselves.
+
+A program using POSIX shared memory usually consists of these steps:
+
+1. Create or open a shared memory object with shm_open(). A file descriptor will be returned if shm_open() creates a shared memory object successfully.
+
+2. Set the shared memory object size with ftruncate().
+
+3. Map the shared memory object into the current address space with mmap() and MAP_SHARED.
+
+4. Read/write the shared memory.
+
+5. Unmap the shared memory with munmap().
+
+6. Close the shared memory object with close().
+
+7. Delete the shared memory object with shm_unlink()
+
+$man 7 shm_overview
+
+Use case of shared memory
+=========================
+As a simple example you could reserve just a few bytes and change the value in shared memory when you want the child process to quit. 
+
+----
+problem: sysnchronization is not taken care by kernel. We have to do that for multiple processes.
+
+----
+share memory objects have kernel persistence. Shared memory object will exist untill the system is shut down or untill all processes have umapped the object and it has been deleted with shm_unlink()
+
+shared memory objects are created in tmpfs virtual filesystem and mounted under /dev/shm. tmpfs in mounted on /dev/shm and it similar to a filesystems like /proc.
+
+Theory1:
+Anonymous Mapping
+=====================
+
+MAP_ANONYMOUS
+
+	The mapping is not backed by any file;
+	its contents are initialized to zero.
+	The fd and offset arguments are ignored;
+
+Theory2:
+man 2 msync
+
+One key issue with memory-mapped files is the timing of when updates get copied back into the file on disk.
+
+For instance, if another process opens and reads the file using read(), will this other process see any updates that were written to the memory-mapped region?
+
+The answer is that it depends on a number of timing factors.
+
+The first factor is the kernel itself. When a file is mapped into memory with mmap(), the kernel will occasionally trigger a write to copy updated portions back to disk.
+
+A second factor is the file system of the underlying file.
+	Some file systems do not commit changes to the file until the writing process has closed its connection to the file.
+
+Processes can insert control over this issue by using the msync() function.
+This function takes a flags parameter that can initiate a synchronous, blocking write (MS_SYNC) or an asynchronous, non-blocking one (MS_ASYNC).
+
+In the case of the asynchronous write, the data will get copied to disk at a later point; however, the updated data would be immediately available to any process that reads from the file with read().
+
+Theory3:
+mprotect
+================
+
+int mprotect(void *addr, size_t len, int prot);
+
+mprotect()  changes the access protections for the calling process's memory pages containing any part of the address range in the interval [addr, addr+len-1].
+
+Memory Mapped I/O
+======================
+
+Memory-mapped I/O lets us map a file on disk into a buffer in memory so that
+	when we fetch bytes from the buffer, the corresponding bytes of the file are read.
+	when we store data in the buffer, the corresponding bytes are automatically written to the file
+This lets us perform I/O without using read() or write()
+
+To use this feature, we have to tell the kernel to map a given file to a region in memory. This is done by the mmap function.
+
+#include <sys/mman.h>
+
+       void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+       int munmap(void *addr, size_t length);
+
+How does the operating system load my process and libraries into memory?
+========================================================================
+
+It maps the executable and library file contents into the address space of the process.
+
+If many programs only need read-access to the same file (e.g. /bin/bash, the C library) then the same physical memory can be shared between multiple processes
+
+Memory-mapped files have several uses and advantages over traditional file access functions:
+=============================================================================================
+
+	1. Memory-mapped files allow for multiple processes to share read-only access to a common file.
+	Eg. the C standard library (glibc.so) is mapped into all processes running C programs.
+	only one copy of the file needs to be loaded into physical memory, even if there are thousands of programs running.
+
+	2. Rather than using fseek() multiple times to jump to random file locations, the data can be accessed directly by using an index into an array.
+
+	3. Memory-mapped files provide more efficient access for initial reads.
+		When read() is used to access a file, the file contents are first copied from disk into the kernel's buffer cache. 
+		Then, the data must be copied again into the process's user-mode memory for access
+		Memory-mapped files bypass the buffer cache, and the data is copied directly into the user-mode portion of memory

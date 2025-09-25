@@ -1,0 +1,29 @@
+Developers, Maintainers in Linux Kernel
+===========================================
+
+Most parts of the kernel have an associated maintainer.
+
+The maintainer is the individual (or individuals) who is in charge of specific parts of the kernel.
+
+Example:
+
+1. Each individual driver has an associated maintainer
+
+2. Each Kernel subsystem for example networking subsystem also has an associated maintainer. Subsystems may have multiple maintainers..
+
+Examples of subsystems:
+
+	a) Memory Management
+	b) Networking
+	c) scheduling
+	d) USB
+	e) PCI
+
+These maintainers decide which patch goes to the mainline kernel
+
+The maintainer for a specific driver or subsystem is usually listed in the file MAINTAINERS, which is also located in the root of the kernel source tree.
+
+There is a special type of maintainer known as the kernel maintainer. This individual actually maintains the kernel tree.
+
+----
+[ vi MAINTAINERS ] has list of maintainers in Linux.

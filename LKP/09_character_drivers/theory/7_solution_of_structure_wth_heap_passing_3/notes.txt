@@ -1,0 +1,1 @@
+whenever a application terminates, release function will get called. Because SIGINT will get released and all file descriptors will get closed.

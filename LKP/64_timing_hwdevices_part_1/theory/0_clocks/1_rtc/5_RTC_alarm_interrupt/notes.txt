@@ -1,0 +1,5 @@
+RTC Alarm Interrupt
+--------------------
+
+ioctl request: RTC_AIE_ON, RTC_AIE_OFF for turning ON/OFF
+To read/set alarm time: RTC_ALM_READ, RTC_ALM_SET

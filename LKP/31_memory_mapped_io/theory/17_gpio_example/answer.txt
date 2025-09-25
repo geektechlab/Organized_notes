@@ -1,0 +1,3 @@
+$ devmem 0x101e5400 w 0x10
+
+$ devmem 0x101e5400 b

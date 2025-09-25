@@ -1,0 +1,4 @@
+nolapic
+----------
+
+Kernel command line parameter to Disable local apic 

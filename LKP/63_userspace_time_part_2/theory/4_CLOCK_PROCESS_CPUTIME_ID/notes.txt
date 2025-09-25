@@ -1,0 +1,6 @@
+CLOCK_PROCESS_CPUTIME_ID
+===========================
+
+Per-process CPU-time clock (measures CPU time consumed by all threads in the process).
+
+Useful for finding out whether your program is spending its total time in CPU or waiting for something else( a user input)

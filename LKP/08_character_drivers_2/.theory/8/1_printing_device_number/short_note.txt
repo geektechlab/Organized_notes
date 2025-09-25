@@ -1,0 +1,1 @@
+kernel provides utility to print device number using dev_t structure and writes back to buffer allocated by kernel itself.

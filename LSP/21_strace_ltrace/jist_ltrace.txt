@@ -1,0 +1,25 @@
+Theory0:
+ltrace is a debugging utility in Linux, used to display the calls a userspace application makes to shared libraries.
+
+Its name itself comes from library-call tracing.
+
+This tool is very useful for debugging user-space applications to determine which library call is failing.
+
+ltrace ./executable <parameters>
+
+Theory1:
+$ ltrace <application> <application_parameters>
+
+Theory2:
+$ ltrace /bin/cat
+
+ltrace(1) also allows you to selectively trace library calls when executed with the “-e” option and a set of calls to trace:
+
+$ ltrace -e malloc /bin/cat
+
+If you need to view the library calls from a live process, you can use ltrace(1)’s “-p” option:
+
+$ ltrace -p 2644
+The parameter -c outputs the number and duration of the library calls that have occurred
+
+$ ltrace -c ls /

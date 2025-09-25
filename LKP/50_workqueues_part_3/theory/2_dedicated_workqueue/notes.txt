@@ -1,0 +1,29 @@
+Dedicated Workqueues
+-----------------------
+
+Timing of the execution of work items scheduled onto the global workqueue is not predictable.
+
+one long-running work item can always cause indefinite delays for the rest
+
+Alternatively, the workqueue framework allows the allocation of dedicated workqueues
+
+struct workqueue_struct *alloc_workqueue(const char *fmt,
+                                         unsigned int flags,
+                                         int max_active, ...);
+
+The above function allocates a workqueue.
+
+Parameters:
+------------
+
+fmt: printf format for the name of the workqueue
+flags: control how work items are assigned execution resources, scheduled and executed.
+max_active: This parameter limits the number of work items which can be executed simultaneously from this workqueue on any given CPU.
+remaining args: args for @fmt
+
+destroy a workqueue
+-------------------
+
+void destroy_workqueue(struct workqueue_struct *wq)
+
+safely terminate a workqueue; all work currently pending will be done first.

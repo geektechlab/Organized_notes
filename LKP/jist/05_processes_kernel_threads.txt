@@ -1,0 +1,72 @@
+num_online_cpus() gives online cpu.
+--
+process is a program running in memory. Linux kernel internally refers processes as tasks. Kernel stores the list of processes in a circular doubly linked list called the task list. Each task/process is represented in kernel with struct task_struct (defined in <linux/sched.h>). This data structure (task_struct) is huge (1.7 Kilobytes) containing all the information about a specific process. Let's write a module/device driver which reads the circular linked list and prints the following information for us:
+	- Process Name
+	- Process ID
+	- Process State
+
+Before that, we should know what are the different states a process can be:
+	TASK_RUNNING(R): Process is either currently running or on a run-queue waiting to run
+	TASK_INTERRUPTIBLE(S) sleep: Process is sleeping/blocked for some resource say I/O. Can be runnable/awaken by a signal
+	TASK_UNINTERRUPTIBLE(D) sleep: Similar to TASK_INTERRUPTIBLE, but does not wakeup on a signal. Used in cases where it is waiting for critical hardware ( e.g. I/O resource ) and can't be interrupted.
+	__TASK_STOPPED(T): Process execution has stopped. This happens when the task receives SIGSTOP, SIGTSTP, SIGTTIN or SIGTTOU signal or if it receives any signal while it is being debugged.
+You can find the states using ps -el command.
+--
+While writing a module if we want to get information about the current process that is running in the kernel, we need to read the "task_struct" of the corresponding process. The kernel provides a easy way to do this by providing a macro by the name "current", which always returns a pointer to the "task_struct" of the current executing process. Some architectures stores this in a register some stores them in bottom of kernel stack of process.
+--
+Process Memory Map:
+struct mm_struct - contains list of process VMAs, page tables, etc. All information related to the process address space is included in an object called the memory descriptor of type mm_struct accessible via current-> mm.
+
+struct mm_struct {
+	/* Pointer to the head of the list of memory region objects */
+	struct vm_area_struct * mmap;
+	/* Pointer to the root of the red-black tree of memory region objects */
+	struct rb_root mm_rb;
+	/* Pointer to the last referenced memory region object */
+	struct vm_area_struct * mmap_cache;
+	....
+};
+--
+Linux implements a memory region by means of an object of type vm_area_struct
+struct vm_area_struct {
+	struct mm_struct * vm_mm;   /* Pointer to the memory descriptor that owns the region */
+	unsigned long vm_start;   /* First linear address inside the region */
+	unsigned long vm_end;   /* First linear address after the region */
+	....
+};
+
+Each memory region descriptor identifies a linear address interval; vm_end-vm_startdenotes the length of the memory region. All the regions owned by a process are linked in a simple list. Regions appear in the list in ascending order by memory address. The vm_next field of each vm_area_structelement points to the next element in the list.
+--
+A Kernel Thread is a Linux Task running only in kernel mode. It is not created by running fork() or clone() system calls. run [ ps -ef ] and whatever threads are in [], those are kernel threads. Kernel Threads helps the kernel to perform operations in background. examples of Kernel Thread:
+1. ksoftirqd is Per CPU kernel thread runs processing softirqd.
+2. kworker is a kernel thread which processes work queues.
+
+differences between Kernel Thread and User Thread:
+Both Kernel Thread and User Thread are represented by task_struct. The main difference is that there is no address space in kernel threads. mm variable of task_struct is set to NULL ( https://github.com/firmianay/Life-long-Learner/blob/master/linux-kernel-development/chapter-15.md ). Because kernel threads do not have address space and do not have any pages in user-space, they do not have memory descriptor and page tables. ( Read Robert Love. )
+
+How to Create a Kernel Thread?
+#include <linux/kthread.h>
+struct task_struct *kthread_create(int (*threadfn)(void *data), void *data, const char name[], ...)
+Parameters:
+threadfn -> the function which thread should run
+data -> Argument for thread function
+name -> Printf style format for the name of kernel thread.
+Return Value: Pointer to struct  task_struct
+Note: kthread_create only creates the thread but doesn't run the thread, we need to call wake_up_process() with the return value of kthread_create as an argument to the wake_up_process for the thread function to run.
+
+kthread_create() only creates thread but pthread_create() creates thread and starts as well.
+
+Note: If you don't stop the kernel thread in your module_exit function and kernel thread is running, you will get oops message. kthread_stop is a blocking call, it waits until the function executed by thread exits. kthread_stop() flag sets a variable in the task_struct variable which the function running in while(1) should check in each of its loop.
+int threadfunc(void *data)
+{
+     while(!kthread_should_stop())
+     {
+                //perform operations here
+      }
+	return 0;
+}
+
+we can have same name of threads.
+
+--
+When you have multiple processors present in the system, and want to find out on which the processor your driver code is running, use smp_processor_id().

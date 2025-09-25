@@ -1,0 +1,6 @@
+Third problem with select
+=========================
+
+select modifies the readfds/writefds/exceptfds passed as input, you should either
+    1. Reinitialize them for the next call
+    2. Backup your readfds/writefds/exceptfds

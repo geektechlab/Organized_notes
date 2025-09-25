@@ -1,0 +1,14 @@
+Kernel Data structures
+=======================
+
+Linux Kernel Code provides several data structures:
+
+        Linked lists
+
+        Queues
+
+        Maps
+
+        Binary trees
+
+These generic data structures are provided to encourage code reuse.

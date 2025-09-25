@@ -1,0 +1,25 @@
+Barriers
+===============
+
+How do I wait for N threads to reach a certain point before continuing onto the next step?
+
+Suppose we wanted to perform a multi-threaded calculation that has two stages, but we don't want to advance to the second stage until the first stage is completed.
+
+We could use a synchronization method called a barrier. 
+When a thread reaches a barrier, it will wait at the barrier until all the threads reach the barrier, and then they'll all proceed together.
+
+Think of it like being out for a hike with some friends. You agree to wait for each other at the top of each hill (and you make a mental note how many are in your group). Say you're the first one to reach the top of the first hill. You'll wait there at the top for your friends. One by one, they'll arrive at the top, but nobody will continue until the last person in your group arrives. Once they do, you'll all proceed.
+
+Pthreads has a function pthread_barrier_wait() that implements this.
+You'll need to declare a pthread_barrier_t variable and initialize it with pthread_barrier_init()
+pthread_barrier_init() takes the number of threads that will be participating in the barrier as an argument
+
+#include <pthread.h>
+int pthread_barrier_init(pthread_barrier_t *restrict barrier,
+const pthread_barrierattr_t *restrict attr,
+unsigned int count);
+int pthread_barrier_destroy(pthread_barrier_t *barrier);
+
+int pthread_barrier_wait(pthread_barrier_t *barrier);
+
+The thread calling pthread_barrier_wait is put to sleep if the barrier count (set in the call to pthread_barrier_init) is not yet satisfied. If the thread is the last one to call pthread_barrier_wait, thereby satisfying the barrier count, all of the threads are awakened.

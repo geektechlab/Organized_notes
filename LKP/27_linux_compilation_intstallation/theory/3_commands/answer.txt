@@ -1,0 +1,10 @@
+What are the codes such as CC, LD and CC[M] output when compiling the Linux kernel?
+=====================================================================================
+
+CC: Compiles the C file into an designated object file.
+      The object file contains the architecture assembler code of that .c file. 
+
+CC [M]: CC is compiling a core part of the kernel
+	CC [M] when compiling it as a  module
+
+LD: File listed is being linked from a number of object files by the linker (ld).

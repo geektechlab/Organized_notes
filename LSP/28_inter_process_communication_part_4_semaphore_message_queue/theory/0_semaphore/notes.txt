@@ -1,0 +1,27 @@
+Semaphores
+=================
+
+Semaphores are used for process and thread synchronization.
+
+A  semaphore  is an integer whose value is never allowed to fall below zero.
+
+Two operations can be performed on semaphores:
+	increment the semaphore value by one (sem_post(3))
+	and  decrement  the  semaphore value by one (sem_wait(3))
+
+If the value of a semaphore is currently zero, then a sem_wait(3) operation will block until the value becomes greater than zero.
+
+Types of Semaphores
+--------------------
+
+There are two types of POSIX semaphores
+	named
+	unnamed
+
+Named
+=============
+Named semaphores have a name, which is of the format /somename. The first character is a forward slash, followed by one or more characters, none of which is a slash. 
+
+Programs using POSIX semaphores need to be linked with the pthread library.
+
+$ man 7 sem_overview

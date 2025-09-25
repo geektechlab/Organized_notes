@@ -1,0 +1,11 @@
+How can i wait for few usecs in linux kernel?
+----------------------------------------------
+
+Backed by busy-wait loop: udelay(unsigned long usecs)
+
+Backed by hrtimers: usleep_range(unsigned long min, unsigned long max)
+
+Why is there no usleep / What is a good range?
+-----------------------------------------------
+
+Since usleep_range is built on top of hrtimers, the wakeup will be very precise, thus a simple usleep function would likely introduce a large number of undesired interrupts.

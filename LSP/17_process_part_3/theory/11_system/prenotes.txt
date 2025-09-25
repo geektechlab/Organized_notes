@@ -1,0 +1,15 @@
+system:
+------
+syntax:
+int system(const char* cmd);
+
+system() is used to invoke an o.s cmd from c/c++ program.
+
+Using system(), we can execute any command that can be run on the terminal.
+
+Return value:
+-1  : Error
+On success, the return value is the return status of the command as provided by wait(). 
+Consequently, the exit code of the executed command is obtained via WEXITSTATUS.
+
+The system call will fork, execute the command passed by parameter and the original parent process will wait for this to finish. This also means that system is a blocking call: The parent process can't continue until the process started by system exits. This may or may not be useful.

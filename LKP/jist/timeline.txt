@@ -1,0 +1,37 @@
+Before that
+	Mor
+	 - CPP Saurabh Shukla - 15 mins
+	 - CPP Cherno - 15 mins
+	 - OpenGL - 30 mins
+	 - DSA notes - 1 hour
+	Between
+	 - As planned
+	Night
+	 - Wifi - 15
+	 - Bluetooth HCI, IPC and basics - 20
+	 - Previous year revision
+
+Rev
+ - LKP - 5/3
+ - LSP - 3/2
+ - Life long learner notes - 5/4
+ - LKP Udemy interview notes - 1/1
+ - DT video - 1/1
+ - ArmV8 architecture and exception model - 3/2
+ - PCIe - 5/3
+ - Linux DMA with PCIe - 2/1
+ - SMMU - 3/2
+ - GIC - 1/1
+ - Linux memory management - 2/2
+ - PCIe RP driver - 2/1
+ - CPP Saurabh Shukla - 3/2
+ - CPP Cherno - 3/2
+ - HDMI - 2/1
+ - GFG network - 2/1
+ - Network Expertify - 5/3
+ - Wifi - 4/2
+ - OpneGL - 5/3
+ - Prev notes - 15/15
+ - Colour formats and framebuffer basics - 3/2
+
+74/54

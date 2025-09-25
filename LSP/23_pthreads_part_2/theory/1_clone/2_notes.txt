@@ -1,0 +1,20 @@
+In C, we use fork() to create new process and pthread_create to create a new thread. Both internally uses clone system call provided by Linux Kernel.
+
+To find the system call: 
+$ strace ./1_thread
+$ strace ./2_fork
+
+You can see from strace, in both thread and process creation, clone system call is used and arguments are changed.
+
+Following are the options user can specify while clone():
+1. CLONE_VM: Virtual Memory is shared between the calling process and child process. That is if any of the calling process or child process modify the memory it will be visible in the other process.
+2. CLONE_FS: File system attributes are shared. E.g. root directory, current working directory, file mode creation mask.
+3. CLONE_FILES: If set, Parent and Child will share the table of open file descriptors. These descriptors are those values returned by open, socket, pipe etc. Modification in child will also modify the file descriptor table in parent.
+4. CLONE_SIGHAND: If set, Parent and child processes will share the same signal handler table. Modification by one process will affect the other process.
+5. CLONE_THREAD: Child is placed in the same thread group id as the parent. It means the pid of the parent and child will be the same, but the thread id will be different. You can get thread id by calling gettid() API.
+
+-----
+$ strace ./1_thread | grep clone
+$ strace ./2_fork | grep clone
+check which call use which options in clone and see how thread is fast compared to fork
+-----

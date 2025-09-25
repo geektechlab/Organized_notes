@@ -1,0 +1,28 @@
+make config
+==============
+
+	Text-based Configuration. 
+	Options are prompted one after another.
+	All options need to be answered
+	Access to former options is not possible
+
+make menuconfig
+=================
+
+	Menu-driven user interface
+	Allows to navigate forwards and backward directly between features
+	Allows to load and save files with filenames different from ".config"
+	Provides search feature
+	It uses ncurses library for GUI. 
+	If the ncurses library is not installed, make menuconfig option fails. 
+	To install ncurses library on Ubuntu: sudo apt-get install libncurses5-dev
+
+	[ ] --> Yes/No
+
+		[ ]  excluded
+		[*]  built-in
+
+	< > -> built-in/module/excluded
+		<M>  Module
+		<*>  Built-In
+		< >  Left out altogether

@@ -1,0 +1,10 @@
+How big is the virtual memory of a process
+==========================================
+
+The size of the virtual memory of a process depends on your system architecture.
+
+I am using a 64-bit machine, so theoretically the size of each process' virtual memory is 2^64 bytes
+
+In theory, the highest memory address possible is 0xffffffffffffffff (1.8446744e+19), and the lowest is 0x0
+
+0x18xxxxx ( from ./1 program ) is small compared to 0xffffffffffffffff, so the duplicated string is probably located at a lower memory address

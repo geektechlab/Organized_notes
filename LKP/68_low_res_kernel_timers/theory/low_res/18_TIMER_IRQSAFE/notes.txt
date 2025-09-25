@@ -1,0 +1,7 @@
+TIMER_IRQSAFE 
+--------------
+
+An irqsafe timer is executed with IRQ disabled
+
+----
+with this, it will run with IRQ disabled

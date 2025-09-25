@@ -1,0 +1,12 @@
+Dynamic Ticks/Tickless
+----------------------
+
+Tickless/Dynamic Ticks is designed to solve the problem.
+
+In this case, kernel will program timers to only fire when necessary
+
+Kernel sets timers up to fire at varying intervals depending on its requirements
+
+Fewer interrupts means fewer wakeups, which means idle CPU's can be kept in low-power modes for longer periods, which saves energy
+
+This feature significantly improves battery life in laptops

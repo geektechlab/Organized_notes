@@ -1,0 +1,2 @@
+Does kernel checks all the timer entries in linked list on each raise softirq?
+------------------------------------------------------------------------------

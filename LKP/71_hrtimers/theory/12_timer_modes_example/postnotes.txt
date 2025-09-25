@@ -1,0 +1,7 @@
+/*
+ * POSIX magic: Relative CLOCK_REALTIME timers are not affected by
+ * clock modifications, so they needs to become CLOCK_MONOTONIC to
+ * ensure POSIX compliance.
+ */
+if (clock_id == CLOCK_REALTIME && mode & HRTIMER_MODE_REL)
+	clock_id = CLOCK_MONOTONIC;

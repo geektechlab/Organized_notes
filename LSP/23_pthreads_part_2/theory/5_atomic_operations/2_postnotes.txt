@@ -1,0 +1,5 @@
+The above code suffers from a race condition - the value of i is changing. The new threads start later (in the example output the last thread starts after the loop has finished).
+
+To overcome this race-condition, we will give each thread a pointer to it's own data area.
+
+These are synchronization locks that are used to prevent race conditions and ensure proper synchronization between threads running in the same program

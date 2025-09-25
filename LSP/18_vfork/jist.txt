@@ -1,0 +1,139 @@
+Theory0:
+Running a New Process
+=======================
+
+In Linux, the act of loading into memory and executing a program image is separate from the act of creating a new system process.
+
+One system call loads a binary program into memory, replacing the previous contents of the address space, and begins execution of the new program. This is called executing a new program. Provided by exec family of calls.
+
+Act of creating a new processs is called forking, and this functionality is provided by fork() system call
+
+There is no single exec function; instead there is a family of exec functions 
+
+Header File: #include <unistd.h>
+
+int execl(const char *path, const char *arg, ...);
+int execlp(const char *file, const char *arg, ...);
+int execle(const char *path, const char *arg,
+                ..., char * const envp[]);
+int execv(const char *path, char *const argv[]);
+int execvp(const char *file, char *const argv[]);
+int execvpe(const char *file, char *const argv[],
+                char *const envp[]);
+
+The process ID does not change across an exec, because a new process is not created; exec merely replaces the current process — its text, data, heap, and stack segments — with a brand-new program from disk.
+
+The base of each is exec (execute), followed by one or more letters which defines meaning of each call:
+
+e – An array of pointers to environment variables is explicitly passed to the new process image.
+
+l – Command-line arguments are passed individually (a list) to the function. You must include NULL after your last
+   parameter.:
+
+p – Uses the PATH environment variable to find the file named in the file argument to be executed.
+
+v – Command-line arguments are passed to the function as an array (vector) of pointers.
+
+In Linux, only one member ( execve ) of the exec family is a system call. The rest are wrappers in the C Library around the system call (execve). This was done beacuse
+1. Variadic System Calls would be difficult to implement
+2. Concept of user's path exist in user space 
+
+Theory1:
+1. Fire up a shell
+2. In the window, or more precisely, at the shell prompt, type this: 
+$ exec ps
+
+Yes, the terminal window process is the predecessor here; upon an exec it's overwritten by the successor process ps, which does its work and exits (you probably did not see the output as it disappeared too quickly).
+
+ps is the successor process, and, of course, we cannot return to the predecessor (the Terminal window)—ps has literally replaced its VAS. Thus, the Terminal window effectively disappears.
+
+1. Fire up a shell
+
+2. In the window, or more precisely, at the shell prompt, run ps followed by bash — yes, we're spawning a subshell here, followed by ps once more.
+$ps
+$bash
+$ps
+
+notice the PIDs of the original and sub-shell Bash processes
+
+3. On the sub-shell, exec the ps command; this ps successor process overwrites (or overlays) the process image of the predecessor process—the bash sub-shell.
+$ exec ps
+
+4. Observe the output: In the exec ps command output, the PID of ps is the PID of the bash subshell process:
+
+5. Also notice we're back to the original bash shell process PID 3,396 now, as, of course, we cannot return to the predecessor:
+
+Key points during an exec operation
+=======================================
+
+---> The successor process overwrites (or overlays) the predecessor's virtual address space.  
+	In effect, the predecessor's text, data, library, and stack segments are now replaced by that of the successor's. 
+	The OS will take care of the size adjustments.
+
+---> No new process has been created - the successor runs in the context of the old predecessor
+	Several predecessor attributes (including but not limited to the PID and open files) thus get auto-inherited by the successor.
+
+---> On a successful exec, there is no possibility of returning to the predecessor; it's gone.
+
+Theory2:
+$ echo "hello world" | ./system_cat
+My cat version
+
+This is not just a problem with the system() command, but also execvp(), which will also look up commands along the path.
+
+echo "Hello World" | ./execvp_cat 
+
+===================================
+Introduction
+===================================
+
+Path Lookup Attacks: Where the attacker leverages path lookup to compromise an executable or library
+
+when we are in the shell and type a command:
+
+$ cat helloworld.txt
+Hello World
+
+The command cat is run, but the program that is actually cat's the file exists in a different place in the file system
+
+We can find that location using the which command:
+
+$ which cat
+/bin/cat
+
+So when we type cat, we are really executing /bin/cat which is found by exploring the PATH enviroment variable:
+
+echo $PATH
+/home/panther2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+Each of the directories listed is searched, in order, until that command is found. 
+
+Environment variables are global variables set across programs that provide information about the current environment.
+
+The PATH variable is a perfect example of this, and the customizability of the environment variables. 
+
+What if I add a custom location containing my binaries in the starting of the PATH environmental variable ?
+
+How do we fix this? There are two solutions:
+
+1. Always use full paths. Don't specify a command to run by its name, instead describe exactly which program is to be executed.
+
+2. Fix the path before executing using setenv()
+
+You can actually control the current PATH setting during execution. To do this you can set the environment variables using setenv() and getenv()
+
+It turns out, that this program, despite its simplicity, actually has a relatively bad security flaw.
+
+Let's quickly consider what might happen if we were to change the PATH value to include our local directory
+
+$ export PATH=.:$PATH
+
+$ echo $PATH
+.:/home/panther2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+So now the local directory is on the path, and if I were to create a program named cat, then that cat would run instead of the one you would expect
+
+the system() function will run an arbitrary shell command.
+
+The system_cat program runs cat with system(), and so it will print whatever it reads from stdin to the screen
+
+$ echo "Hello World" | ./system_cat

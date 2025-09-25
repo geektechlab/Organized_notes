@@ -1,0 +1,121 @@
+Theory0:
+Kernel Symbols
+---------------
+
+A symbol is either a variable or function.
+It is name representing an space in memory which stores data (variable for reading/writing) or instructions(function for executing)
+
+Kernel Symbols are visible at three different levels in the kernel source code.
+
+1. static  : visible only within their own source file
+2. extern  : visible to any other code built into the kernel
+3. exported: visible and available to any loadable module
+		Kernel code can make a symbol available to loadable modules with the EXPORT_SYMBOL() and EXPORT_SYMBOL_GPL() macros
+
+Kernel Symbol Table
+----------------------
+
+1. System.map	 : Contains symbols exported by code built into the kernel
+2. /proc/kallsyms: Contains symbols exported by code built into the kernel + loadable kernel modules
+
+Theory1:
+How do you find out whether a function is static or global by looking into /proc/kallsyms?
+------------------------------------------------------------------------------------------
+
+$ cat /proc/kallsysms | grep <function_name>
+
+$ cat /proc/kallsyms | grep msleep
+
+If you observe 't' it is static and 'T' then it is global symbol
+
+$ cat /proc/kallsyms | grep crc32c_mod_init 
+
+/proc/kallsysms follows nm syntax
+
+All exported symbols will have another symbol prefixed with __ksymtab_
+
+Theory2:
+A peek inside a LKM
+------------------------
+
+All modules have their own symbols.
+
+Suppose we have a module hello.ko, with a lot of functions, variables and so on.
+
+After compiling it and obtaining the module’s object file, we can get a list of its symbols by running nm
+
+$ nm ./hello.ko
+
+U -> Undefined
+
+$ nm ./hello.ko | grep static
+0000000000000000 d static_var
+
+$ nm ./hello.ko | grep global
+0000000000000000 T global_fn
+0000000000000004 D global_var
+
+$ nm ./hello.ko | grep local
+
+You cannot access to local variables from object files, because gcc does not save information about it. 
+
+Theory3:
+kallsyms_lookup_name
+---------------------
+
+unsigned long kallsyms_lookup_name(const char *name);
+
+This takes symbol name as argument and returns its address in memory
+
+The calling code can dereference the pointer to make use of that symbol.
+
+If the symbol isn’t found, the function returns NULL
+
+$ sudo cat /proc/kallsyms | grep sys_call_table
+
+Theory4:
+Dynamically find the address at which the kernel is loaded
+----------------------------------------------------------
+
+$ sudo cat /proc/iomem | grep -i kernel
+
+Theory5:
+kallsyms_on_each_symbol
+------------------------
+
+Can be used to dump all the kernel symbols along with their addresses.
+
+int kallsyms_on_each_symbol(int (*fn)(void *, const char *, struct module *,
+                                      unsigned long),
+                            void *data);
+
+fn -> callback function that is called for each symbol.
+	callback function has the following prototype
+	int fn(void *data, const char *sym_name, struct module *module,
+       unsigned long address);
+
+data: will contain pointer to your private data you passed as last argument to kallsyms_on_each_symbol()
+sym_name: will contain name of current kernel symbol
+module: name of the module
+address: will contain address of current kernel symbol
+
+Theory6:
+Can i find the size of the function?
+----------------------------------------
+
+Yes, using sprint_symbol
+
+int sprint_symbol(char *buffer, unsigned long address);
+
+This function looks up a kernel symbol with 'address' and stores its 
+	name
+	offset
+	size
+	module name to
+buffer
+
+If no symbol was found just saves its 'address' as is.
+
+This function returns the number of bytes stored in 'buffer'
+
+symbol_name+offset/size [module_name]

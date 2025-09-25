@@ -1,0 +1,10 @@
+Why is fork slower than thread
+===============================
+
+Linux makes heavy use of the performance-enhancing copy-on-write(COW) memory techniques within its internal implementation of fork(2). 
+
+Thus, it begs the question, if COW is heavily used, then what is slowing the fork down? 
+
+The short answer: 
+	page table creation and setup cannot be COW-ed; it takes a while to do. 
+	When creating threads of the same process, this work (page table setup) is completely skipped.

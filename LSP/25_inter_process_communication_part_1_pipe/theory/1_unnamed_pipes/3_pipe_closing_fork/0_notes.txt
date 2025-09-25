@@ -1,0 +1,5 @@
+A pipe in a single process is next to useless.
+
+Normally, the process that calls pipe then calls fork, creating an IPC channel from the parent to the child, or vice versa.
+
+fork() man page tells us that the child will receive a copy of all the parent's file descriptors, and this includes a copy of the pipe's file descriptors

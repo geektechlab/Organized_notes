@@ -1,0 +1,4 @@
+As jiffies is unsigned long.
+
+On 32-bit architectures size = 4 bytes
+On 64-bit architectures size = 8 bytes

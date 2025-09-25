@@ -1,0 +1,12 @@
+Ioctls
+The following ioctl(2) calls return information in value.  The correct syntax is:
+
+int value;
+error = ioctl(unix_socket, ioctl_type, &value);
+
+ioctl_type can be: SIOCINQ
+
+For  SOCK_STREAM socket the function returns the amount of queued unread data in the receive buffer
+
+
+

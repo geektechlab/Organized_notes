@@ -1,0 +1,1 @@
+The program first initiates handler_1() as the signal handler for SIGINT. After the first Ctrl-c, in the signal handler, the handler is changed to handler_2(), and after the second Ctrl-c, it is change again to handler_3() from handler_2(). Finally, in handler_3() the default signal handler is reestablished, which is to terminate on SIGINT

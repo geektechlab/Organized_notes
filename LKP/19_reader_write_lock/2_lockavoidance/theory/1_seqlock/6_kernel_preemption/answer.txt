@@ -1,0 +1,8 @@
+Is Kernel Preemption Disabled?
+===============================
+
+        Readers: No
+        Writers: Yes because it acquires a spinlock
+
+----
+spinlock disables kernel preemption

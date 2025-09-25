@@ -1,0 +1,53 @@
+1. In linux shared libraries has the extension of
+	a) .so
+b) .si
+c) .sl
+d) none of the mentioned
+
+2. When a program is linked with a shared library
+	a) only a small table is created in the executable
+b) executable contains the whole content of respective .so file
+c) executable contains nothing related with the shared libraries
+d) none of the mentioned
+
+3. Shared libraries can be shared between
+	a) various running programs
+b) only 2 running programs
+c) only 8 running programs
+d) none of the mentioned
+
+4. In linux, shared library is a
+a) text file
+	b) binary file
+c) device file
+d) none of the mentioned
+
+5. In GCC compiler, “-shared” option is given to create the shared library with
+a) source files
+	b) object files
+c) executables
+d) none of the mentioned
+
+6. Which option of GCC compiler provides the linking with shared libraries?
+	a) -lmylib
+b) -lib
+c) -mylib
+d) none of the mentioned
+
+7. After using the shared library, memory can be done free by calling
+	a) dlclose
+b) slclose
+c) lclose
+d) none of the mentioned
+
+8. Shared libraries are linked with the program
+a) at the time of creation of executable
+b) at the run time
+why ?	c) at the time of creation of executable & run time
+d) none of the mentioned
+
+9. For a shared library, so version number is changed when
+why ? 	a) changes done in code make the shared library incompatible with the previous version
+b) changes done in code does not make the shared library incompatible with the previous version
+c) when minor number is changed
+d) none of the mentioned

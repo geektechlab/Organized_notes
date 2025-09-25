@@ -1,0 +1,21 @@
+I/O Memory
+==================
+
+The most widely supported form of IO is memory mapped IO.
+
+A part of the CPU’s address space is interpreted not as accesses to memory, but as accesses to a device
+
+Some architectures define devices to be at a fixed address, but most have some method of discovering devices.
+
+Advantage of memory mapped I/O is that it keeps the instruction set small.
+
+Logic of creating separate I/O address space initially because the memory address space of processors was quite limited.
+
+When x86 moved to 32-bit, the address space was still same 64KB, even after it moved to 64-bit.
+
+Examples of I/O Memory:
+---------------------
+
+a) Holding Video Data
+b) Ethernet Packets
+c) Device Registers

@@ -1,0 +1,36 @@
+Build Linux Kernel
+===================
+
+Step1 : Download the latest linux kernel from kernel.org
+
+$ wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.4.2.tar.xz
+
+$ tar xvf linux-5.4.2.tar.xz
+
+Step 2: Configure Linux Kernel
+
+$ cd linux-5.4.2
+
+$ mkdir -pv ../linux_build
+
+$ make O=../linux_build allnoconfig
+
+$ make O=../linux_build menuconfig
+
+64-bit kernel ---> yes
+General setup ---> Initial RAM filesystem and RAM disk (initramfs/initrd) support ---> yes
+General setup ---> Configure standard kernel features ---> Enable support for printk ---> yes
+Executable file formats / Emulations ---> Kernel support for ELF binaries ---> yes
+Executable file formats / Emulations ---> Kernel support for scripts starting with #! ---> yes
+Device Drivers ---> Generic Driver Options ---> Maintain a devtmpfs filesystem to mount at /dev ---> yes
+Device Drivers ---> Generic Driver Options ---> Automount devtmpfs at /dev, after the kernel mounted the rootfs ---> yes
+Device Drivers ---> Character devices ---> Enable TTY ---> yes
+Device Drivers ---> Character devices ---> Serial drivers ---> 8250/16550 and compatible serial support ---> yes
+Device Drivers ---> Character devices ---> Serial drivers ---> Console on 8250/16550 and compatible serial port ---> yes
+File systems ---> Pseudo filesystems ---> /proc file system support ---> yes
+File systems ---> Pseudo filesystems ---> sysfs file system support ---> yes
+
+Step 3: Build Linux Kernel
+
+$ cd ../linux_build
+$ time make -j8

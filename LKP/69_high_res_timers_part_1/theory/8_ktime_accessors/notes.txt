@@ -1,0 +1,13 @@
+ktime accessors
+----------------
+
+Device drivers can read the current time using ktime_get()
+
+Header file: <linux/timekeeping.h>
+
+Implementation: kernel/time/timekeeping.c
+
+Clock used: CLOCK_MONOTONIC
+
+Useful for reliable timestamps and measuring short time intervals accurately. 
+Starts at system boot time but stops during suspend.

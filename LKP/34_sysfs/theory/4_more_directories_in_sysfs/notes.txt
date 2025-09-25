@@ -1,0 +1,19 @@
+kernel
+------------
+
+	contains various files and subdirectories that provide information about the running kernel
+
+module
+----------
+
+	contains one subdirectory for each module that is loaded into the kernel.
+	 name of each directory is the name of the module.
+	/sys/module/<modulename>/parameters: each file containing the value of the corresponding parameter.
+
+power
+----------
+
+	Contains information about power management sleep states
+
+hypervisor
+------

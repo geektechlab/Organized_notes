@@ -1,0 +1,10 @@
+Setting a timer
+----------------
+
+static inline void hrtimer_start(struct hrtimer *timer, ktime_t tim,
+                                 const enum hrtimer_mode mode);
+
+timer:      the timer to be added
+tim:        expiry time
+mode:       timer mode: absolute (HRTIMER_MODE_ABS) or
+                        relative (HRTIMER_MODE_REL)

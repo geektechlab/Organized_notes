@@ -1,0 +1,7 @@
+We are passing original process mask, which doesn't mask SIGINT,  in sigsuspend function. 
+
+sigsuspend pauses the process and can only return if any of the signal, which is not in mask2, is received and its signal handler is executed. 
+
+So, sigsuspend will return upon receival of SIGINT . 
+
+When sigsuspend returns it resets the sigmask for the process to the mask just before when sigsuspend executed. In this case the SIGINT will be blocked again before execution of second critical section starts.

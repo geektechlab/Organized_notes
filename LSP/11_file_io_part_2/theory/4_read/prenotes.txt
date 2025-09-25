@@ -1,0 +1,12 @@
+Data is read from an open file with the read function.
+
+#include <unistd.h>
+ssize_t read(int fd, void *buf, size_t nbytes);
+
+Returns: number of bytes read, 0 if end of file, −1 on error
+
+If the read is successful, the number of bytes read is returned. If the end of file is encountered, 0 is returned
+
+When reading from a regular file, if the end of file is reached before the requested number of bytes has been read. 
+
+For example, if 30 bytes remain until the end of file and we try to read 100 bytes, read returns 30. The next time we call read, it will return 0 (end of file).

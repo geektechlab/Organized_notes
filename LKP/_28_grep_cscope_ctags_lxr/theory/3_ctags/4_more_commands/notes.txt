@@ -1,0 +1,8 @@
+More commands
+===============
+
+1. ctrl + w + ] : Open the definition in a horizontal split
+
+2.  position the cursor over the tag name and press g + ] to get a list of matching tags
+
+3. vim -t tag : Start vi and position the cursor at the file and line where "tag" is defined.

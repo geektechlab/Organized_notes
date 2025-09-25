@@ -1,0 +1,4 @@
+CLOCK_BOOTTIME
+===============
+
+CLOCK_MONTONIC does not measure time spent in suspend, use CLOCK_BOOTTIME if you want to measure the time spend ins suspend also

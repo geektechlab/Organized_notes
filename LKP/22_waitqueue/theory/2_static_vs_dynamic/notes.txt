@@ -1,0 +1,17 @@
+Static
+=============
+
+DECLARE_WAIT_QUEUE_HEAD(name);
+
+#define __WAIT_QUEUE_HEAD_INITIALIZER(name) {                                   \
+        .lock           = __SPIN_LOCK_UNLOCKED(name.lock),                      \
+        .head           = { &(name).head, &(name).head } }
+
+#define DECLARE_WAIT_QUEUE_HEAD(name) \
+        struct wait_queue_head name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
+
+Dynamic
+============
+
+wait_queue_head_t my_queue;
+init_waitqueue_head(&my_queue);

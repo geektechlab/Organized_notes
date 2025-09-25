@@ -1,0 +1,13 @@
+After node is deleted
+
+       HEAD
+        V
+    --------------                                  -----------------
+    |            |                                  |               |
+    |   A        |--------------------------------->|   C           |
+    |            |                                  |               |
+    --------------                                  -----------------
+
+
+----
+suppose there is a reader at A, at request comes to delete B. If it gets deleted then when reader moves to B, it will dereference NULL pointer and crashes/OOPS. Here we have to point A to node C. So, reader will move directly to A to C. We should not delete node B untill reader moves from there. This is how RCU read copy update works. ) video ( 7 - 13 ).

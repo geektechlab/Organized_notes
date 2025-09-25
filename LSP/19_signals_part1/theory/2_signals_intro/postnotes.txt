@@ -1,0 +1,9 @@
+We will first start the process in the background 
+
+Then send it a signal from the shell process by using the kill command.
+
+>./program &
+My pid is 403
+...
+>kill -SIGSTOP 403
+>kill -SIGCONT 403

@@ -1,0 +1,25 @@
+To start cscope
+===============
+
+$ cscope
+
+On a subsequent invocation, cscope rebuilds the cross-reference only if a source file has been modified or the list of source files is different
+
+If you do not want to update the database
+
+$ cscope -d
+
+
+It has a two-panel interface:
+
+	Top Panel	:	Results are displayed
+	Bottom Panel	:	Search Queries
+
+	Use Tab key to switch between panels
+
+	Use Arrow keys in bottom panel to move between search fields.
+
+To Exit cscope
+================
+
+Press CTRL-D to exit 

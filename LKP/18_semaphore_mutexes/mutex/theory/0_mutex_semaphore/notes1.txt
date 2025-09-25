@@ -1,0 +1,36 @@
+Differences between mutexes and semaphores
+===========================================
+
+What happens when a process tries to acquire a mutex lock?
+
+        When acquiring a mutex, there are three possible paths that can be taken
+
+                1. Fast Path
+                2. Mid Path
+                3. Slow Path
+
+        The path which will be taken depends on the state of the mutex.
+
+Fast Path:
+
+        Taken when no process has acquired the mutex
+
+Mid Path:
+
+        When the mutex is not available, it tries to go for mid path. also called as optimistic spinning.
+
+        This path will be only executed if there are no other processes ready to run having high priority and the owner of mutex is running.
+
+        In this path, tries to spin using MCS lock hoping the owner will release the lock soon.
+
+        Avoids expensive context switch
+
+Slow Path:
+
+        last resort.
+
+        This path acts as a semaphore lock
+
+        If the lock is unable to be acquired by the process, the task is added to wait queue
+
+        It sleeps until woken up by the unlock path.

@@ -1,0 +1,8 @@
+/proc/softirqs
+================
+
+Shows Per CPU statistics
+
+Implementation: fs/proc/softirqs.c
+
+to watch all softirq handling, run [ $ watch -n1 grep RX /proc/softirqs ]

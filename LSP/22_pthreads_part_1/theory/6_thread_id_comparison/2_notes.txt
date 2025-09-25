@@ -1,0 +1,4 @@
+pthread_equal:
+Syntax: int pthread_equal(pthread_t t1, pthread_t t2);
+
+pthread_equal is used by the applications to compare two thread values.If two threads are equal, it returns a non zero value,otherwise it returns 0

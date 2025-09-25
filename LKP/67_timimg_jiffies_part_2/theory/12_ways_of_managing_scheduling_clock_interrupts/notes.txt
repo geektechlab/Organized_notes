@@ -1,0 +1,15 @@
+There are three main ways of managing scheduling-clock interrupts (clock ticks/ticks)
+-------------------------------------------------------------------------------------
+
+1. Never omit scheduling-clock ticks
+	CONFIG_HZ_PERIODIC=y or
+	CONFIG_NO_HZ=n (on older CPUs)
+
+2. Omit ticks on Idle CPUs
+	CONFIG_NO_HZ_IDLE=y or
+	CONFIG_NO_HZ=n (on older CPUs)
+	Most common approach, should be default
+
+3. Omit ticks on CPUs that are idle or that have only one runnable task
+	CONFIG_NO_HZ_FULL=y
+	Useful for real time application

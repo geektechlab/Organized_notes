@@ -1,0 +1,9 @@
+The main problem with this program is that, there is a time window, between unblocking of signal and pause, in which the signal can be received. 
+
+sigprocmask(SIG_SETMASK,&mask2,NULL);
+
+//window in which the signal could be received 
+
+pause();
+
+To test this problem, send the SIGINT from the terminal before the critical section 1 ends, i.e. when the process is in sleep inside first critical section

@@ -1,0 +1,1 @@
+here, strlen can't work directly on user space memory. Proper way to do that it to copy in kernel space.

@@ -1,0 +1,4 @@
+Alarm can be set continually, but only one alarm is allowed per process. 
+Subsequent calls to alarm() will reset the previous alarm. 
+
+Suppose, now, that we want to write a program that will continually alarm every 1 second, we would need to reset the alarm once the signal is delivered. The natural place to do that is in the signal handler

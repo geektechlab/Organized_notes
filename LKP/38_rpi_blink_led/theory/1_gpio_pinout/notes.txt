@@ -1,0 +1,29 @@
+GPIO (General Purpose Input Output)
+===================================
+
+The Raspberry Pi 3 boards (all models: 3A+, 3B, 3B+) have a GPIO header with 40 pins
+
+GPIO Voltage
+-------------
+
+All GPIOs work at 3.3V.
+
+Outputs
+-----------
+
+A GPIO pin designated as an output pin can be set to high (3V3) or low (0V).
+
+Inputs
+-----------
+
+A GPIO pin designated as an input pin can be read as high (3V3) or low (0V).
+This is made easier with the use of internal pull-up or pull-down resistors.
+
+Pinout in terminal
+-----------------------
+
+pinout command provides a handy reference to access the rpi pinout from terminal
+
+$ sudo apt install python3-gpiozero
+
+$ pinout

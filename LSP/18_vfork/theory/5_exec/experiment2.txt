@@ -1,0 +1,15 @@
+1. Fire up a shell
+
+2. In the window, or more precisely, at the shell prompt, run ps followed by bash — yes, we're spawning a subshell here, followed by ps once more.
+$ps
+$bash
+$ps
+
+notice the PIDs of the original and sub-shell Bash processes
+
+3. On the sub-shell, exec the ps command; this ps successor process overwrites (or overlays) the process image of the predecessor process—the bash sub-shell.
+$ exec ps
+
+4. Observe the output: In the exec ps command output, the PID of ps is the PID of the bash subshell process:
+
+5. Also notice we're back to the original bash shell process PID 3,396 now, as, of course, we cannot return to the predecessor:

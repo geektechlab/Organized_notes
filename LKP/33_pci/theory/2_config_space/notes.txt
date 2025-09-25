@@ -1,0 +1,19 @@
+PCI Configuration Space
+========================
+
+Each PCI Device has a set of registers referred to as configuration space.
+
+Size of the Configuration space is 256 bytes.
+
+First 64 bytes (0x00 - 0x3f) are standardized
+
+Next 192 bytes (0x40 - 0xff) are vendor specific
+
+Registers 0x00, 0x01 are defined by PCI spec as vendor ID (16-Bit)
+Registers 0x02, 0x03 are defined by PCI spec as product ID (16-Bit)
+
+Vendor ID identifies the manufacturer of the device.
+
+	Allocated by the PCI SIG to ensure each is unique 
+
+Device ID identifies the particular device, set by the vendor 

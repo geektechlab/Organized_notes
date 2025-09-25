@@ -1,0 +1,17 @@
+What is the Problem with the code
+---------------------------------
+
+	int *ptr = NULL;
+
+	int* getmem(){
+		if (!ptr) {
+			ptr = kmalloc(sizeof(int), GFP_KERNEL);
+			if (!ptr)
+				return -ENOMEM;
+		}
+		return ptr;
+	}
+
+---
+concurreny issue:
+because ptr is global, two threads share this varibale and if one updates it, other thread will also get updated value and then concurreny issues may happen.

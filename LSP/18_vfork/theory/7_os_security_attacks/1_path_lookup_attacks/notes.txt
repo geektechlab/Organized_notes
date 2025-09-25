@@ -1,0 +1,29 @@
+===================================
+Introduction
+===================================
+
+Path Lookup Attacks: Where the attacker leverages path lookup to compromise an executable or library
+
+when we are in the shell and type a command:
+
+$ cat helloworld.txt
+Hello World
+
+The command cat is run, but the program that is actually cat's the file exists in a different place in the file system
+
+We can find that location using the which command:
+
+$ which cat
+/bin/cat
+
+So when we type cat, we are really executing /bin/cat which is found by exploring the PATH enviroment variable:
+
+echo $PATH
+/home/panther2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+Each of the directories listed is searched, in order, until that command is found. 
+
+Environment variables are global variables set across programs that provide information about the current environment.
+
+The PATH variable is a perfect example of this, and the customizability of the environment variables. 
+
+What if I add a custom location containing my binaries in the starting of the PATH environmental variable ?

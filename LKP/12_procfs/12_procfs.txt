@@ -1,0 +1,65 @@
+Theory0:
+Virtual File Systems:
+There are numerous ways for a device driver (or other kernel component) to provide information to the user or system administrator. One useful technique is the creation of virtual files, in debugfs, /proc or elsewhere. Virtual files can provide human-readable output that is easy to get at without any special utility programs. virtual file system reside in RAM memeory. They do not take any space in harddisk or any storage media. /proc/ /debugfs and /sys file systems are example of this. But SATA etc. take space in storage media.
+
+Proc File System:
+Proc is a pseudo file system for interfacing with the kernel internal data structures. As a user, you can use proc files for system diagnostics – CPU, memory, Interrupts and many more. You can also configure a lot of parameters like scheduler parameters, kernel objects, memory and more. The common interaction with proc is using cat and echo from the shell. For example:
+# cat /proc/cpuinfo
+# echo "50"> /proc/sys/kernel/sched_rr_timeslice_ms
+
+It has proc has may modules such as modules, cpuinfo, meminfo. procfs is for processes. sysfs is for kernel. But still some legacy are using procfs.
+cat /proc/cmdline
+cat /proc/<pid>
+cat /proc/misc
+cat /proc/devices
+cat /proc/memeinfo
+cat /proc/uptime
+
+Theory1:
+Creating Directory in /proc
+===========================
+Header Files: <linux/proc_fs.h>
+struct proc dir entry* proc_mkdir(const char *name, struct proc dir entry * parent);
+	name: The name of the folder that will be created under /proc.
+	Parent: In case the folder needs to be created in a sub folder under /proc a pointer to the same is passed else it can be left as NULL
+
+Theory2:
+Creating a proc file
+========================
+Header File: <linux/proc_fs.h>
+static inline struct proc_dir_entry *proc_create(const char *name, 
+						 umode_t mode,
+						 struct proc_dir_entry *parent, 
+						 const struct file_operations *proc_fops);
+	name: The name of the proc entry
+	mode: The access mode for proc entry
+	parent: The name of the parent directory under /proc
+	proc_fops: The structure in which the file operations for the proc entry will be created.
+
+Removing a proc entry:
+When a module is removed from the kernel, it should also remove any proc entries it created. The function that enables the removal of proc entry is "remove_proc_entry" which has the following prototype
+void remove_proc_entry(const char *name, struct proc_dir_entry *parent);
+	name: Name of the proc entry that has to be removed.
+	parent: In case the proc entry lies in a subdirectory under the proc filesystem, we can pass the subdirectories here.
+
+Theory4,5,6,7:
+see example 4,5,6,7 to get complete picture.
+
+Theory8:
+If you only need a single function entry (call) to produce all the desired proc-fs output, just use single_open() and single_release(). single_open() gets a parameter that is the "show" function for the data that is to be written to /proc.
+int single_open(struct file *file, int (*show)(struct seq_file *m, void *p), void *data);
+
+The "show" function does everything that is needed to write the data, all in one function call. The data value given to single_open() can be found in the private field of the seq_file structure. This is useful either for writing small amounts of data to /proc, for cases in which the output is not iterative, or for cases in which recursion is more appropriate, since the non-single methods don't fit well with recursive techniques. When using single_open(), the programmer should use single_release() instead of seq_release() in the file_operations structure to avoid a memory leak.
+
+struct proc_dir_entry *proc_create_data(const char *name, umode_t mode,struct proc_dir_entry *parent,
+										const struct file_operations *proc_fops,void *data);
+	name: The name of the proc entry 
+	mode: The access mode for proc entry 
+	parent: The name of the parent directory under /proc 
+	proc_fops: The structure in which the file operations for the proc entry will be created. 
+	data: If any data needs to be passed to the proc entry. 
+
+To access the data in the proc_dir_structure we need to make use of the function PDE_DATA to which we pass the file pointer. The function in turn returs a pointer to the data that was passed during the creation of the proc entry. See how proc_fs_mul prints 3 times in this example.
+
+Theory10:
+SEQ_START_TOKEN is a special value which can be returned by the start() function. It can be used if you wish to instruct your show() function to print a header at the top of the output. SEQ_START_TOKEN should only be used if the offset is zero, however.

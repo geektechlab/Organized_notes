@@ -1,0 +1,20 @@
+Scheduler
+================
+
+Schedule() implements the scheduler.
+
+Implementation: kernel/sched.c
+
+The most important data structure used by scheduler is run queue.
+
+Run Queue: Contains the list of all processes which are in TASK_RUNNING state.
+
+Each CPU has its own run queue and each active process will be present on just one run queue.
+
+
+How it is invoked?
+=====================
+
+1. Direct Way: When the current process do not have the resource it needs, and want to block itself until it acquires the resource, it calls schedule
+
+2. Lazy Way: When the time quantum/time slice of the current process is completed.

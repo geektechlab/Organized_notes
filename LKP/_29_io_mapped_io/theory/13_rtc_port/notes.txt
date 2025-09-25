@@ -1,0 +1,61 @@
+RTC Port
+===========
+
+There are two ports which are used to talk to the RTC.
+
+    --------------------
+    |Port   | Usage    |
+    --------------------
+    |0x70   | Address  |
+    |-------------------
+    |0x71   | Data     |
+    --------------------
+
+Registers
+============
+
+There are many internal registers associated with the RTC.
+
+Each register has an address
+
+Some register are read only and some are read-write
+
+The first 10 registers are reserved for time-related functionality
+
+The following 4 registers are reserved for control of the RTC
+
+To read/write a register of the RTC requires always:
+    1. writing the address of the register to the RTC_ADDR_REG (0x70)
+    2. reading/writing one byte from/to the RTC_DATA_REG (0x71)
+
++-------------------------+----------------------------------+
+| RTC internal address    |          Value Stored            |
++-------------------------+----------------------------------+
+| 0x00                    |       Current Time Seconds       |
++-------------------------+----------------------------------+
+| 0x01                    |          Alarm Seconds           |
++-------------------------+----------------------------------+
+| 0x02                    |       Current Time Minutes       |
++-------------------------+----------------------------------+
+| 0x03                    |          Alarm Minutes           |
++-------------------------+----------------------------------+
+| 0x04                    |        Current Time Hours        |
++-------------------------+----------------------------------+
+| 0x05                    |           Alarm Hours            |
++-------------------------+----------------------------------+
+| 0x06                    |      Day of Week (Sunday = 1)    |
++-------------------------+----------------------------------+
+| 0x07                    |          Date of Month           |
++-------------------------+----------------------------------+
+| 0x08                    |              Month               |
++-------------------------+----------------------------------+
+| 0x09                    |     Year (The last two digits)   |
++-------------------------+----------------------------------+
+| 0x0a                    |        Status Register A         |
++-------------------------+----------------------------------+
+| 0x0b                    |        Status Register B         |
++-------------------------+----------------------------------+
+| 0x0c                    |        Status Register C         |
++-------------------------+----------------------------------+
+| 0x0d                    |        Status Register D         |
++-------------------------+----------------------------------+

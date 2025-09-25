@@ -1,0 +1,24 @@
+Attribute Groups
+---------------------
+
+The attribute group interface is a simplified interface for easily adding and removing a set of attributes with a single call.
+
+struct attribute_group {
+        const char              *name;
+        umode_t                 (*is_visible)(struct kobject *,
+                                              struct attribute *, int);
+        umode_t                 (*is_bin_visible)(struct kobject *,
+                                                  struct bin_attribute *, int);
+        struct attribute        **attrs;
+        struct bin_attribute    **bin_attrs;
+};
+
+An attribute group is simply an array of attributes to be added to an object, as represented by the attrs field
+
+Why they were created?
+---------------------
+
+To make it easier to keep track of errors when registering multiple attributes at one time, and 
+To make it more compelling to clean up all attributes that a piece of code may create for an object
+
+static int sysfs_create_group(struct kobject *kobj, const struct attribute_group *grp)

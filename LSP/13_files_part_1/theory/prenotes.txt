@@ -1,0 +1,77 @@
+Inodes
+========================
+
+In Linux everything is treated as a file. (even the hardware devices)
+
+The keyboard, mouse, printers, monitor, hard disk, processes, even the directories are treated as files in Linux. 
+
+The regular files contain data such as text (text files), music, videos (multimedia files) etc. 
+
+Set aside the regular data, there are some other data about these files, such as their size, ownership, permissions, timestamp etc.
+
+This meta-data about a file is managed with a data structure known as an inode (index node).
+
+What is an inode in Linux?
+=================================
+
+Every Linux file or directory has an inode, and this inode contains all of the file’s metadata
+
+For example, the inode contains
+	a list of all the blocks in which a file is stored
+	the owner information for that file,
+	permissions
+	and all other attributes that are set for the file.
+
+In a sense, you could say that a file really is the inode, and names are attached to these inodes to make it easier for humans to work with them.
+
+Inode Number
+==========================
+
+An inode is a data structure on a traditional Unix-style file system such as ext3 or ext4. 
+
+Linux extended filesystems such as ext2 or ext3 maintain an array of these inodes: the inode table.
+
+This table contains list of all files in that filesystem.
+
+The individual inodes in inode table have a unique number (unique to that filesystem), the inode number.
+
+an inode stores:
+
+File type: regular file, directory, pipe etc.
+Permissions to that file: read, write, execute
+Link count: The number of hard link relative to an inode
+User ID: owner of file
+Group ID: group owner
+Size of file: or major/minor number in case of some special files
+Time stamp: access time, modification time and (inode) change time
+Attributes: immutable' for example
+Access control list: permissions for special users/groups
+Link to location of file
+Other metadata about the file
+
+Note that inode does not store name of the file but its content only.
+
+You can display the inode data on a file or directory by using stat command. You need to indicate the name of the file.
+
+----
+we can run [ man stat ]. stat can takefile and folder both as input.
+----
+
+Where are filenames stored on a filesystem?
+============================================
+
+inodes do not contain file names, only other file metadata.
+
+the name of the file is stored within the directories' information structure
+
+directories are special files that are used to create and hold access paths to the files in the file system.
+
+A directory file is a list of directory entries, each one containing the following information:
+
+inode - The inode for this directory entry. This is an index into the array of inodes held in the Inode Table of the Block Group.
+
+name length - The length of this directory entry in bytes,
+
+name - The name of this directory entry.
+
+The first two entries for every directory are always the standard . and .. entries meaning "this directory" and "the parent directory" respectively.

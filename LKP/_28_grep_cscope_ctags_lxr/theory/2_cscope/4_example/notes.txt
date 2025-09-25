@@ -1,0 +1,37 @@
+Example:
+==========
+
+spin_lock
+
+Find this C symbol:
+-------------------
+
+C Symbols:  function names, variable names, #define, typedef etc
+
+will search all instances of symbol
+
+Find this global definition:
+----------------------------
+Will only get the definition of variable/function.
+
+Find functions called by this function:
+--------------------------------------
+Find all of the functions that call a particular function
+
+Find functions calling this function:
+-------------------------------------
+Finds functions called by a particular function
+
+If the above options do not help, you can fall back to the text search options at the bottom of the list.
+
+Example: struct file {
+
+1. Select the type of search that you'd like to perform, type in your search term and hit Enter.
+
+2. At the top of the screen Cscope will display a list of results with the file, function, and line where the search term was found.
+
+3. If you select one of these results and hit Enter, Cscope will open up the editor to the matching line in the file
+
+4. You can manipulate the file as you please, and when you close it the browser will appear again
+
+5. When you're finished, press Ctrl-d to exit.

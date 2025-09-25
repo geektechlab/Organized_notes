@@ -1,0 +1,24 @@
+Adding an element into wait queue
+==================================
+
+Once an element is defined, it must be inserted into a wait queue.
+
+Two different functions are used to add sleeping processes into a wait queue.
+
+	add_wait_queue()
+
+	add_wait_queue_exclusive()
+
+add_wait_queue() function inserts a nonexclusive process in the first position of a wait queue list.
+
+void add_wait_queue(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry);
+
+add_wait_queue_exclusive() function inserts an exclusive process in the last position of a wait queue list.
+
+void add_wait_queue_exclusive(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry);
+
+The remove_wait_queue( ) function removes a process from a wait queue list.
+
+void remove_wait_queue(struct wait_queue_head *wq_head, struct wait_queue_entry *wq_entry);
+
+Implementation: kernel/sched/wait.c

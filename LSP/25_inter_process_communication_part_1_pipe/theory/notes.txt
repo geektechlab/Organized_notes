@@ -1,0 +1,30 @@
+What is IPC?
+==================
+
+Inter process communication is any way for one process to talk to another process.
+Signals was one kind of IPC Mechanism
+
+What is a pipe
+==================
+
+We use the term pipe to mean connecting a data flow from one process to another. Generally you attach or pipe the output of one process to the input of another.
+
+For shell commands, this is done using the pipe character to join the commands
+	$ command1 | command2
+
+1. The standard input to command1 will comes from the terminal keyboard
+2. The standard output from command1 is fed to command2 as its standard input
+3. The standard output from command2 is connected to the terminal screen.
+
+A pipe is created by calling the pipe function.
+
+#include <unistd.h>
+int pipe(int fd[2]);
+
+Returns: 0 if OK, −1 on error
+
+	--> pipe is passed (a pointer to) an array of two integer file descriptors. 
+	--> it fills the array with two new file descriptors and returns a zero.
+	--> The two file descriptors returned are connected in a special way.
+	--> Any data written to file_descriptor[1] can be read back from file_descriptor[0].
+	--> The first element of the array is the reading-end of the pipe, the second is the writing end.

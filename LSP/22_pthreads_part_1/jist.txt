@@ -1,0 +1,272 @@
+Theory0:
+What is a thread?
+=====================
+
+A thread is a sequence of instructions within a process that can be executed independently of other code. 
+
+Multiple threads within one process share
+	Heap
+	Data 
+	Code
+	open files (descriptors)
+	signals and signal handlers
+	current working directory
+	User and group id
+
+Each thread will have its own
+	Thread ID
+	set of registers, stack pointer
+	stack for local variables, return addresses
+	signal mask
+	priority
+
+Advantages of Threads
+======================
+
+--->	Useful when you want to make a program appear to do two things at once
+	E.g. Real time word count on a document while still editing the text. One thread can manage the user's input and perform editing. The other thread will continuously update a word count variable
+
+--->	Better utilization of hardware resources
+	We have laptops and desktops containing CPU's with multiple cores, using multiple threads inside a process can better utilize the hardware resources.
+
+--->	Context switch between threads is faster when compared to the context switch between processes ( add reason from Divy's message )
+
+Drawbacks of Threads
+=====================
+
+--->	We should carefully design multithreaded programs as most of the resources of the process are shared
+
+--->	Debugging a multithreaded program is much, much harder than debugging a single-thread program.
+
+Theory1:
+gettid returns the caller's thread ID (TID)
+
+man 2 gettid
+
+Theory2:
+if I want to pass more than one argument to thread function how can I accomplish that ?
+
+pthread_exit
+=============
+
+When a thread terminates, it calls the pthread_exit function, much a process calls exit when it terminates.
+
+This function terminates the calling thread, returning a pointer to an object.
+
+Never return a pointer to a local variable, because the variable will be gone when the thread exits.
+
+#include <pthread.h>
+void pthread_exit(void *retval);
+
+pthread_join
+=============
+
+pthread_join is the thread equivalent of wait that processes use to collect child processes.
+
+int pthread_join(pthread_t thread, void **thread_return);
+
+First parameter is the thread for which to wait
+Second argument is a pointer to pointer that itself points to the return value from the thread.
+
+What is the purpose of pthread_join?
+====================================
+	Wait for a thread to finish
+	Clean up thread resources
+	Grabs the return value of the thread
+
+What happens if you don't call pthread_join?
+===============================================
+
+Finished threads will continue to consume resources.
+
+Eventually, if enough threads are created, pthread_create will fail.
+
+In practice, this is only an issue for long-running processes but is not an issue for simple, short-lived processes as all thread resources are automatically freed when the process exits.
+
+pthread_join vs wait
+====================
+
+Condition :
+
+	A thread being waited for must have its detached state attribute set as joinable, not detached. 
+
+	None; any child process can (and in fact must) be waited upon
+
+Hierarchy:
+
+	None: any thread can join on any other thread; there is no requirement of a parent-child relationship. In fact, we do not consider threads to live within a strict parent-child hierarchy as processes do; all threads are peers.
+
+	A strict parent-child hierarchy exists; only a parent can wait for a child process.
+
+Order:
+
+	With threads, one is forced to join (wait) upon the particular thread specified as the parameter to pthread_join(3).
+
+	With wait, a process can wait upon the death (or stoppage) of any child, or specify a particular child process to wait for with waitpid. So, it wait will complete for any of the child process.
+
+Signalling:
+
+	No signal is sent upon a thread's death.
+
+	Upon a process's death, the kernel sends the SIGCHLD signal to the parent process.
+
+What are Pthreads?
+=====================
+
+Historically, hardware vendors have implemented their own proprietary versions of threads. 
+
+These implementations differed substantially from each other making it difficult for programmers to develop portable threaded applications.
+
+In order to take full advantage of the capabilities provided by threads, a standardized programming interface was required.
+
+	For UNIX systems, this interface has been specified by the IEEE POSIX 1003.1c standard (1995).
+	Implementations adhering to this standard are referred to as POSIX threads, or Pthreads.
+
+To use pthread
+=================
+
+Header File: #include <pthread.h>
+
+While compilation: -lpthread
+
+Creating Thread
+==================
+
+Initially, your main() program comprises a single, default thread. All other threads must be explicitly created by the programmer.
+
+To create a thread use the function pthread_create. This function takes four arguments:
+
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                   void *(*start_routine) (void *), void *arg);
+
+The first is a pointer to a variable that will hold the id of the newly created thread.
+The second is a pointer to attributes that we can use to tweak and tune some of the advanced features of pthreads
+The third is a pointer to a function that we want to run
+Fourth is a pointer that will be given to our function
+
+when we create a new thread using pthread_create(), which thread will start executing first, the parent thread or the new thread ?
+
+no gurantee is given as to which thread will start executing first.
+
+1) what is the thing needs to be remembered for returned value?
+
+we need to rember that by the time pthread_join() collects the return value from the terminated thread, the thread might be recycled and the return value might be pointing to something else.
+
+what are some ways of handling the return value?
+
+as return value can never be a stack variable, there are two ways of handling the return variable.
+    i) create a struct and pass it the pthread_create() function itself, which the thread function will fill it before exiting the  function.
+   ii) use a global variable to pass the return value.
+  iii) pass a specific location to the thread that is created detached, and let the main thread use the return value, when suits.
+
+Theory3:
+$ ./4 &
+
+$ ps -LA
+
+-A: Select all processes; identical to -e 
+
+-L: Show threads, possibly with LWP and NLWP columns
+
+The main thread, by invoking pthread_exit(3), has exited before the other threads in the process; the Linux kernel thus marks it as a zombie.
+
+How to prevent the main thread from becoming zombie?
+======================================================
+
+The answer is straightforward: do not allow the main thread to terminate before the other threads in the application; 
+
+in other words, the recommendation is to always keep main() alive, waiting for all the other threads to die, before it itself terminates (and thus the process terminates).
+
+Theory4:
+MultiProcess vs Mulithreads
+==========================
+
+fork.c ====>create and destroy a process by calling fork(2) and subsequently exiting in a loop (50000 times)
+
+$ time ./fork
+
+thread.c ===> create and destroy threads using pthread_create in a loop (50000 times)
+
+$ time ./thread
+
+Why is fork slower than thread
+===============================
+
+Linux makes heavy use of the performance-enhancing copy-on-write(COW) memory techniques within its internal implementation of fork(2). 
+
+Thus, it begs the question, if COW is heavily used, then what is slowing the fork down? 
+
+The short answer: 
+	page table creation and setup cannot be COW-ed; it takes a while to do. 
+	When creating threads of the same process, this work (page table setup) is completely skipped.
+
+A far more accurate way to measure the time spent—and performance characteristics in general—is by using the well-known perf(1) utility
+
+$ perf stat ./fork
+
+$ perf stat ./thread
+
+Theory5:
+matrix c = matrix a * matrix b
+
+We will write code in two ways: 
+	Sequentially, via the single threaded model 
+	In parallel, via the multithreaded model
+
+to find out number of cores:
+
+getconf -a | grep _NPROCESSORS_ONLN | awk '{print $2}'
+
+or
+
+cat /proc/cpuinfo
+
+To truly appreciate how the process(es) and/or threads of our applications actually consume CPU bandwidth, let's use the interesting gnome-system-monitor GUI application to see resource consumption graphically!
+
+$ gnome-system-monitor &
+
+-----
+analyze both programs using this
+-----
+
+Theory6:
+Each thread created using pthread_create api is assigned an unique id.
+
+After the pthread_create is executed successfully,the parent can get the thread id,but what if we want to know the id of the thread while it is in execution,this can be achieved by calling a function pthread_self()
+
+pthread_equal:
+Syntax: int pthread_equal(pthread_t t1, pthread_t t2);
+
+pthread_equal is used by the applications to compare two thread values.If two threads are equal, it returns a non zero value,otherwise it returns 0
+
+What is the difference between pthread_exit and pthread_join?
+
+pthread_exit() will terminate the thread that is called.If you call it from your main thread,the main thread is terminated and your spawned threads continue execution. So anything you write after pthread_exit in the main thread will not be execcuted.This will be useful in a scenario in which your main thread has to just spawn threads.
+
+pthread_join() will suspend the execution of the currently running thread until the particular thread you want is terminated,after that it resumes its execution.Useful where you have to wait until a particular thread completes its execution
+
+If you write exit or return in your main thread , the whole process is terminated,but if you write pthread-exit in your main thread only that particular thread terminates and remaining threads continue their execution.
+
+Theory7:
+Can you pass pointers to stack variables from one thread to another?
+=====================================================================
+
+Yes. However you need to be very careful about the lifetime of stack variables.
+
+Theory8:
+With every thread some resources are associated like stack  etc
+
+When a thread exits ideally these resources should be reclaimed by process automatically. But that doesn’t happens always. It depends on which mode thread is running.
+
+A Thread can run in two modes i.e.
+
+	Joinable Mode
+	Detached Mode
+
+By default a thread runs in joinable mode. Joinable thread will not release any resource even after the end of thread function, until some other thread calls pthread_join() with its ID.
+
+A Detached thread automatically releases it allocated resources on exit. No other thread needs to join it. 
+
+But by default all threads are joinable, so to make a thread detached we need to call pthread_detach() with thread id 
+
+$ valgrind --leak-check=full ./1

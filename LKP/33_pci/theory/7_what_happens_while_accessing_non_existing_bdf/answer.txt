@@ -1,0 +1,4 @@
+What happens if we try to read a PCI device(B/D/F) which doesn't exist?
+========================================================================
+
+When a configuration access attempts to select a device that does not exist, the host bridge will complete the access without error, dropping all data on writes and returning all ones on reads. 

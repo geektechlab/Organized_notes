@@ -1,0 +1,11 @@
+socketpair()
+===================
+For bidirectional communication you need to call bind(), listen() and so many.
+
+there's a beauty of a system call known as socketpair() this is nice enough to return to you a pair of already connected sockets! 
+
+The pair of sockets is unnamed; that is, they are not bound to a file path.
+
+No extra work is needed on your part; you can immediately use these socket descriptors for interprocess communication.
+
+If you want two separate programs to communicate (eg. you have an executable called client, and one called server), you can't use this mechanism.

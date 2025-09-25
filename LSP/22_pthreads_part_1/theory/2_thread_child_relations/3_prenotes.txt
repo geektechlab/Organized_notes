@@ -1,0 +1,1 @@
+if I want to pass more than one argument to thread function how can I accomplish that ?

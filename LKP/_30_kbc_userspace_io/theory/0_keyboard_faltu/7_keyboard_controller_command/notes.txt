@@ -1,0 +1,62 @@
+Keyboard Controller Commands:
+=============================
+
+Keyboard controller accepts commands and process them.
+
+To send a command to the controller, write the command byte to IO port 0x64
+
+	Arguments, if any, must be passed using address 0x60
+	Results are returned on port 0x60.
+	
+Always test the OBF ("Output Buffer Full") flag before writing commands or parameters to the 8042.
+
+0x20 (Read Command Byte) - Returns command byte
+0x60 (Write Command Byte) - Stores parameter as command byte
+
+AT Compatible
+=============
+	MSB					LSB
+	------------------------------------------
+	|- | XLAT | PC | _EN | OVR | SYS | - |INT|
+	------------------------------------------
+
+PS/2 Compatible
+==================	
+
+	--------------------------------------------
+	|- | XLAT |_EN2 | _EN |    | SYS |INT2 |INT|
+	--------------------------------------------
+
+INT (Input Buffer Full Interrupt) - When set, IRQ 1 is generated when data is available in
+the input buffer.
+	0: IBF Interrupt Disabled - You must poll STATUS<IBF> to read input.
+	1: IBF Interrupt Enabled - Keyboard driver at software int 0x09 handles input.
+
+SYS (System Flag) - Used to manually set/clear SYS flag in Status register.
+	0: Power-on value - Tells POST to perform power-on tests/initialization.
+	1: BAT code received - Tells POST to perform "warm boot" tests/initiailization.
+
+OVR (Inhibit Override) - Overrides keyboard's "inhibit" switch on older motherboards.
+	0:Inhibit switch enabled - Keyboard inhibited if pin P17 is high.
+	1: Inhibit switch disabled - Keyboard not inhibited even if P17 = high.
+
+_EN (Disable keyboard) - Disables/enables keyboard interface.
+	0: Enable - Keyboard interface enabled.
+	1: Disable - All keyboard communication is disabled.
+
+PC ("PC Mode") - ???Enables keyboard interface somehow???
+	0: Disable - ???
+	1: Enable - ???
+
+XLAT (Translate Scan Codes) - Enables/disables translation to set 1 scan codes.
+	0: Translation disabled - Data appears at input buffer exactly as read from keyboard
+	1: Translation enabled - Scan codes translated to set 1 before put in input buffer
+
+INT2 (Mouse Input Buffer Full Interrupt) - When set, IRQ 12 is generated when mouse
+data is available.
+	0: Auxillary IBF Interrupt Disabled -
+	1: Auxillary IBF Interrupt Enabled -
+
+_EN2 (Disable Mouse) - Disables/enables mouse interface.
+	0: Enable - Auxillary PS/2 device interface enabled
+	1: Disable - Auxillary PS/2 device interface disabled

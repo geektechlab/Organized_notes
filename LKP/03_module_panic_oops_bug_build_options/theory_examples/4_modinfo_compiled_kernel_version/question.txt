@@ -1,0 +1,6 @@
+How to find the version of a compiled kernel module?
+
+---------
+modinfo can be used for this.
+[ modinfo <.ko file> ]
+---------

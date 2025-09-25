@@ -1,0 +1,6 @@
+mprotect
+================
+
+int mprotect(void *addr, size_t len, int prot);
+
+mprotect()  changes the access protections for the calling process's memory pages containing any part of the address range in the interval [addr, addr+len-1].

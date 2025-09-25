@@ -1,0 +1,5 @@
+GCC specific syntaxes :
+
+ __attribute__((constructor)) syntax : This particular GCC syntax, when used with a function, executes the same function at the startup of the program, i.e before main() function.
+
+__attribute__((destructor)) syntax : This particular GCC syntax, when used with a function, executes the same function just before the program terminates through _exit, i.e after main() function.

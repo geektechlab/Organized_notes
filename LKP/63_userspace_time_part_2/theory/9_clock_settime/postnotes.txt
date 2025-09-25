@@ -1,0 +1,6 @@
+NTP Service status
+==================
+
+$ timedatectl status
+
+$ systemctl stop systemd-timesyncd.service

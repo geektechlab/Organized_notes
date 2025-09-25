@@ -1,0 +1,95 @@
+Theory0:
+CLOCK_BOOTTIME
+===============
+
+CLOCK_MONTONIC does not measure time spent in suspend, use CLOCK_BOOTTIME if you want to measure the time spend ins suspend also
+
+Theory1:
+CLOCK_MONOTONIC_RAW
+====================
+
+Similar to CLOCK_MONOTONIC, but provides access to a raw hardware-based time that is not  subject to NTP adjustments
+
+CLOCK_MONOTONIC_RAW would be relevant mainly to cases where more accurate time is wanted over very short intervals
+
+CLOCK_MONOTONIC would be preferable for longer-term timers measured in minutes, hours or days
+
+Theory2:
+CLOCK_REALTIME
+===============
+
+This clock represents the real time/wall time in the system
+used for timestamping as well as providing actual time to the user.
+Can be both stepped and slewed by time adjustment code (e.g., NTP)
+
+Theory3:
+CLOCK_PROCESS_CPUTIME_ID
+===========================
+
+Per-process CPU-time clock (measures CPU time consumed by all threads in the process).
+
+Useful for finding out whether your program is spending its total time in CPU or waiting for something else( a user input)
+
+Theory4:
+CLOCK_THREAD_CPUTIME_ID
+==========================
+
+Measures the amount of CPU time consumed by the thread.
+
+Theory5:
+clock_settime
+================
+
+The function clock_settime() sets the the time of the specified clock clk_id
+
+int clock_settime(clockid_t clk_id, const struct timespec *tp);
+
+NTP Service status
+==================
+
+$ timedatectl status
+
+$ systemctl stop systemd-timesyncd.service
+
+Theory6:
+clock_getres
+===============
+
+int clock_getres(clockid_t clk_id, struct timespec *res);
+
+The function clock_getres() finds the resolution (precision) of the specified clock clk_id.
+
+Theory7:
+times() system call
+======================
+
+#include <sys/times.h>
+
+clock_t times(struct tms *buf);
+
+The times system call gets the user time and system time used by the current process and its children.
+
+User time: Time spent by the process executing in user space
+
+System Time:  Time spent by the process executing in kernel space.
+
+struct tms {
+	clock_t tms_utime;  /* user time */
+	clock_t tms_stime;  /* system time */
+	clock_t tms_cutime; /* user time of children */
+	clock_t tms_cstime; /* system time of children */
+};
+
+All times reported are in clock ticks.
+
+The number of clock ticks per second can be obtained using
+
+sysconf(_SC_CLK_TCK);
+
+Theory8:
+Another option is getrusage
+
+$ man getrusage
+
+struct timeval ru_utime; /* user CPU time used */
+struct timeval ru_stime; /* system CPU time used */

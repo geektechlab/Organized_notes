@@ -1,0 +1,4 @@
+If i say echo "linux is the future" and strings /dev/mem | grep "linux is the future"? will it be present in RAM
+=================================================================================================================
+
+Yes

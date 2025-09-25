@@ -1,0 +1,27 @@
+Solution
+==========================
+
+    Problem goes if we modify our code
+
+
+Process A                                       Process B
+====================                            ========================
+
+    set_current_state(TASK_INTERRUPTIBLE);
+    if (list_empty(&mylist_head))               list_add_tail_rcu(&mylist_head);
+    {                                            wake_up_process(task_a);
+        
+        schedule();
+    }
+
+    //Rest of the Code which performs operation on list 
+
+How
+=======================================
+
+Whenever wake_up_process() is called on process whose state is TASK_INTERRUPTIBLE/TASK_UNINTERRUPTIBLE, and the process has not yet called schedule(), it changes the state to TASK_RUNNING.
+
+Even if the wake_up_process is called after list_empty, as the state is TASK_RUNNING, it will not put the process into sleep.
+
+------
+we can't spinlock because schedule will put process into sleep state. But can use semaphore but above solution is better.

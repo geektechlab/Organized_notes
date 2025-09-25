@@ -1,0 +1,29 @@
+When you log into your UNIX system, you provide a username and a password at the login prompt.
+
+The login(1) program looks up that username in a database and obtains your registered password.
+
+It encrypts the password you supply at login and compares it to the one that is registered.
+
+If they are equal, the login(1) program lets you pass in peace.
+
+Once you are logged in, however, you become just a number to the UNIX kernel. 
+
+This user ID number simplifies user and security management for the kernel.
+
+In addition to logging in with a user ID, you log in with a group ID.
+
+How to find out User ID Number of your user?
+===============================================
+
+To find out what user ID number you are, the id(1) command can be used:
+
+$ id
+uid=1000(panther2) gid=1000(panther2) groups=1000(panther2),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),108(lpadmin),124(sambashare)
+
+The id(1) command indicates that the user panther2 is user ID number 100 and is a member of group number 1000.
+
+The user and group names are shown in brackets. These were obtained by looking up the user ID and group ID numbers in the password and group file databases, respectively.
+
+----
+above informations are stored in inode and can be checked using [ stat <fielname> ]
+----

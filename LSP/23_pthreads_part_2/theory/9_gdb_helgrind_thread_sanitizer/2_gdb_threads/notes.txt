@@ -1,0 +1,43 @@
+Debugging Threads using gdb
+=============================
+
+How to List all active threads?
+“info threads”
+
+The currently active thread is denoted by GDB with the * symbol. 
+
+How to Switch between threads while debugging?
+===============================================
+
+In GDB, the thread command may be used to switch between threads. It takes a single parameter, the thread number returned by the info threads command. 
+
+(gdb) thread <Thread Number>
+(gdb) thread 2
+(gdb) thread 1
+
+Notification on Thread Creation
+===============================
+
+When GDB detects that a new thread is created, it displays a message specifying the thread's identification on the current system. 
+
+Setting Thread-Specific Breakpoints
+=====================================
+
+GDB allows users that are debugging multithreaded applications to choose whether or not to set a breakpoint on all threads or on a particular thread. 
+
+The general form of this instruction is: 
+
+break linespec thread threadnum
+
+break file.c:33 thread 7 if level > max_level
+
+Applying a Command to a Group of Threads
+========================================
+
+The thread command supports a single subcommand apply that can be used to apply a command to one or more threads in the application.
+
+The thread numbers can be supplied individually, or the special keyword all may be used to apply the command to all threads in the process,
+
+(gdb) thread apply all bt
+
+The GDB backtrace (bt) command is applied to all threads in the system.

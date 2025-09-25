@@ -1,0 +1,33 @@
+POSIX Named Semaphore calls
+=============================
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <semaphore.h>
+
+sem_t *sem_open (const char *name, int oflag);
+sem_t *sem_open (const char *name, int oflag, mode_t mode, unsigned int value);
+
+sem_open opens an existing semaphore or creates a new semaphore and opens it for further operations. 
+	The last parameter, value is the initial value for the semaphore.
+
+This pointer has to be used in the subsequent calls for the semaphore. 
+ If the call fails, sem_open returns SEM_FAILED and errno is set the appropriate error.
+
+Under Linux, POSIX semaphores are created under the /dev/shm directory.
+
+The semaphores are named with a prefix, sem. followed by the name passed in the sem_open call.
+
+sem_unlink
+============
+
+#include <semaphore.h>
+
+int sem_unlink (const char *name);
+
+sem_unlink removes the semaphore associated with the name.
+
+
+
+
+

@@ -1,0 +1,10 @@
+Write operation:
+----------------
+Writers must take out exclusive access before making changes to the protected data.
+
+write_seqlock(&the_lock);
+/* Make changes here */
+write_sequnlock(&the_lock);
+
+write_seqlock() locks the spinlock and increments the sequence number.
+write_sequnlock() increments the sequence number again, then releases the spinlock.

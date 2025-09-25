@@ -1,0 +1,230 @@
+Theory0:
+Can i write to jiffies?
+-------------------------
+yes, but
+The jiffies value is used internally by the scheduler, so bad things can happen modifying it
+
+Theory1:
+Timer Interrupt Processing
+------------------------------
+
+Constitutes of two parts
+	a) Architecture Dependent
+	b) Architecture Independent
+
+Architecture Dependent:
+-----------------------
+For x86: arch/x86/kernel/time.c (Interrupt Handler for PIT/HPET)
+
+/*
+ * Default timer interrupt handler for PIT/HPET
+ */
+static irqreturn_t timer_interrupt(int irq, void *dev_id)
+{
+        global_clock_event->event_handler(global_clock_event);
+        return IRQ_HANDLED;
+}
+
+This finally calls architecture independent code
+
+Architecture Independent:
+------------------------
+
+Code: kernel/time/tick-common.c (tick_handle_periodic, tick_periodic)
+
+It does the following:
+
+1. Increment jiffies64
+
+void do_timer(unsigned long ticks)
+{
+        jiffies_64 += ticks;
+        calc_global_load(ticks);
+}
+
+2. Update statistics for the currently running process and the entire system (load average)
+
+void update_process_times(int user_tick);
+
+3. Run dynamic timers
+
+4. Run scheduler_tick() (Update timeslices information)
+
+Theory2:
+Busy Waiting/Busy Looping
+--------------------------
+
+You can use jiffies to implement busy looping.
+
+Spin in a loop until the desired number of clock ticks/jiffies pass.
+
+Problem with this approach
+---------------------------
+
+The processor is tied up spinning in a silly loop—no useful work is accomplished!
+
+Better Solution
+----------------
+
+Reschedule your process to allow the processor to accomplish other work while your code waits
+
+while (time_before(jiffies, delay))
+	cond_resched();
+
+This solution conditionally invokes the scheduler only if there is some more important task to run
+
+Note: Cannot use it from an interrupt handler, only in process context
+
+Theory3:
+Jiffie Conversions
+---------------------
+
+User space programs represent time values with struct timeval and struct timespec
+
+The kernel exports four helper functions to convert time values expressed as jiffies to and from those structures
+
+Header File: #include <linux/time.h>
+
+unsigned long timespec_to_jiffies(struct timespec *value);
+void jiffies_to_timespec(unsigned long jiffies, struct timespec *value);
+unsigned long timeval_to_jiffies(struct timeval *value);
+void jiffies_to_timeval(unsigned long jiffies, struct timeval *value);
+
+Theory4:
+How are busy loops implemented?
+---------------------------------
+
+kernel provides three functions for microsecond, nanosecond, and millisecond delays, defined in <linux/delay.h> and <asm/delay.h>
+
+void udelay(unsigned long usecs); //delays execution by busy looping for specified number of microseconds
+void ndelay(unsigned long nsecs); //delays execution by busy looping for specified number of nanoseconds
+void mdelay(unsigned long msecs); //delays execution by busy looping for specified number of milliseconds
+
+We know,
+1 second = 1,000 milliseconds = 1,000,000 microseconds
+
+How is udelay implemented?
+----------------------------
+They cannot use jiffies, as jiffies provide resolution in millisecond
+
+On boot, kernel runs a function calibrate_delay() present in init/calibrate.c file
+
+This function calculates and prints the value of "BogoMips"
+
+BogoMips value is the number of busy loop iterations the processor can perform in a given period.
+
+This value is stored in the loops_per_jiffy variable
+
+$ cat /proc/cpuinfo | grep bogomips
+
+$ dmesg | grep -i bogo
+
+udelay() uses the loops_per_jiffy value to figure out how many busy loop iterations they need to execute to provide the required delay
+
+mdelay() is then implemented  in terms of udelay()
+
+Note: BogoMIPS have little to nothing to do with actual processor performance
+
+Theory5:
+What is the disadvantage of having periodic ticks/interrupts in linux kernel
+------------------------------------------------------------------------------
+
+The timer interrupts are good but has one major issue: Power consumption
+
+	With HZ option, kernel is interrupted HZ times per second in order to reschedule tasks
+	If HZ is set to 1000, there will be 1000 timer interrupts per second
+	This timer tick happens periodically irrespective of the processor state (idle vs busy)
+	If the processor is idle, it has to wake up from its power saving sleep state every 1ms (if HZ=1000)
+	Thus power consumption is increased.
+
+Theory6:
+Dynamic Ticks/Tickless
+----------------------
+
+Tickless/Dynamic Ticks is designed to solve the problem.
+
+In this case, kernel will program timers to only fire when necessary
+
+Kernel sets timers up to fire at varying intervals depending on its requirements
+
+Fewer interrupts means fewer wakeups, which means idle CPU's can be kept in low-power modes for longer periods, which saves energy
+
+This feature significantly improves battery life in laptops
+
+Theory7:
+There are three main ways of managing scheduling-clock interrupts (clock ticks/ticks)
+-------------------------------------------------------------------------------------
+
+1. Never omit scheduling-clock ticks
+	CONFIG_HZ_PERIODIC=y or
+	CONFIG_NO_HZ=n (on older CPUs)
+
+2. Omit ticks on Idle CPUs
+	CONFIG_NO_HZ_IDLE=y or
+	CONFIG_NO_HZ=n (on older CPUs)
+	Most common approach, should be default
+
+3. Omit ticks on CPUs that are idle or that have only one runnable task
+	CONFIG_NO_HZ_FULL=y
+	Useful for real time application
+
+Theory8:
+CONFIG_HZ_PERIODIC=y
+-------------------------
+
+	Used by older versions from 1990s to 2000s
+
+Which scenarios this approach is useful?
+------------------------------------------
+
+	heavy workloads with lots of tasks that use short bursts of CPU
+	where there are very frequent idle periods
+	but where these idle periods are also quite short (tens or hundreds of microseconds).
+
+Which scenarios this approach is not useful?
+--------------------------------------------
+
+	running a light workload with long idle periods
+	scheduling-clock interrupts will result in excessive power consumption
+	bad on battery-powered devices, where it results in extremely short battery lifetimes
+
+	if you are running either a real-time workload or an HPC workload with short iterations
+	the scheduling-clock interrupts can degrade your applications performance.
+
+Theory9:
+CONFIG_NO_HZ_IDLE=y
+-------------------
+
+Primary purpose of clock interrupt is to force a busy CPU to shift its attention among multiple duties
+
+If a CPU is idle, there is little point in sending it a scheduling-clock interrupt
+
+The CONFIG_NO_HZ_IDLE=y Kconfig option causes the kernel to avoid sending scheduling-clock interrupts to idle CPUs
+
+Advantage:
+--------------
+	A battery-powered device running a CONFIG_HZ_PERIODIC=y kernel would drain its battery very quickly, easily 2-3 times as fast as would the same device running a CONFIG_NO_HZ_IDLE=y kernel.
+
+Problems with this approach:
+----------------------------
+
+1. It increases the number of instructions executed on the path to and from the idle loop.
+2. On many architectures, dyntick-idle mode also increases the 	number of expensive clock-reprogramming operations.
+
+Theory10:
+CONFIG_NO_HZ_FULL=y
+--------------------
+
+If a CPU has only one runnable task, there is little point in sending it a scheduling-clock interrupt because there is no other task to switch to.
+
+Note that omitting scheduling-clock ticks for CPUs with only one runnable task implies also omitting them for idle CPUs.
+
+Adaptive-ticks CPU
+------------------
+
+	kernel avoiding sending scheduling-clock interrupts to CPUs with a single runnable task are called adaptive-tick cpu
+
+Advantage for
+--------------
+
+	applications with aggressive real-time response constraints because it allows them to improve their worst-case response times by the maximum duration of a scheduling-clock interrupt

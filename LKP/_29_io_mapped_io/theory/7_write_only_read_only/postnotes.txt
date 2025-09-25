@@ -1,0 +1,8 @@
+Why is the value read not the same as what is written?
+=====================================================
+
+request_region is a book keeping routine, to keep track of which drivers are using which ports addresses.
+
+A single port don't have to be readable and at the same time writeable.
+
+Port can be read-only or write-only 

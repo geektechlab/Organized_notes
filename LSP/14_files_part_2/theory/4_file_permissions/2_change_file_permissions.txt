@@ -1,0 +1,25 @@
+File Permissions
+=========================
+
+The chmod command is used to alter the permissions of a file.
+
+There are 2 ways to use the chmod command:
+
+
+Method #1: Relative method
+=============================
+
+Using characters to add (+), remove (-) or set (=)
+
+Permissions for user(u), same group members(g), other group members(o), or all (i.e. ugo).
+
+(e.g. chmod g+rw filename, chmod go=rx filename, chmod u+x,g=x filename )
+
+Method #2: Absolute method
+==========================
+
+Using octal numbers as a shortcut to represent permissions set for user, group and others.
+
+(eg. chmod 755 filename, chmod 644 filename )
+
+The Absolute chmod command is a convenient “short-cut” to changing file and directory access permissions provided that you are comfortable converting octal and binary numbers.

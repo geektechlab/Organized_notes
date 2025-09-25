@@ -1,0 +1,6 @@
+What is the expected output of the program?
+Ans: 2*loops
+
+If you say the above answer it is wrong, because the increment is not an atomic operation. Increment when converted to assembly will not be in single instruction.Hence the difference
+
+One way to solve is to make increment atomic. This can be done by using atomic operator provided by GNU.

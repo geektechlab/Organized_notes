@@ -1,0 +1,16 @@
+How to find out what wait channels processes are waiting on?
+============================================================
+
+$ ps -l (to see processes associated with the current shell)
+
+$ ps -el (to see all processes on the system)
+
+ If a process is in Sleep state, the WCHAN field shows the system call that the process is waiting on
+
+WCHAN(Wait Channel) - name of the kernel function in which the process is sleeping
+
+State:
+======
+ D    uninterruptible sleep (usually IO)
+
+ S    interruptible sleep (waiting for an event to complete)

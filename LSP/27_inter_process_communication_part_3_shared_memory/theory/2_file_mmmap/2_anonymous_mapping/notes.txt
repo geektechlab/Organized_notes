@@ -1,0 +1,8 @@
+Anonymous Mapping
+=====================
+
+MAP_ANONYMOUS
+
+	The mapping is not backed by any file;
+	its contents are initialized to zero.
+	The fd and offset arguments are ignored;

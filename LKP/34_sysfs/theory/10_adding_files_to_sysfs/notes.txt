@@ -1,0 +1,41 @@
+Adding Files to sysfs
+======================
+
+kobjects map to directories, what about files?
+
+Attributes map kernel data to files in sysfs
+
+Header File: <linux/sysfs.h>
+
+struct attribute {
+        const char              *name;
+        umode_t                 mode;
+};
+
+name --> will be the file name of the resulting file in sysfs
+mode --> permissions of the file in sysfs
+
+A bare attribute contains no means to read or write the value of the attribute. 
+
+struct kobj_attribute {
+        struct attribute attr;
+        ssize_t (*show)(struct kobject *kobj, struct kobj_attribute *attr,
+                        char *buf);
+        ssize_t (*store)(struct kobject *kobj, struct kobj_attribute *attr,
+                         const char *buf, size_t count);
+};
+
+When an attribute is opened, a PAGE_SIZE buffer is allocated for transferring the data between the kernel and userspace
+
+show(): Invoked when the sysfs entry is read from user space.
+        It should copy the value of attribute given by attr into buffer(third argument)
+        size of buffer is PAGE_SIZE
+        Return Value:
+                Success, Number of bytes written
+                Negative error code on Failure
+
+store(): Read the size bytes from the buffer into the variable represented by attribute attr.
+        size of buffer is PAGE_SIZE or less
+        Return Value:
+                Success, Number of bytes read
+                Negative error code on Failure

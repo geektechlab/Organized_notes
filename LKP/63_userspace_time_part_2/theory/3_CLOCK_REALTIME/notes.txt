@@ -1,0 +1,6 @@
+CLOCK_REALTIME
+===============
+
+This clock represents the real time/wall time in the system
+used for timestamping as well as providing actual time to the user.
+Can be both stepped and slewed by time adjustment code (e.g., NTP)

@@ -1,0 +1,6 @@
+int sem_trywait(sem_t *sem);
+
+sem_trywait() is the same as sem_wait(), except that if the decrement cannot be  immediately  performed
+
+then call returns an error (errno set to EAGAIN) instead of blocking.
+

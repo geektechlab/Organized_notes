@@ -1,0 +1,148 @@
+% Document class and font size
+\documentclass[a4paper,9pt]{extarticle}
+
+% Packages
+\usepackage[utf8]{inputenc} % For input encoding
+\usepackage{geometry} % For page margins
+\geometry{a4paper, margin=0.75in} % Set paper size and margins
+\usepackage{titlesec} % For section title formatting
+\usepackage{enumitem} % For itemized list formatting
+\usepackage{hyperref} % For hyperlinks
+\usepackage[misc]{ifsym}
+\usepackage{bbding}
+\usepackage{fontawesome5}
+\usepackage{setspace}
+\usepackage{hyperref}
+\usepackage{times}
+\usepackage{tabularray}
+\usepackage{tabu}
+\usepackage{booktabs}% for better rules in the table
+\usepackage{tabularx}
+
+% Formatting
+\setlist{noitemsep} % Removes item separation
+\titleformat{\section}{\large\bfseries}{\thesection}{1em}{}[\titlerule] % Section title format
+\titlespacing*{\section}{0pt}{\baselineskip}{\baselineskip} % Section title spacing
+
+% Begin document
+\begin{document}
+
+% Disable page numbers
+\pagestyle{empty}
+
+% Header
+\begin{center}
+\textbf{\Huge Pranjal Arya}\\[2pt] % Name
+\Phone \, (+91)7874949772 $|$ \Letter \,
+\href{mailto:99aryapranjal@gmail.com}{pranjal99arya@gmail.com} $|$ \faLinkedin \, \href{https://www.linkedin.com/in/pranjalarya}{LinkedIn} $|$ \faGithubSquare \, \href{https://github.com/prnjl99}{GitHub} $|$ \faMapMarker \, Hyderabad, India
+\end{center}
+
+% Skills Section
+\section*{Skills}
+\begin{itemize}
+    \item \textbf{Languages:} C, ARM assembly. % Languages
+    \item \textbf{Protocols / Device drivers:} PCIe ( SR-IOV ), USB, SD card, SDIO, UART, SPI, and I2C. % Protocols
+    \item \textbf{Processor:} ARM Cortex v7 and v8 based SoCs. % Processor/SoC
+    \item \textbf{Tools:} Git, GDB, Saleae analyzer, SEGGER SystemView. % Software skills
+    \item \textbf{Miscellaneous:} Linux, FreeRTOS, TrustZone for Cortex-M. % Software skills
+\end{itemize}
+
+% Skills Section
+\section*{Open source contribution}
+\href{https://github.com/Infineon/cy-mbedtls-acceleration/releases?page=2}{\faGithubSquare \ MbedTLS: cryptographic hardware acceleration library}
+
+% Experience Section
+\section*{Experience}
+\noindent
+\textbf{Qualcomm, Hyderabad} \\
+\indent Member of a core team responsible for the development of a complete PCIe software stack for Qualcomm custom SoCs.
+\begin{itemize}
+\item \textbf{Senior Software Engineer} \hfill \textbf{May 2024 - Present} % Company name and location
+\begin{itemize}
+        \item Developed PCIe Gen 5.0 endpoint driver from scratch to enable custom Qualcomm multi-core SoC based on Arm v8 cores.
+        \item Enabled SR-IOV to enable multiple virtual machines on the host.
+        \item Enabled MHI transport layer protocol over PCIe 5x16 link to communicate with Linux host running KMD drivers.
+        \item Contributed to features that resulted in 8\% performance and 14\% power enhancement of the overall link.
+\end{itemize}
+\end{itemize}
+\textbf{Infineon Technologies, Bangalore} \\
+\indent Member of the team responsible for the development of Device drivers, middleware \& firmware for Infineon PSoC MCUs.
+\begin{itemize}
+\item \textbf{Senior Software Engineer} \hfill \textbf{April 2023 - April, 2024} % Company name and location
+\begin{itemize}
+    \item Participated in code review and helped new team members ramp up.
+    \item Device drivers, firmware \& bring-up:
+    \begin{itemize}
+        \item Performed pre- and post-silicon bring-ups on various ARM Cortex-M4 and M33 based SoC.%
+        \item Developed firmware and BSP for upcoming PSoC6 SoC using different toolchains.
+        \item Ensured smooth integration of delivered assets to middlewares, RTOS.%such as boot code, wifi stack, etc. SVC handler corruption issue in by secure linker script causing RTOS start failure
+    \end{itemize}
+\end{itemize}
+\item \textbf{Software Engineer} \hfill \textbf{July 2020 - March 2023} % Company name and location
+    \begin{itemize}
+    \item Device drivers:
+        \begin{itemize}
+            \item Designed and developed features for USB 2.0, SD Card, SDIO, UART, SPI, I2C, and GPIO device drivers.
+            \item Analyzed critical issues reported by customers and internal teams and provided fixes.
+        \end{itemize}
+    \item Middleware:
+    \begin{itemize}
+        \item Involved in USB - HID middleware development.% Job responsibilities and achievements
+        \item Upgraded cryptographic hardware acceleration to enable MbedTLS release in public \href{https://github.com/Infineon/cy-mbedtls-acceleration/releases?page=2}{GitHub} ( https://bit.ly/prarya ).
+    \end{itemize}
+    \item BSP and CI: Created scripts and makefiles to automate build and basic sanity testing. Integrated this framework in CI using Git.
+\end{itemize}
+\end{itemize}
+\begin{itemize}
+\item \textbf{Intern} \hfill \textbf{January 2020 - June 2020} % Company name and location
+\begin{itemize}
+    \item Internship project: Unified device drivers to generate a common library to enable a family of PSoC6 devices from a single source. % Job responsibilities and achievements
+\end{itemize}
+\end{itemize}
+
+% Education Section
+\section*{Education}
+\noindent
+\textbf{B.Tech.} ( Electronics \& Communication Engineering ) - {\small Nirma University, Ahmedabad}\hfill CPI: \textbf{8.24} $|$ 2016 - 2020% University name and location
+\\ \textbf{HSC} \hfill \textbf{88.9\%} $|$ 2016% University name and location
+\\ \textbf{SSC} \hfill \textbf{89.7\%} $|$ 2014% University name and location
+
+% Projects Section
+\section*{Projects}
+\noindent
+\begin{itemize}
+\item \textbf{Custom Real-Time Operating System development from scratch} \hfill \faGithubSquare \, \href{https://github.com/prnjl99/Real-Time-Operating-System-development-from-scratch}{GitHub project link}\\ % Project name and location
+Developed a custom RTOS kernel and added support for Cortex-M architecture with the following features:
+\begin{itemize}
+\item Round-Robin scheduler.
+\item Heap memory manager supporting aligned memory allocation and reporting maximum memory usage statistics. % memory fragmentation addressing
+\item Spinlock and semaphore support for synchronization.
+\item Mailbox for communication.
+\end{itemize}
+\item \textbf{Custom bootloader} \hfill \faGithubSquare \, \href{https://github.com/prnjl99/Custom-Bootloader}{GitHub project link}\\ % Project name and location
+Developed a custom bootloader for STM32L476RG MCU with the following features:
+\begin{itemize}
+\item Host application in PC interacts with a custom bootloader over UART.
+\item Can maintain version information and update application firmware using an A/B swap mechanism.
+\item Integrated a secure boot mechanism to verify the authenticity of the firmware image.
+% secure boot mechanism using RSA and HMAC
+\end{itemize}
+\item \textbf{CPU Faults on Arm Cortex-M} \hfill \faGithubSquare \, \href{https://github.com/prnjl99/CPU-Faults-on-Arm-Cortex-M}{GitHub project link}\\ % Project name and location
+To understand ARM processor internals, generated various Arm Cortex-M4 system exceptions using software on
+TM4C123GXL Tiva C series MCU. Wrote a fault handler to dump the processor status over debug prints.
+\end{itemize}
+
+% Awards Section
+% YIP
+% SPOT Award
+\section*{Awards}
+\noindent
+\begin{itemize}
+\item \textbf{Global Spot Award} \hfill Infineon Technologies, January 2023\\ % Project name and location
+Awarded for significant contribution to device driver library development.% Project link and duration
+\\ \item \textbf{YIP Award ( Infineon Idea Management Program )} \hfill Infineon Technologies, February 2023\\ % Project name and location
+Awarded to a team of 2 members for internal framework improvement resulting in a 40\% cost reduction.% Project link and duration
+\end{itemize}
+
+% End document
+\end{document}

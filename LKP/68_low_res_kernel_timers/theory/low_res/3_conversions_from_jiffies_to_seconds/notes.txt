@@ -1,0 +1,16 @@
+Conversions from jiffies to seconds/nanoseconds
+-----------------------------------------------
+
+struct timeval {
+	time_t tv_sec; /* seconds */
+	suseconds_t tv_usec; /* microseconds */
+};
+
+struct timespec {
+	time_t tv_sec; /* seconds */
+	long tv_nsec; /* nanoseconds */
+};
+
+The timeval_to_jiffies and jiffies_to_timeval functions are used to convert between this representation and a jiffies value
+
+Header File: <timer.h>

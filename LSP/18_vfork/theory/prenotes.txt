@@ -1,0 +1,38 @@
+Running a New Process
+=======================
+
+In Linux, the act of loading into memory and executing a program image is separate from the act of creating a new system process.
+
+One system call loads a binary program into memory, replacing the previous contents of the address space, and begins execution of the new program. This is called executing a new program. Provided by exec family of calls.
+
+Act of creating a new processs is called forking, and this functionality is provided by fork() system call
+
+There is no single exec function; instead there is a family of exec functions 
+
+Header File: #include <unistd.h>
+
+int execl(const char *path, const char *arg, ...);
+int execlp(const char *file, const char *arg, ...);
+int execle(const char *path, const char *arg,
+                ..., char * const envp[]);
+int execv(const char *path, char *const argv[]);
+int execvp(const char *file, char *const argv[]);
+int execvpe(const char *file, char *const argv[],
+                char *const envp[]);
+
+The process ID does not change across an exec, because a new process is not created; exec merely replaces the current process — its text, data, heap, and stack segments — with a brand-new program from disk.
+
+The base of each is exec (execute), followed by one or more letters which defines meaning of each call:
+
+e – An array of pointers to environment variables is explicitly passed to the new process image.
+
+l – Command-line arguments are passed individually (a list) to the function. You must include NULL after your last
+   parameter.:
+
+p – Uses the PATH environment variable to find the file named in the file argument to be executed.
+
+v – Command-line arguments are passed to the function as an array (vector) of pointers.
+
+In Linux, only one member ( execve ) of the exec family is a system call. The rest are wrappers in the C Library around the system call (execve). This was done beacuse
+1. Variadic System Calls would be difficult to implement
+2. Concept of user's path exist in user space 

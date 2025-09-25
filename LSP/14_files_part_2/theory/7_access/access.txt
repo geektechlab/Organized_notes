@@ -1,0 +1,24 @@
+As we described earlier, when we open a file, the kernel performs its access tests based on the effective user and group IDs.
+
+Sometimes, however, a process wants to test accessibility based on the real user and group IDs.
+
+This is useful when a process is running as someone else, using either the set-user-ID or the set-group-ID feature
+
+The access and faccessat functions base their tests on the real user and group IDs.
+
+#include <unistd.h>
+int access(const char *pathname, int mode);
+int faccessat(int fd, const char *pathname, int mode, int flag);
+
+mode Description
+R_OK test for read permission
+W_OK test for write permission
+X_OK test for execute permission
+
+The mode is either the value F_OK to test if a file exists
+
+The faccessat function behaves like access when the pathname argument is absolute or when the fd argument has the value AT_FDCWD and the pathname argument is relative
+
+Otherwise, faccessat evaluates the pathname relative to the open directory referenced by the fd argument.
+
+The flag argument can be used to change the behavior of faccessat . If the AT_EACCESS flag is set, the access checks are made using the effective user and group IDs of the calling process instead of the real user and group IDs

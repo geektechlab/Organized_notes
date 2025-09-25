@@ -1,0 +1,21 @@
+Second Problem with select
+===========================
+
+How many file descriptors should fd_set be able to hold?
+
+Ideally, it should be able to hold as many file descriptors as a process can have open.
+
+$ ulimit -a
+
+Traditionally, Linux allowed only 1,024 file descriptors per process, so this was reasonable.
+
+FD_SETSIZE: macro is the maximum number of file descriptors that a fd_set object can hold information about.
+
+From man page of select
+========================
+
+select() can monitor only file descriptors numbers that are less than FD_SETSIZE.
+
+Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+
+See Bugs section of select man page.

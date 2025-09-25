@@ -1,0 +1,17 @@
+Little issue while waking
+============================
+
+	Processes which are blocked/sleeping using wait_event() are moved to running state using wake_up().
+
+	Scheduler will run them in future. There is no guarantee when these waking-up processes will be allocated
+	CPU time nor in what order
+
+	The above can happen to multiple processes at the same time, if they are non-exclusive.
+
+	Once woken up, there is no guarantee that the condition which the process is waiting for using wait_event() is true.
+
+	That is if the process was waiting for condition = 1 after waking up, this may not be true.
+
+	Another process in the wait queue can change the condition = 0 after they woke up.
+
+	So, the waking processes needs to check the state of the condition after waking up and act accordingly.

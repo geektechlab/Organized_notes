@@ -1,0 +1,12 @@
+Per-thread signal masks
+============================
+
+Like a traditional process, a thread has a signal mask that indicates which asynchronous signals it's willing to handle (these are considered unblocked) and which ones it's not (these are considered blocked). 
+
+threads inherit the signal mask of the thread that issued the pthread_create that created them.
+
+Use the pthread_sigmask call to block and unblock signals in the mask. 
+
+When an asynchronously generated signal arrives at a process, it is handled once by exactly one thread in the process. 
+
+The system selects this thread by referring to the collection of per-thread signal masks of all the threads.  If more than one thread has the signal unblocked, the system arbitrarily selects one of them.

@@ -1,0 +1,139 @@
+Theory0:
+Linux Kernel: Linux Kernel is a result of collaborative development efforts from developers across the globe.
+
+Small incremental changes also known as patches add
+	a) new features
+	b) make enhancements
+	c) fix bugs
+
+How frequent are Linux Kernel Releases?
+A new release of Linux kernel happens every 2 to 3 months. Releases are time based rather than feature based. That means releases are not held up for features.
+
+Theory1:
+Developers, Maintainers in Linux Kernel:
+Most parts of the kernel have an associated maintainer. The maintainer is the individual (or individuals) who is in charge of specific parts of the kernel.
+
+Example:
+1. Each individual driver has an associated maintainer
+2. Each Kernel subsystem for example networking subsystem also has an associated maintainer. Subsystems may have multiple maintainers..
+Examples of subsystems:
+	a) Memory Management
+	b) Networking
+	c) scheduling
+	d) USB
+	e) PCI
+
+These maintainers decide which patch goes to the mainline kernel. The maintainer for a specific driver or subsystem is usually listed in the file MAINTAINERS, which is also located in the root of the kernel source tree. There is a special type of maintainer known as the kernel maintainer. This individual actually maintains the kernel tree.
+
+[ vi MAINTAINERS ] has list of maintainers in Linux.
+
+Theory2: What is Linux Kernel Tree?
+The Linux Kernel source-tree is a directory which contains all of the kernel source. You could build a new kernel, install that, and reboot your machine to use the rebuilt kernel. There are several main and susbsystem git repositories of Linux Trees.
+
+https://git.kernel.org/pub/scm/linux/kernel/git/
+
+The above link lists all the trees present.
+
+Mainline Kernel Tree: Maintained by Linus Torvalds. This is the tree where Linux releases mainline kernels and RC releases.
+
+Stable Tree: Maintained by Greg Kroah-Hartman. This tree consists of stable release branches. Stable releases are based on this tree.
+
+linux-next Tree: Maintained by Stephen Rothwell. Before updates from subsystem trees are merged into the mainline tree, they need to be integration-tested. This tree is used for integration testing.
+
+Staging Tree: Used to hold stand-alone drivers and filesystems that are not ready to be merged into main portion of
+Linux Kernel tree at this point due to coding standards or quality issues. Resolves the "hundreds of different download sites" problem that most out-of-tree drivers had in past.
+
+Location: drivers/staging folder
+
+the linux-next tree contains the latest version of the staging tree
+
+Theory3: Submitting Patches: The development process itself happens entirely over emails.  Every kernel subsystem has a mailing list. Patches touching a specific driver/subsystem are sent to the maintainer listed in MAINTAINER. The MAINTAINER file consists of subsystem git information and mailing lists for each of the subsystem. Contributors send patches to mailing lists through email.
+
+While sending the patch, carbon copy (cc) to  linux-kernel@vger.kernel.org (Linux Kernel Mailing List)
+Subject of the mail: "[PATCH] brief description"
+Body of the mail: Technical details of your changes patch makes and reasons behind those changes
+Add Kernel version to the email.
+Attach the patch as plain text.
+Note: If your patch is large or contains several logical changes, you should break the patch into chunks with each chunk representing a logical change.
+Each Email should send one patch.
+
+Theory4:
+Linux Kernel Release Cycle:
+1. Linus Torvalds releases a new kernel and opens a 2-week merge window.
+2. Subsystem maintainers collects patches ahead of time and send them to Linus during this merge window.
+3. Nearly 10,000 patches get pulled into linus's tree during these 2 weeks.
+4. At the end of two weeks Linus declares the merge window has closed ande releases the first release candidate known as rc1.
+5. At this point, the release cycle moves into a bug fixes-only mode, with a series of release candidate(rc) from Linus.
+6. Every week a new rc is released with the name 5.12.rc1, 5.12.rc2, and so on.
+7. Finally after the end of these rc weeks the kernel is stable and ready for release as version 5.12.
+8. The whole development is a matter of 10-12 weeks and we get a new version in every three months.
+
+References: https://www.kernel.org/doc/html/latest/process/2.Process.html
+
+Theory5:
+Types of Releases:
+1. Prepatch/RC:
+	Mainline kernel pre-releases
+	Contains new features which must be tested before they can put into a stable release
+	Maintained and released by Linus Torvalds
+	https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/refs/tags?h=v5.4-rc6
+2. Mainline:
+	Maintained by Linus Torvalds
+	Tree where all the new features are introduced.
+	New mainline kernels are released every 2-3 months
+3. Stable:
+	After each mainline kernel is released, it is considered "stable."
+	Any bug fixes for a stable kernel are backported from the mainline tree and applied by a designated stable kernel maintainer.
+	Stable kernel updates are released on as-needed basis, usually once a week.
+	There are usually only a few bugfix kernel releases until next mainline kernel becomes available
+4. LongTerm:
+	Stable releases are selected for long term maintenance to provide critical bug fixes for older kernel trees
+	https://www.kernel.org/category/releases.html
+
+How long the stable kernels are maintained? Stable kernels are maintained for as long as the current development cycle is happening. After Linus releases a new kernel, the previous stable kernel release tree is stopped and users must move to the newer released kernel.
+
+Theory6:
+Need for Long Term Kernel release model: Many different users of Linux wanted a kernel to be supported for longer than just a few months.
+
+How a long term kernel is selected ? Originally it was merely based on what kernel the stable maintainer’s employer was using for their product (2.6.16.y and 2.6.27.y)
+
+Current Selection: Last kernel of the year is selected as LTS
+
+Theory7:
+Linux Kernel Releases: Linux Kernel Release Dates by version number along with changes are present in
+https://kernelnewbies.org/LinuxVersions
+
+Linux Versioning:
+Mainline Kernels: x.y
+Stable Kernels: x.y.z
+
+Which Kernel to use (According to priority):
+Supported kernel from your favorite Linux distribution
+Latest stable release
+Latest LTS release
+Older LTS release that is still being maintained
+
+http://kroah.com/log/blog/2018/08/24/what-stable-kernel-should-i-use/
+
+Thoery8:
+Where to find the kernel sources ? All of the source code for the Linux kernel can be found on one of the kernel.org. http://www.kernel.org site shows all of the current kernel versions for the various different kernel trees. Linus tree is present at https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/
+
+Fetching the mainline sources:
+$ mkdir linux_mainline
+$ cd linux_mainline/
+$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/
+
+Fetching the stable kernel sources:
+$ mkdir linux_stable
+$ cd linux_stable/
+$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+
+Theory9:
+Distribution Kernels:
+Many Linux distributions provide their own "longterm maintenance" kernels that may or may not be based on those maintained by kernel developers. These kernel releases are not hosted at kernel.org and kernel developers can provide no support for them.
+
+How to find out whether my kernel is a distribution kernel or not ? Unless you downloaded, compiled and installed your own version of kernel from kernel.org, you are running a distribution kernel.
+# uname -r
+5.0.0-32-generic
+
+If you see anything at all after the dash, you are running a distribution kernel.

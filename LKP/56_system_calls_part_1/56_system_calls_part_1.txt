@@ -1,0 +1,333 @@
+Theory0:
+What is System Call
+--------------------
+
+System calls provide userspace processes a way to request services from the kernel.
+
+	or
+
+It is a way of requesting the kernel to do something on your behalf
+
+What kind of services?
+----------------------
+Services which are managed by operating system like storage, memory, network, process management etc.
+
+Examples of Kernel Service
+1. Write/read file
+2. Listen for connections on a socket
+3. Create/Delete directory
+4. creating and executing new processes,
+
+On Unix systems, the C library provides wrapper around these system calls
+
+What happens inside a system call
+----------------------------------
+
+A kernel code snippet is run on request of a user process.
+
+This code runs in ring 0 (with current privilege level -CPL- 0), which is the highest level of privilege in x86 architecture.
+
+All user processes run in ring 3 (CPL 3).
+
+To implement system call mechanism, we need 
+1) a way to call ring 0 code from ring 3 and 
+2) some kernel code to service the request.
+
+Theory1:
+Why can't the application directly access hardware, why do we need system calls?
+---------------------------------------------------------------------------------
+
+Advantage of having system calls:
+
+	1. Makes programming easier by freeing users from studying low-level programming characteristics of hardware devices
+
+	2. It greatly increases system security, because kernel can check the accuracy of the request at the interface level before attempting to satisfy it.
+
+Theory2:
+CPL
+------------
+
+This is the privilege of the currently executing code. Last two bits of CS register are considered as CPL.
+
+Inter-segment calls, jumps, external interrupts, exceptions, task switching etc. operations can change the CS register contents thus, the privilege of currently executing code.
+
+CS --- Code segment
+
+Theory3:
+Difference between System Call and Function Call
+--------------------------------------------------
+
+System call code is run inside kernel, program has to switch from user mode into kernel mode.
+        Switching to kernel mode can happen in different ways (eg. via syscall)
+
+Special instructions are needed to make the processor perform a transition to ring 0 (privileged mode)
+
+System call is identified by a system call number rather than function address
+
+Theory4:
+System Call Number
+-----------------
+
+Each and every system call has a system call number which is known by both the userspace and the kernel.
+
+Example: read() has a system call number 3, open() has system call number 5
+
+System call number is different for different architectures.
+
+Example: exit() has a system call number 60 on x86_64 and 1 on x86
+
+System Call Table
+------------------
+
+Kernel uses a table which maps the system call number to system call handler
+This table is called as System Call Table.
+
+Location of System Call Table
+------------------------------
+
+For x86: arch/x86/entry/syscalls/syscall_32.tbl
+x86_64:  arch/x86/entry/syscalls/syscall_64.tbl
+arm:	 arch/arm/tools/syscall.tbl
+
+Theory5:
+Passing Parameters
+--------------------
+
+Like ordinary functions, system calls often require some input/output parameters.
+
+Parameters of ordinary C functions are usually passed by writing their values in the active program stack
+
+Because system calls are a special kind of function that cross over from user land to kernel land, neither the user mode or kernel mode stack can be used.
+
+Rather, system call parameters are written in the CPU registers before issuing the system call.
+
+The kernel then copies the parameters stored in the CPU registers on to the kernel mode stack before invoking the system call service routine.
+
+By ABI convention, 
+
+On x86
+	register %eax contains the syscall number
+	registers %ebx, %ecx, %edx, %esi, %edi, and %ebp contain up to six arbitrary arguments
+	instruction to switch: int $0x80
+	return value: %eax
+
+On x86_64
+	register rax contains the syscall number
+	registers rdi, rsi, rdx, rcx, r8 and r9 are used for arguments
+	instruction: syscall
+	return value: rax
+
+Theory6:
+On Linux, there are several ways to make a system calls
+
+-------
+through software interrupt
+-------
+
+int $0x80
+------------
+
+Until some time back, linux used to implement system calls on all x86 platforms using software interrupts
+
+To execute a system call user process will 
+	copy desired system call number to %eax
+	copy parameters if present into registers as per ABI
+	execute int $0x80
+	return value is read from %eax
+
+This will generate interrupt 0x80 and an interrupt service routine will be called.
+
+What happens in kernel space at int $0x80
+------------------------------------------
+
+x86 trap is registered for 0x80 in function idt_setup_traps(). File:arch/x86/kernel/idt.c
+
+/* this sets up interrupt descriptor table */
+void __init idt_setup_traps(void)
+{
+        idt_setup_from_table(idt_table, def_idts, ARRAY_SIZE(def_idts), true);
+}
+
+static const __initconst struct idt_data def_idts[] = {
+....
+....
+        SYSG(IA32_SYSCALL_VECTOR,       entry_INT80_32)
+};
+
+IA32_SYSCALL_VECTOR is simply a define for the number 128 (0x80)
+#define IA32_SYSCALL_VECTOR             0x80
+
+So, the function entry_INT80_32 is called (arch/x86/entry/entry_32.S)
+
+----
+description of entry_INT80_32 function from previous note
+----
+
+entry_INT80_32
+---------------
+
+Arguments:
+ eax  system call number
+ ebx  arg1
+ ecx  arg2
+ edx  arg3
+ esi  arg4
+ edi  arg5
+ ebp  arg6
+
+stores the values of the registers on the stack
+call do_int80_syscall_32
+registers are restored
+call iret               //#define INTERRUPT_RETURN iret
+
+void do_int80_syscall_32(struct pt_regs *regs)
+{
+        enter_from_user_mode();
+        local_irq_enable();
+        do_syscall_32_irqs_on(regs);
+}
+
+Activates the interrupt
+Calls another function which gets a function from syscall table and calls it with syscall arguments.
+                regs->ax = ia32_sys_call_table[nr](
+                        (unsigned int)regs->bx, (unsigned int)regs->cx,
+                        (unsigned int)regs->dx, (unsigned int)regs->si,
+                        (unsigned int)regs->di, (unsigned int)regs->bp);
+
+Theory7:
+Problems with int $0x80
+------------------------
+
+As, it uses software interrupt, this is slow. Because it has to find ISR and execute it and return back. It will involve lot of switching.
+
+Theory8:
+Fast System Calls
+------------------
+
+An interrupt is extremely expensive, especially when you invoke a system call like getpid() that only returns the value of one variable.
+
+The newer method has the below advantages:
+        a) Don't involve a software interrupt
+        b) Much faster than using a software interrupt
+
+The method comprises of two instructions.
+        One to enter the kernel
+        One to leave the kernel
+
+On 32-bit Systems: sysenter and sysexit
+On 64-bit systems: syscall and sysret
+
+Theory9:
+sysenter/sysexit
+-----------------
+
+From Intel manual
+	The SYSENTER instruction is part of the "Fast System Call" facility introduced on the Pentium® II processor.
+    The SYSENTER instruction is optimized to provide the maximum performance for transitions to protection ring 0 (CPL = 0).
+
+	The SYSEXIT instruction is part of the "Fast System Call" facility introduced on the Pentium® II processor.
+The SYSEXIT instruction is optimized to provide the maximum performance for transitions to protection ring 3 (CPL = 3) from protection ring 0 (CPL = 0).
+
+Differences between legacy system call and sysenter
+------------------------------------------------------
+Using sysenter to make a system call is more complicated than using the legacy interrupt method.
+It involves more coordination between the user program (via glibc) and the kernel.
+
+Prior to executing the SYSENTER instruction, software must specify
+        the privilege level 0 code segment
+        code entry point
+        the privilege level 0 stack segment and stack pointer
+
+to the following MSRs
+
+IA32_SYSENTER_CS (MSR address 174H)
+IA32_SYSENTER_EIP (MSR address 176H)
+        This MSR is where the kernel should specify the address of the function that will execute when a sysenter instruction is executed by a user program
+IA32_SYSENTER_ESP (MSR address 175H)
+From arch/x86/kernel/cpu/common.c
+
+following function does above things:
+void enable_sep_cpu(void)
+{
+        struct tss_struct *tss;
+        int cpu;
+
+        if (!boot_cpu_has(X86_FEATURE_SEP))
+                return;
+
+        cpu = get_cpu();
+        tss = &per_cpu(cpu_tss_rw, cpu);
+
+        /* 
+         * We cache MSR_IA32_SYSENTER_CS's value in the TSS's ss1 field --
+         * see the big comment in struct x86_hw_tss's definition.
+         */
+
+        tss->x86_tss.ss1 = __KERNEL_CS;
+        wrmsr(MSR_IA32_SYSENTER_CS, tss->x86_tss.ss1, 0);
+        wrmsr(MSR_IA32_SYSENTER_ESP, (unsigned long)(cpu_entry_stack(cpu) + 1), 0);
+        wrmsr(MSR_IA32_SYSENTER_EIP, (unsigned long)entry_SYSENTER_32, 0);
+        put_cpu();
+}
+
+Theory10:
+__kernel_vsyscall
+------------------
+
+When int 0x80 is issued, CPU saves eflags, eip, esp, ss and cs registers.
+
+Then, it switches from user mode to kernel mode. Before eventually calling the syscall routine, the kernel saves remaining registers on the stack.
+
+On the other hand, when sysenter opcode is issued, the CPU copies the content of three Model-Specific Registers (MSR):
+
+	SYSENTER_CS_MSR			-->	cs
+	SYSENTER_EIP_MSR		-->	eip
+	SYSENTER_ESP_MSR		-->	esp
+
+The current address on which eip is pointing is not saved.
+
+The following registers needs to be saved before calling sysenter.
+eip
+ecx
+edx
+ebp
+
+To avoid this, kernel implemented a function called __kernel_vsyscall. 
+
+The __kernel_vsyscall( ) function saves on the User Mode stack the contents of ebp, edx, and ecx (these registers are going to be used by the system call handler), copies the user stack pointer in ebp, then executes the sysenter instruction.
+
+arch/x86/entry/vdso/vdso32/system_call.S
+arch/x86/entry/entry_32.S
+
+How can we call __kernel_vsyscall from userspace
+-------------------------------------------------
+
+Kernel creates a single page in the memory and attaches it to all processes' address space when they are loaded into memory
+
+Kernel calls this page virtual dynamic shared object (vdso). This has definition of __kernel_vsyscal
+
+When you compile the kernel, it will automatically compile and link the vDSO code for you
+
+You will frequently find it under the architecture-specific directory
+
+$ find arch/$ARCH/ -name '*vdso*.so*'
+
+$ nm vdso32.so.dbg | grep kernel_vsyscall
+
+The address of the __kernel_vsyscall function is written into an ELF auxilliary vector where a user program or library (typically glibc) can find it and use it.
+
+ldd on user space application shows (linux-vdso.so) shared library
+
+do_fast_syscall_32(struct pt_regs *regs) in arch/x86/entry/common.c
+
+Finally calls do_syscall_32_irqs_on(regs);
+
+Returning from a sysenter system call with sysexit
+--------------------------------------------------
+
+The kernel can use the sysexit instruction to resume execution back to the user program.
+
+CS register set to the sum of (16 plus the value in SYSENTER_CS_MSR)
+EIP register set to the value contained in the EDX register
+SS register set to the sum of (24 plus the value in SYSENTER_CS_MSR)
+ESP register set to the value contained in the ECX register

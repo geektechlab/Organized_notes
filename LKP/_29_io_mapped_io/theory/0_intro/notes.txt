@@ -1,0 +1,28 @@
+I/O
+==========
+
+Communication with peripherals is usually referred to as input and output, abbreviated I/O
+
+I/O Memory and Ports
+=====================
+
+Memory Mapped IO and Port Mapped IO are the two methods of performing input/output (I/O) between the CPU and the peripheral devices.
+
+Memory Mapped I/O
+=================
+
+	 Uses the same address bus to address both memory and I/O devices
+	 When an address is accessed by the CPU, it may refer to 
+		a portion of physical RAM, or
+		to memory of the I/O device
+	 CPU instructions used to access the memory can also be used for accessing devices.
+	 Example : ARM Processors
+
+Port Mapped I/O
+==============
+
+	Different address spaces for memory and I/O devices
+	accomplished by an extra "I/O" pin on the CPU's physical interface, or an entire bus dedicated to I/O
+	Uses a special class of CPU instructions to access I/O devices (IN and OUT)
+	Example: Intel Processors
+	X86 systems employ both-types of I/O	

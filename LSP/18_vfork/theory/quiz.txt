@@ -1,0 +1,58 @@
+1. Which of the following system calls does not return control to the calling point, on termination ?
+a) fork
+	b) exec
+c) ioctl
+d) longjmp
+
+2) The following program:
+
+   main()
+   {
+      if(fork()>0)
+      sleep(100);
+   }
+
+results in the creation of:
+a) an orphan process
+	b) a zombie process
+c) a process that executes forever
+d) none of the mentioned
+
+3. Which of the following system calls transforms executable binary file into a process ?
+a) fork
+	b) exec
+c) ioctl
+d) longjmp
+
+4. The following C program :
+
+ main()
+   {
+     fork();
+     fork();
+     printf("yes");
+   }
+
+prints yes:
+a) only once
+b) twice
+	c) four times
+d) eight times
+
+5. Which of the following calls never returns an error ?
+	a) getpid
+b) fork
+c) ioctl
+d) open
+
+6. A fork system call will fail if :
+a) the previously executed statement is also a fork call
+	b) the limit on the maximum number of processes in the system would be executed
+c) the limit on the minimum number of processes that can be under execution by a single user would be executed
+d) all of the mentioned
+
+7. If exec is called immediately after forking,
+	a) the program specified in the parameter to exec will replace the entire process
+b) all the threads will be duplicated
+c) all the threads may be duplicated
+d) none of the mentioned

@@ -1,0 +1,19 @@
+Some of the other platforms offer similar functionality
+Kernel headers offer an architecture-independent function that you can use instead of rtdsc.
+It is called get_cycles().
+
+Header File: <linux/timex.h>
+
+cycles_t get_cycles(void);
+
+static inline cycles_t get_cycles(void)
+{
+#ifndef CONFIG_X86_TSC
+        if (!boot_cpu_has(X86_FEATURE_TSC))
+                return 0;
+#endif
+
+    return rdtsc();
+}
+
+

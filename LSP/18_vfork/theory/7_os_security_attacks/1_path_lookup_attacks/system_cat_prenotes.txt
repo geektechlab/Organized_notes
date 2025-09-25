@@ -1,0 +1,5 @@
+the system() function will run an arbitrary shell command.
+
+The system_cat program runs cat with system(), and so it will print whatever it reads from stdin to the screen
+
+$ echo "Hello World" | ./system_cat

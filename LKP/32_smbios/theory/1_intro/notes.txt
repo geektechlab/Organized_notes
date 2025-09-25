@@ -1,0 +1,19 @@
+System Management BIOS(SMBIOS)
+==============================
+
+System Management BIOS is a standard developed by DMTF (Distributed Management Task Force)
+
+The purpose of this standard is to allow the operating system to retrieve information about the PC.
+
+The specification addresses how motherboard and system vendors present management information about their products in a standard format by extending the BIOS interface on Intel Architecture systems.
+
+https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.2.0.pdf
+
+It provides information such as:
+
+a) Make, Model
+b) Serial Number
+c) BIOS Version
+d) Processor
+e) Memory Configuration
+f) .....

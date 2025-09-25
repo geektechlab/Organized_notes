@@ -1,0 +1,19 @@
+/etc Everything to configure
+===================================
+	Contains system-wide configuration files.
+	Contains configuration files required by all programs.	
+	This also contains startup and shutdown shell scripts used to start/stop individual programs.
+
+	Example: /etc/resolv.conf, /etc/logrotate.conf. [ cat /etc/passwd ]
+	/etc/hostname -- Contains the hostname of your machine 
+
+	/etc/modules -- List of modules to be loaded at startup.
+
+	/etc/hosts -- The hosts file is used to map hostname to IP Address
+
+	/etc/fstab -- this file automatically mounts filesystems that are spread across multiple drives or separate partitions.
+				This file is checked when the system boots and filesystems are mounted. During boot, kernel reads this file and mounts all filesystem listed here.
+				e.g. [ cat /etc/fstab ] and the verify same UUID using [ blkid /dev/<filesystem> ]
+
+	/etc/passwd - user details
+

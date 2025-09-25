@@ -1,0 +1,197 @@
+Theory0:
+Frames
+==================
+
+A running application maintains a call stack that contains information about its functions that have been called.
+
+Each item in the stack is a call frame, and each frame contains both the information needed to return to its caller and the information needed to provide the local variables of the function.
+
+When your program starts, the call stack has only one frame, that of the function main. 
+
+Each function call pushes a new frame onto the stack, and each function return removes the frame for that function from the stack.
+
+Recursive functions can generate many frames.
+
+Use backtrace.c for the below commands
+
+$ gcc backtrace.c -o backtrace -g
+
+$ gdb ./backtrace
+
+(gdb) b main
+
+(gdb) run
+
+(gdb) bt
+
+(gdb) b func1
+
+(gdb) bt
+
+Moving from one frame to another
+================================
+
+You can move between the stack frames using ‘frame [number]’
+
+
+Get Information about a Stack Frame
+=====================================
+
+You can get the information about a particular frame using ‘info frame [number]’ 
+
+(gdb) info frame  1   # list information about the current stack frame
+
+(gdb) info variables # list all global and static variables 
+
+(gdb) info locals   # list local variable values of current stack frame
+
+(gdb) info args     # list argument values of current stack frame
+
+
+(gdb) info registers        # list register values
+
+(gdb) info registers eax    # shows just the register eax
+
+
+(gdb) info breakpoints      # list status of all breakpoints
+
+Theory1:
+Conditional Breakpoints
+=========================
+
+As long as a breakpoint is enabled, the debugger always stops at that breakpoint.
+
+However, sometimes it's useful to tell the debugger to stop at a break point only if some condition is met, like the when a variable has a particularly interesting value.
+
+
+You can specify a break condition when you set a breakpoint by appending the keyword if to a normal break statement
+
+break [position] if expression
+
+In the above syntax position can be a function name or line number.
+
+If you already set a breakpoint at the desired position, you can use the condition command to add or change its break condition:
+
+condition bp_number [expression]
+
+Theory2:
+Watchpoints are similar to breakpoints
+
+Watchpoints are set on variables. 
+
+When those variables are read or written, the watchpoint is triggered and program execution stops.
+
+How do I set a write watchpoint for a variable?
+===============================================
+
+Use the watch command.
+
+The argument to the watch command is an expression that is evaluated. 
+
+ This implies that the variabel you want to set a watchpoint on must be in the current scope.
+
+So, to set a watchpoint on a non-global variable, you must have set a breakpoint that will stop your program when the variable is in scope. 
+
+You set the watchpoint after the program breaks.
+
+
+(gdb) watch x
+
+How do I set a read watchpoint for a variable?
+===============================================
+
+Use the rwatch command. Usage is identical to the watch command.
+
+
+(gdb) rwatch y 
+
+How do I set a read/write watchpoint for a variable?
+=====================================================
+
+Use the awatch command. Usage is identical to the watch command.
+
+How do I disable watchpoints?
+=============================
+
+Active watchpoints show up the breakpoint list. Use the info breakpoints command to get this list. Then use the disable command to turn off a watchpoint, just like disabling a breakpoint.
+
+Theory3:
+gdb Text User Interface (TUI)
+=============================
+
+The gdb Text User Interface (TUI) is a terminal interface which uses the curses library to show the
+	
+	 source file
+	 assembly output
+	 program registers
+	 and GDB Commands
+
+in separate text windows
+
+The TUI mode is supported only on platforms where a suitable version of the curses library is available.
+
+The TUI mode is enabled by default when you invoke gdb as either ‘gdbtui’ or ‘gdb -tui’.
+
+You can also switch in and out of TUI mode while gdb runs by using various TUI commands and key bindings, such as Ctrl-x a
+	
+Commands
+=============
+
+Ctrl - l -- to repaint the screen //when there are printf's displayed
+
+You can type commands on the command line like usual, but the arrow keys will scroll the source code view instead of paging through history or navigating the entered command.
+
+To switch focus to the command line view, type ctrl-x o and the arrow keys works as in the normal command line mode. 
+
+Switching back to the source code view is done using the same key combination a second time.
+
+Theory4:
+You may want to save the output of gdb commands to a file
+
+There are several commands to control gdb’s logging.
+
+set logging on
+	Enable logging. 
+	GDB saves all output from this point in a text file called gdb.txt that resides in the directory in which you are running GDB 
+
+set logging off
+	Disable logging.
+	Note that you can turn logging on and off several times and GDB will concatenate output to the gdb.txt file
+
+set logging file file
+	Change the name of the current logfile. The default logfile is ‘gdb.txt’.
+
+Useful when you’re dealing with a long stack trace, or a multi-threaded stack trace
+
+Theory5:
+Debugging an Already-running Process
+=======================================
+
+attach process-id
+
+	This command attaches to a running process—one that was started outside gdb
+
+detach
+
+	This command attaches to a running process—one that was started outside gdb
+
+Theory6:
+Another Useful function of gdb debugger is the disassemble command. 
+as its name suggesting, this command helps in disassembling of provide function assembler codes. 
+
+like if we want to disassemble main function. we just need to type
+
+(gdb) disassemble main
+
+Theory7:
+start command
+================
+
+Sets a temporary breakpoint on main() and starts executing a program under GDB.
+
+Theory8:
+command breakpoint-number specifies commands to run whenever the breakpoint is reached. 
+
+(gdb) command 2
+  Type commands for when breakpoint 2 is hit, one per line.
+  End with a line saying just "end".

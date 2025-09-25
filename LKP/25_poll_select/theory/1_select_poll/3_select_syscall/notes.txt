@@ -1,0 +1,85 @@
+select system call
+=====================
+
+int select(int nfds, fd_set *readfds, fd_set *writefds,
+                  fd_set *exceptfds, struct timeval *timeout);
+
+Select system call is used to instruct kernel 
+	1. what file descriptors we are interested in (for reading, writing or an exception)
+	2. How long to wait.
+
+Arguments
+===============
+
+timeout: tells the kernel how long to wait for one of the specified descriptors to become ready
+Header file: <sys/time.h>
+	struct timeval {
+               long    tv_sec;         /* seconds */
+               long    tv_usec;        /* microseconds */
+           };
+
+Three possiblities with timeout:
+================================
+
+	1. Wait forever (timeout is specified as a null pointer):
+		 Return only when one of the specified descriptors is ready for I/O.
+
+	2. Wait up to a fixed amount of time (timeout points to a timeval structure).
+		Return when one of the specified descriptors is ready for I/O
+		 but do not wait beyond the number of seconds and microseconds specified in the timeval structure.
+	
+	3. Do not wait at all (seconds = 0, microseconds = 0)
+		Return immediately after checking the descriptors. This is called polling.
+
+Note: The wait in the first two scenarios is normally interrupted if the process catches a signal
+
+Descriptor Sets: (readfds,writefds, exceptfds)
+===============	
+
+	Descriptor sets are arrays of integers, each bit in each integer corresponding to a descriptor.
+
+	Header File: <sys/select.h>
+
+	typedef struct {
+		
+		 __fd_mask __fds_bits[__FD_SETSIZE / __NFDBITS];
+	};
+
+	typedef long int __fd_mask;
+	#define __FD_SETSIZE    1024
+	#define __NFDBITS	(8 * (int) sizeof (__fd_mask))
+
+
+	In 64-bit sizeof long int = 8 bytes
+	In 32-bit sizeof long int = 4 bytes
+
+	typedef struct {
+		long int __fds_bits[1024 / 64]; //16 or 32
+	} fd_set;
+
+	With 32-bit integers, 
+		First element of the array corresponds to descriptors 0 to 31
+		Second element corresponds to descriptors 32 to 63.
+
+	readfds	 	--> Notify when data is available to read
+
+	writefds	--> Notify when write buffer is having space to write
+
+	exceptfds	--> Used in sockets (out-of-band data)
+
+    A given set may be NULL, in which case select() does not watch for that event.
+
+nfds
+==========
+
+	It should be set to the highest numbered file descriptor in any of the three sets, plus 1.
+	The indicated file descriptors in each set are checked up to this limit.
+
+    ex: if we have 5 file descriptors but the highest number is 100, the select will check any bit from 0 to
+    100.
+
+	Reason for this argument exists is for efficiency.
+
+	Although each fd_set has room for many descriptors, typically 1024, this is much more than the number used by a typical process.
+
+	The kernel gains efficiency by not copying unneeded portions of the descriptor set between the process and the kernel, and by not testing bits that are always 0.

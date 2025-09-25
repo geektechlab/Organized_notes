@@ -1,0 +1,30 @@
+Types of Releases
+===================
+
+1. Prepatch/RC:
+	Mainline kernel pre-releases
+	Contains new features which must be tested before they can put into a stable release
+	Maintained and released by Linus Torvalds
+
+	https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/refs/tags?h=v5.4-rc6
+
+2. Mainline:
+	Maintained by Linus Torvalds
+	Tree where all the new features are introduced.
+	New mainline kernels are released every 2-3 months
+
+3. Stable:
+	After each mainline kernel is released, it is considered "stable."
+	Any bug fixes for a stable kernel are backported from the mainline tree and applied by a designated stable kernel maintainer.
+	Stable kernel updates are released on as-needed basis, usually once a week.
+	There are usually only a few bugfix kernel releases until next mainline kernel becomes available
+
+4. LongTerm:
+	Stable releases are selected for long term maintenance to provide critical bug fixes for older kernel trees
+	https://www.kernel.org/category/releases.html
+
+How long the stable kernels are maintained?
+===========================================
+
+Stable kernels are maintained for as long as the current development cycle is happening.
+After Linus releases a new kernel, the previous stable kernel release tree is stopped and users must move to the newer released kernel.

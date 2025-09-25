@@ -1,0 +1,11 @@
+All peripheral(I/O) devices are controlled by writing and reading its registers. 
+
+Most of the time a device has several registers, and they are accessed at consecutive addresses, either in the memory address space or in the I/O address space
+
+Each I/O device has minimum the below registers:
+
+a data register (either readable or writable, depending on whether it is an input or output device)
+a control register (writable, for controlling device operation)
+a status register (readable, for determining device status -- in particular, whether it is ready to receive or provide data)
+
+More complex devices (e.g., disks) will have multiple control and status registers

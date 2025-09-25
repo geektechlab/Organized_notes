@@ -1,0 +1,30 @@
+Problem with Low res timers
+-------------------------------
+
+Low resolution timers  in Linux are only supported at a resolution of 1 jiffy.
+
+The length of a jiffy is dependent on the value of HZ in the Linux kernel
+
+It is 1 millisecond on i386 and some other platforms, and 10 milliseconds on most embedded platforms.
+
+These are not suited for real-time applications.
+
+High Resolution Timers
+-------------------------
+
+Introduced in kernel v2.6.16
+
+Verify whether your kernel has support for High Res timers or not
+
+$ cat /boot/config-`uname -r` | grep CONFIG_HIGH_RES_TIMERS
+
+You can also examine the timer_list, and see whether specific clocks are listed as supporting high resolution
+
+$ sudo cat /proc/timer_list | grep resolution
+
+The .resolution entry must show 1 nsecs and the event_handler must show hrtimer_interrupts
+
+Low Res timers are based on HZ(Jiffies), whereas High Res Timers based on ktime_t
+
+Example of Low Resolution Timers: PIT
+Example of High Resolution Timers: LAPIC

@@ -1,0 +1,6 @@
+Another option is getrusage
+
+$ man getrusage
+
+struct timeval ru_utime; /* user CPU time used */
+struct timeval ru_stime; /* system CPU time used */

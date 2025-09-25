@@ -1,0 +1,343 @@
+Theory0:
+watch
+==============
+
+watch is used to run any designated command at regular intervals. 
+
+The basic syntax of watch is
+
+watch [option(s)] command
+
+When used without any of its few options, watch executes the specified command every two seconds.
+
+$ watch date
+
+The time interval between reports can be changed from its default two seconds by using the -n option followed by an integer which represents the desired number of seconds
+
+$ watch -n 5 free
+
+The -d, or --difference, option will highlight the differences between successive updates
+
+$ watch -d -n 5 free
+
+Inodes
+========================
+
+In Linux everything is treated as a file. (even the hardware devices)
+
+The keyboard, mouse, printers, monitor, hard disk, processes, even the directories are treated as files in Linux. 
+
+The regular files contain data such as text (text files), music, videos (multimedia files) etc. 
+
+Set aside the regular data, there are some other data about these files, such as their size, ownership, permissions, timestamp etc.
+
+This meta-data about a file is managed with a data structure known as an inode (index node).
+
+What is an inode in Linux?
+=================================
+
+Every Linux file or directory has an inode, and this inode contains all of the file’s metadata
+
+For example, the inode contains
+	a list of all the blocks in which a file is stored
+	the owner information for that file,
+	permissions
+	and all other attributes that are set for the file.
+
+In a sense, you could say that a file really is the inode, and names are attached to these inodes to make it easier for humans to work with them.
+
+Inode Number
+==========================
+
+An inode is a data structure on a traditional Unix-style file system such as ext3 or ext4. 
+
+Linux extended filesystems such as ext2 or ext3 maintain an array of these inodes: the inode table.
+
+This table contains list of all files in that filesystem.
+
+The individual inodes in inode table have a unique number (unique to that filesystem), the inode number.
+
+an inode stores:
+
+File type: regular file, directory, pipe etc.
+Permissions to that file: read, write, execute
+Link count: The number of hard link relative to an inode
+User ID: owner of file
+Group ID: group owner
+Size of file: or major/minor number in case of some special files
+Time stamp: access time, modification time and (inode) change time
+Attributes: immutable' for example
+Access control list: permissions for special users/groups
+Link to location of file
+Other metadata about the file
+
+Note that inode does not store name of the file but its content only.
+
+You can display the inode data on a file or directory by using stat command. You need to indicate the name of the file.
+
+----
+we can run [ man stat ]. stat can takefile and folder both as input.
+----
+
+Where are filenames stored on a filesystem?
+============================================
+
+inodes do not contain file names, only other file metadata.
+
+the name of the file is stored within the directories' information structure
+
+directories are special files that are used to create and hold access paths to the files in the file system.
+
+A directory file is a list of directory entries, each one containing the following information:
+
+inode - The inode for this directory entry. This is an index into the array of inodes held in the Inode Table of the Block Group.
+
+name length - The length of this directory entry in bytes,
+
+name - The name of this directory entry.
+
+The first two entries for every directory are always the standard . and .. entries meaning "this directory" and "the parent directory" respectively.
+
+Theory1:
+stat
+=================
+
+#include <sys/stat.h>
+int stat(const char *restrict pathname, struct stat *restrict buf );
+
+Given a pathname, the stat function returns a structure of information about the named file
+
+struct stat {
+	mode_t st_mode; /* file type & mode (permissions) */
+	ino_t st_ino; /* i-node number (serial number) */
+	dev_t st_dev; /* device number (file system) */
+	dev_t st_rdev; /* device number for special files */
+	nlink_t st_nlink; /* number of links */
+	uid_t st_uid; /* user ID of owner */
+	gid_t st_gid; /* group ID of owner */
+	off_t st_size; /* size in bytes, for regular files */
+	struct timespec st_atim; /* time of last access */
+	struct timespec st_mtim; /* time of last modification */
+	struct timespec st_ctim; /* time of last file status change */
+	blksize_t st_blksize; /* best I/O block size */
+	blkcnt_t st_blocks; /* number of disk blocks allocated */
+};
+
+The timespec structure type defines time in terms of seconds and nanoseconds. It
+includes at least the following fields:
+time_t tv_sec;
+long tv_nsec;
+
+The biggest user of the stat functions is probably the ls -l command, to learn all the information about a file
+
+----
+we can verify it by running [ strace ls -l ].
+----
+
+Theory2:
+The fstat function obtains information about the file that is already open on the descriptor fd
+
+Theory3:
+Links in Linux
+=================
+
+A link in Linux is a pointer to a file.
+
+Creating links is a kind of shortcuts to access a file
+
+Links allow more than one file name to refer to the same file, elsewhere.
+
+There are two types of links :
+
+	1. Soft Link or Symbolic links
+
+	2. Hard Links
+	
+	3. Nothing
+
+Hard Link
+===================
+
+The basic command structure for creating a hard link is:
+
+ln SOURCE LINK
+
+SOURCE is the original file
+
+LINK is the new file you will create that will point to the original source.
+
+Example:
+
+$ touch file.txt
+
+$ echo "hello world" > file.txt
+
+$ ls -li 
+
+$ ln file.txt hard_file.txt
+
+$ ls -li
+
+Important Points
+=====================
+
+1. Hard links will have the same inode number
+
+---
+we can verify it by checking inode values by [ stat <filename> ]. Also check incremented link count.
+---
+
+	Unix files consist of two parts: the data part and the filename part.
+
+	The data part is associated with something called an 'inode'. 
+
+	The inode carries the map of where the data is, the file permissions, etc. for the data.
+
+	              				.---------------> ! data ! ! data ! etc
+                               /    			 +------+ !------+
+        ! permbits, etc ! data addresses !
+        +------------inode---------------+
+
+	The filename part carries a name and an associated inode number.
+
+						.--------------> ! permbits, etc ! addresses !
+                        /                 +---------inode-------------+
+        ! filename ! inode # !
+        +--------------------+
+
+	More than one filename can reference the same inode number; these files are said to be 'hard linked' together.
+
+	! filename ! inode # !
+    +--------------------+
+                        \
+                         >--------------> ! permbits, etc ! addresses !
+                        /                 +---------inode-------------+
+        ! othername ! inode # !
+        +---------------------+
+
+-----
+so modifying one will affect other
+-----
+
+	When deleting files, the data part isn't disposed of until all the filename parts have been deleted.
+
+	There's a count in the inode that indicates how many filenames point to this file, and that count is decremented by 1 each time one of those filenames is deleted.
+
+	When the count makes it to zero, the inode and its associated data are deleted.
+
+	$ stat file.txt # There is a link field in output which will be updated each time a new hard link is created
+
+2. Links have actual file contents
+
+3. Even if the original file is removed, the link will still show you the contents of the file ( because it is pointing to inode )
+
+4. You cannot create a hard link for a directory
+
+$ mkdir test
+
+$ ln test test1
+ln: ‘test’: hard link not allowed for directory
+
+5. Hard links are only valid within the same File System. ( so creating links acrros Windows and Linux file system will not work ).
+
+Soft Link
+======================
+
+The basic command structure for creating a soft link is:
+
+ln -s <SOURCE> <LINK>
+
+SOURCE is the original file
+
+LINK is the new file you will create that will point to the original source.
+
+The primary difference between hard and symbolic link creation, is that you use the -s option. 
+
+Example:
+
+$ touch file.txt
+
+$ echo "hello world" > file.txt
+
+$ ls -li
+
+$ ln -s file.txt soft_file.txt
+
+$ ls -li
+
+Important Points
+=====================
+
+1. Soft Links will have different inode number, file size are different and permissions are also different ( verify it by [ ls -li <filename> ], first number is inode ? ).
+
+2. Soft link contains the path to the original file and not the contents
+
+3. Removing soft link doesn't affect anything, but when the original file is removed, the link becomes a 'dangling' link that points to nonexistent file
+
+4. Soft link can link to a directory
+
+5. Symbolic links can span file systems as they are simply the name of another file.
+
+-------
+- when creating a dynamic library, we create soft link. so it be thought as pointer to a file.
+- hard link can be used for backup.
+-------
+
+Theory4:
+int lstat(const char *restrict pathname, struct stat *restrict buf );
+
+The lstat function is similar to stat, but when the named file is a symbolic link, lstat returns information about the symbolic link, not the file referenced by the symbolic link.
+
+Theory5:
+int fstatat(int fd, const char *restrict pathname,struct stat *restrict buf, int flag);
+
+The fstatat function provides a way to return the file statistics for a pathname relative to an open directory represented by the fd argument.
+
+The flag argument controls whether symbolic links are followed;
+
+when the AT_SYMLINK_NOFOLLOW flag is set, fstatat will not follow symbolic links, but rather returns information about the link itself.
+
+Otherwise, the default is to follow symbolic links, returning information about the file to which the symbolic link points
+
+If the fd argument has the value AT_FDCWD and the pathname argument is a relative pathname
+
+If the pathname argument is an absolute pathname, then the fd argument is ignored. In these two cases, fstatat behaves like either stat or lstat, depending on the value of flag.
+
+Theory6:
+Most files on a UNIX system are either regular files or directories, but there are additional types of files
+
+The types are
+	1. Regular file. The most common type of file, which contains data of some form. There is no distinction to the UNIX kernel whether this data is text or binary. Any interpretation of the contents of a regular file is left to the application processing the file
+
+	2. Directory file. A file that contains the names of other files and pointers to information on these files. 
+		Any process that has read permission for a directory file can read the contents of the directory, but only the kernel can write directly to a directory file.
+
+	3. Block special file. A type of file providing buffered I/O access in fixed-size units to devices such as disk drives
+
+	4. Character special file. A type of file providing unbuffered I/O access in variable-sized units to devices. All devices on a system are either block special files or character special files.
+
+	5. FIFO. A type of file used for communication between processes. It’s sometimes called a named pipe
+
+	6. Socket. A type of file used for network communication between processes. 
+		A socket can also be used for non-network communication between processes on a single host.
+
+	7. Symbolic link. A type of file that points to another file. 
+
+The type of a file is encoded in the st_mode member of the stat structure.
+
+We can determine the file type with the macros
+
+S_ISREG() regular file
+S_ISDIR() directory file
+S_ISCHR() character special file
+S_ISBLK() block special file
+S_ISFIFO() pipe or FIFO
+S_ISLNK() symbolic link
+S_ISSOCK() socket
+
+/etc/passwd: regular
+/etc: directory
+/dev/log: socket
+/dev/tty: character special
+/dev/sr0: block special
+/dev/cdrom: symbolic link

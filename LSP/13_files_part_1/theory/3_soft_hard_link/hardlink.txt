@@ -1,0 +1,84 @@
+Hard Link
+===================
+
+The basic command structure for creating a hard link is:
+
+ln SOURCE LINK
+
+SOURCE is the original file
+
+LINK is the new file you will create that will point to the original source.
+
+Example:
+
+$ touch file.txt
+
+$ echo "hello world" > file.txt
+
+$ ls -li 
+
+$ ln file.txt hard_file.txt
+
+$ ls -li
+
+Important Points
+=====================
+
+1. Hard links will have the same inode number
+
+---
+we can verify it by checking inode values by [ stat <filename> ]. Also check incremented link count.
+---
+
+	Unix files consist of two parts: the data part and the filename part.
+
+	The data part is associated with something called an 'inode'. 
+
+	The inode carries the map of where the data is, the file permissions, etc. for the data.
+
+	              				.---------------> ! data ! ! data ! etc
+                               /    			 +------+ !------+
+        ! permbits, etc ! data addresses !
+        +------------inode---------------+
+
+	The filename part carries a name and an associated inode number.
+
+						.--------------> ! permbits, etc ! addresses !
+                        /                 +---------inode-------------+
+        ! filename ! inode # !
+        +--------------------+
+
+	More than one filename can reference the same inode number; these files are said to be 'hard linked' together.
+
+	! filename ! inode # !
+    +--------------------+
+                        \
+                         >--------------> ! permbits, etc ! addresses !
+                        /                 +---------inode-------------+
+        ! othername ! inode # !
+        +---------------------+
+
+-----
+so modifying one will affect other
+-----
+
+	When deleting files, the data part isn't disposed of until all the filename parts have been deleted.
+
+	There's a count in the inode that indicates how many filenames point to this file, and that count is decremented by 1 each time one of those filenames is deleted.
+
+	When the count makes it to zero, the inode and its associated data are deleted.
+
+	$ stat file.txt # There is a link field in output which will be updated each time a new hard link is created
+
+2. Links have actual file contents
+
+3. Even if the original file is removed, the link will still show you the contents of the file ( because it is pointing to inode )
+
+4. You cannot create a hard link for a directory
+
+$ mkdir test
+
+$ ln test test1
+ln: ‘test’: hard link not allowed for directory
+
+5. Hard links are only valid within the same File System. ( so creating links acrros Windows and Linux file system will not work ).

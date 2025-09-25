@@ -1,0 +1,112 @@
+Theory0:
+Timing Measurements in Linux Kernel
+=====================================
+Many computer activities are based on timing measurements.
+
+E.g. Your Computer display is turned off, if you have not pressed a key or moved your mouse for a particular time.
+
+Linux timing subsystem mainly handles two types of timing activities
+
+	1. Keeping the current time and date
+		a. time() , gettimeofday() and clock_gettime()
+		b. Time stamps for files and network packets
+
+	2. Maintaining Timers
+		a. Mechanisms to notify kernel and user space (ex. alarm()) that a certain interval of time has elapsed.
+
+Hardware Devices
+================
+Linux depends on hardware devices to maintain time. These devices can be basically classified into two types:
+
+	1. Clocks/Counters:  provide precise time measurements
+		Used to keep track of current time of day
+	2. Timers: Issue interrupts at fixed, predefined frequency.
+		Used for implementing software timers
+
+Theory1:
+RTC (Real Time Clock)
+=======================
+
+All PC's include a clock called Real Time Clock (RTC)
+
+It is independent of CPU and all other chips.
+
+It is backed by a small battery, which will allow it to tick even when the system is turned off.
+
+In IBM compatible PCs, the RTC is mapped to the 0x70 and 0x71 I/O ports.
+
+On boot, the kernel reads the RTC and uses it to initialize the wall time
+
+The kernel does not typically read the value again.
+
+Can be accessed using /dev/rtc* file
+
+Reading and setting the RTC is then done via calls to ioctl.
+
+Access RTC through command line
+================================
+
+To get what is stored in the RTC hardware clock execute as superuser:
+$ hwclock
+
+To set the hardware clock to some date and time you can use:
+
+hwclock --set --date="10/08/89 13:19:00"
+
+$hwclock --debug
+
+dmesg | grep rtc
+
+status information of rtc is exposed through /proc/driver/rtc
+
+Why Real Time clock is not used after computer is powered on?
+---------------------------------------------------------------
+
+The RTC is not used often because its registers are very slow to access.
+
+Theory2:
+Time Stamp Counter (TSC)
+---------------------------
+
+The time stamp counter (TSC) is a hardware feature found on a number of contemporary processors. 
+
+The TSC is a special register which is simply incremented every clock cycle. 
+
+Eg. If clock is 2GHz, the counter will increment twice per nanosecond
+
+Since the clock is the fundamental unit of time as seen by the processor, the TSC provides the highest-resolution timing information available for that processor.
+
+It can thus be used for a number of applications, such as measuring the exact time cost of specific instructions or operations.
+
+$ dmesg | grep tsc
+
+Theory3:
+Issues using TSC's with multi processor systems
+------------------------------------------------
+
+1. each core had its own TSC, in order to be sure that two measurements were accurate relative to each
+other, it was neccessary to pin the measuring code to a single core.
+
+2. the TSC would run at the frequency of the CPU itself: if that changed due to power management, the TSC ON that CPU would also slow down or stop.
+
+Both of these problems are solved in more recent CPUs:
+
+    • a constant TSC keeps all TSC’s synchronized across all cores in a system,
+    • an invariant (or nonstop) TSC keeps the TSC running at a fixed rate regardless of changes in CPU frequency
+
+How to check whether my CPU supports this
+============================================
+
+$ cat /proc/cpuinfo | grep -i tsc
+
+        Flag            Meaning
+        tsc             The system has a TSC clock.
+        rdtscp          The RDTSCP instruction is available.
+        constant_tsc    The TSC is synchronized across all sockets/cores.
+        nonstop_tsc     The TSC is not affected by power management code.
+
+The Timestamp Counter is a 64-bit internal register which is present in all Intel processors after the Pentium.
+
+It stores the number of cycles executed by the CPU after the latest reset.
+
+The time-stamp counter can be read by software using the RDTSC instruction

@@ -1,0 +1,39 @@
+How do I kill/stop/suspend my child from C?
+============================================
+
+In C, send a signal to the child using kill POSIX call,
+
+Signals are also a key means for inter-process communication. 
+One process can send a signal to another indicating that an action should be taken. 
+
+To send a signal to a particular process, we use the kill() system call.
+int kill(pid_t pid, int signum);
+
+kill(child, SIGUSR1); // Send a user-defined signal
+kill(child, SIGSTOP); // Stop the child process (the child cannot prevent this)
+kill(child, SIGTERM); // Terminate the child process (the child can prevent this)
+kill(child, SIGINT); // Equivalent to CTRL-C (by default closes the process)
+
+How to handle Signals?
+=======================================================
+
+The primary system call for signal handling is signal()
+
+int main()
+{
+        signal(SIGPWR, powerFailureHandler);
+        .......
+}
+
+void powerFailureHandler(int signum)
+{
+        //Saves states to restore later
+        .......
+}
+
+The first line in main() establishes a handler for the SIGPWR signals.
+
+Arguments:
+int signal(int signum, void (*handler)(int))
+first argument: signal number, such as SIGSTOP or SIGINT
+second argument: a function pointer type which points to the signal handler.

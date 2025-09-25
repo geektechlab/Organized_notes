@@ -1,0 +1,5 @@
+To address the thundering herd problem, we need an exclusive sleeping system that only wakes up one task from the wait queue at a time
+
+Exclusive wait can be set up by using this macro:
+
+wait_event_interruptible_exclusive(wait_queue_head_t wq, int condition);

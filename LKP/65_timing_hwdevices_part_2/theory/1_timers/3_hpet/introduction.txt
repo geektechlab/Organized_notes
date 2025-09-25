@@ -1,0 +1,18 @@
+HPET (High Precision Event Timer)
+---------------------------------
+
+HPET is a timer chip developed by Intel and Microsoft.
+
+An HPET chip consists of a 64-bit up-counter (main counter) counting at a frequency of at least 10 MHz, and a set of (at least three, up to 256) comparators.
+
+These comparators are 32- or 64-bit-wide.
+
+Each comparator can generate an interrupt when the least significant bits are equal to the corresponding bits of the 64-bit main counter value. 
+
+The comparators can be put into one-shot mode or periodic mode which means interrupts can be generated either once or periodically.
+
+The HPET is programmed via a memory mapped I/O and have relocatable address space
+
+During system bootup, the BIOS sets up the registers address space and passes it to the kernel.
+
+$ sudo cat /proc/iomem | grep -i hpet

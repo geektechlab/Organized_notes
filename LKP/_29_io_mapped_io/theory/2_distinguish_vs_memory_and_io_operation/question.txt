@@ -1,0 +1,2 @@
+How does the hardware distinguish between port IO and memory access?
+====================================================================

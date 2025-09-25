@@ -1,0 +1,76 @@
+/home
+=========================
+	Home directories for all users to store their personal files.
+	For example, if your user name is bob, you have a home folder located at /home/bob
+	Each user only has write access to their own home folder and must obtain elevated permissions (become the root user) 
+	to modify other files on the system.
+
+	[ echo $HOME ] gives path of home folder for a user
+	if we become root by su or sudo -s command the  above command will display root home folder.
+
+/root
+============================
+	Home directory of root user
+
+/lib
+===============
+	Libraries essential for the binaries in /bin/ and /sbin/.
+	/lib/modules -- All loadable kernel modules are stored in this directory. 
+
+/lib<qual> (lib32, lib64 etc)
+==================
+	32bit, 64 bit libs of the same name
+	A 64-bit system may have compatibility for 32-bit binary.
+
+/media
+================
+	media directory is where external storage will be automatically mounted when you plug it in and try to access it
+	For example, when you insert a CD into your Linux system, a directory will automatically be created inside the /media directory. 
+
+/mnt
+===============
+	A directory for temporarily mounted filesystems.
+	For example, if youre mounting a Windows partition to perform some file recovery operations, you might mount it at /mnt/windows.
+	Eg. iso files
+	mount -t iso9660 -o loop path/to/image.iso /mnt/
+
+/tmp
+=========================
+	Temporary files. Often not preserved between system reboots, and may be severely size restricted.
+
+	Directory that contains temporary files created by system and users.
+
+	Files under this directory are deleted when system is rebooted.
+
+    /tmp is one of the few directories hanging off / that you can actually interact with without becoming superuser
+
+/run
+================
+	/run is another new directory. 
+	System processes use it to store temporary data for their own nefarious reasons. Mostly contains pid related information.
+
+/srv
+=================
+	The /srv directory contains data for servers ( such as Apache, FTP, web server etc. ). 
+	If you are running a web server from your Linux box, your HTML files for your sites would go into /srv/http (or /srv/www).
+	 If you were running an FTP server, your files would go into /srv/ftp.
+
+var 
+===========================
+
+	/var contains variable data files. 
+	This includes spool directories and files, administrative and logging data, and transient and temporary files.
+	/var/log contains log files for differenctt applications. dmesg is also located here.
+	/var/mail contains users emails
+	/var/run  holds a lot status and parameter information of actively running process daemons
+
+opt
+=============================
+
+	third party installers
+
+lost+found
+=====================
+
+	fsck command is used to recover these files.
+	Any file to be recovered is kept in this folder

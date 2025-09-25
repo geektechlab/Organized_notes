@@ -1,0 +1,13 @@
+biosdecode
+===============
+
+biosdecode parses the BIOS memory and prints information about all structures (or entry points) it knows of.
+
+Currently known entry point types are:
+
+	SMBIOS/DMI
+	SYSID
+	PNP
+	ACPI
+	BIOS32
+	...

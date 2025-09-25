@@ -1,0 +1,5 @@
+When the schedule() function is called with the state as TASK_INTERRUPTIBLE or TASK_UNINTERRUPTIBLE, an additional step is performed
+
+	the currently executing process is moved off the run queue before another process is scheduled. 
+	The effect of this is the executing process goes to sleep, as it no longer is on the run queue.
+	Hence, it never is scheduled by the scheduler. And, that is how a process can sleep.

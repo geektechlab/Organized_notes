@@ -1,0 +1,16 @@
+del_timer_sync
+-------------
+
+int del_timer_sync(struct timer_list *timer)
+
+deactivate a timer and wait for the handler to finish
+This function only differs from del_timer() on SMP
+
+The function returns whether it has deactivated a pending timer or not.
+
+Differences between del_timer and del_timer_sync
+------------------------------------------------
+
+guarantees that when it returns, the timer function is not running on any CPU
+
+del_timer_sync is used to avoid race conditions on SMP systems as timers run asynchronously with respect to the currently executing code, several potential race conditions exist

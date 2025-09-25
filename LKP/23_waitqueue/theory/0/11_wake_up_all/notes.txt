@@ -1,0 +1,4 @@
+void wake_up_all (wait_queue_head_t *wq);
+void wake_up_interruptible_all (wait_queue_head_t *wq);
+
+The above functions will wake up all threads.

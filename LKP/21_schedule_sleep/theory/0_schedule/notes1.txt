@@ -1,0 +1,43 @@
+Sleeping in Linux
+========================================================
+
+    At times, processes needs to wait until a certain event occurs, for example
+
+        1. Device to Initialize
+        2. I/O completion
+        3. Fix Interval of time to elapse
+
+    In such cases, the process is said to sleep on that event.
+
+    A process can go to sleep by calling schedule()
+
+    When a process is put to sleep, it is marked as being in a special state and removed from the scheduler's run queue.
+    Until something comes along to change that state, the process will not be scheduled on any CPU and, therefore, will not run
+
+Process States
+===============
+
+    TASK_RUNNING : Running or ready to run
+    TASK_ZOMBIE  : Task has terminated, but waiting for parent to call wait
+    TASK_STOPPED : Process Execution has stopped; happens when it receives SIGSTOP
+    TASK_INTERRUPTIBLE
+    TASK_UNINTERRUPTIBLE
+
+TASK_INTERRUPTIBLE vs TASK_UNINTERRUPTIBLE
+===========================================
+
+    TASK_INTERRUPTIBLE                          TASK_UNINTERRUPTIBLE
+
+    1. Process is sleeping/blocked              1. Process is sleeping/blocked
+        waiting for some condition                 waiting for some condition
+         to exist                                  to exist
+
+
+    2. When the condition becomes true          2. When the condition becomes true
+       the process is set to TASK_RUNNING          the process is set to TASK_RUNNING
+        by kernel                                  by kernel
+
+    3. When signal is send to this process      3. When signal is send to this process
+        it wakes up and becomes runnable           it doesn't wake up
+
+TASK_UNINTERRUPTIBLE is  mostly used by device drivers waiting for disk or network I/O

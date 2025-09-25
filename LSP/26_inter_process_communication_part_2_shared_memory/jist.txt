@@ -1,0 +1,205 @@
+Theory0:
+Both System V IPC (XSI IPC) and POSIX IPC including three different mechanisms for inter-processes communication:
+
+	Message queues : pass messages between processes
+
+	Semaphores : synchronize for multiple processes by kernel
+
+	Shared memory: share region of memory
+
+POSIX IPC has the following general advantages when compared to System V IPC:
+===============================================================================
+	The POSIX IPC interface is simpler than the System V IPC interface.
+
+	The POSIX IPC model—the use of names instead of keys, and the open, close , and unlink functions—is more consistent with the traditional UNIX file model.
+
+	POSIX IPC objects are reference counted. This simplifies object deletion, because we can unlink a POSIX IPC object, knowing that it will be destroyed only when all processes have closed it.
+
+Theory1:
+Shared Memory
+=====================
+
+POSIX shared memory is an inter-process communication (IPC) mechanism defined in POSIX specification. 
+
+Shared memory is the fastest form of IPC available
+
+Once the memory is mapped into the address space of the processes that are sharing the memory region, no kernel
+involvement occurs in passing data between the processes
+
+What we mean by ‘‘no kernel involvement’’
+===========================================
+
+the processes do not execute any system calls into the kernel to pass the data
+
+The problem with these forms of IPC—pipes, FIFOs, and message queues—is that for two processes to exchange information, the information has to go through the kernel
+
+Shared memory provides a way around this by letting two or more processes share a region of memory
+
+The processes must, of course, coordinate or synchronize the use of the shared memory among themselves.
+
+A program using POSIX shared memory usually consists of these steps:
+
+1. Create or open a shared memory object with shm_open(). A file descriptor will be returned if shm_open() creates a shared memory object successfully.
+
+2. Set the shared memory object size with ftruncate().
+
+3. Map the shared memory object into the current address space with mmap() and MAP_SHARED.
+
+4. Read/write the shared memory.
+
+5. Unmap the shared memory with munmap().
+
+6. Close the shared memory object with close().
+
+7. Delete the shared memory object with shm_unlink()
+
+$man 7 shm_overview
+
+Use case of shared memory
+=========================
+As a simple example you could reserve just a few bytes and change the value in shared memory when you want the child process to quit. 
+
+----
+problem: sysnchronization is not taken care by kernel. We have to do that.
+
+----
+share memory objects have kernel persistence. Shared memory object will exist untill the system is shut down or untill all processes have umapped the object and it has been deleted with shm_unlink()
+
+shared memory objects are created in tmpfs virtual filesystem and mounted under /dev/shm. tmpfs in mounted on /dev/shm and it similar to a filesystems like /proc.
+
+Theory2:
+shm_open
+==============
+
+shm_open() is the shared memory object anology of open()
+
+It creates a shared memory object with the specified name or opens an existing shared memory object from the specified name
+
+int shm_open(const char *name, int flag, mode_t mode);
+
+The first argument name must start with a slash / character and continue with several non-slash characters. 
+
+The second argument flag can be the combination of O_RDONLY, O_RDWR, O_CREAT, and/or O_EXCL.
+
+The third argument mode is the file permission of the created shared memory object.
+
+If O_CREAT is not specified or the shared memory object exists, then mode is ignored.
+
+shm_unlink
+==============
+
+Shared memory objects are kernel persistent. 
+
+Unless they are deleted, they are kept until the computer reboots.
+
+shm_unlink() is the shared memory object anology of unlink()
+
+int shm_unlink(const char *name);
+
+The first argument name is the name of the shared memory object which you would like to delete.
+
+Compile and link the code with -lrt
+
+Shared Memory Objects and Linux Kernels
+=======================================
+
+On Linux, all shared memory objects can be found in /dev/shm
+
+You may list them with ls -l /dev/shm. 
+
+You may also remove a shared memory object with rm /dev/shm/[name]
+
+Since Linux 3.16, the kernel supports unlimited shared memory size.
+
+$ cat /proc/sys/kernel/shmmax
+18446744073692774399
+
+If the system administrator did not change the limit, then it is ULONG_MAX - (1 << 24) (i.e. 18014398509465599 on 64-bit machines), which stands for unlimited. 
+
+Of course, this is the theoretical upper bound. The physical RAM size and SWAP size may impose other limits.
+
+Theory3:
+A new shared memory object initially has zero length--the size of the object can be set using ftruncate(2)
+
+Theory4:
+mmap, munmap
+============
+
+mmap, munmap - map or unmap files or devices into memory
+
+ void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+
+ int munmap(void *addr, size_t length);
+
+  mmap()  creates a new mapping in the virtual address space of the calling process.
+
+  addr -- the starting address for the new mapping. If NULL, the kernel chooses the address at which to create the mapping
+
+  length -- specifies the length of the mapping
+
+  prot -- describes the memory protection of the mapping
+
+		
+	PROT_EXEC  Pages may be executed.
+
+       PROT_READ  Pages may be read.
+
+       PROT_WRITE Pages may be written.
+
+       PROT_NONE  Pages may not be accessed
+
+  flags -- determines whether updates to the mapping are visible to other processes mapping the same region
+
+	MAP_SHARED  	Share  this  mapping
+	MAP_PRIVATE	Create a private copy-on-write mapping.
+
+mmap, munmap
+============
+
+mmap, munmap - map or unmap files or devices into memory
+
+ void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+
+ int munmap(void *addr, size_t length);
+
+  mmap()  creates a new mapping in the virtual address space of the calling process.
+
+  addr -- the starting address for the new mapping. If NULL, the kernel chooses the address at which to create the mapping
+
+  length -- specifies the length of the mapping
+
+  prot -- describes the memory protection of the mapping
+
+		
+	PROT_EXEC  Pages may be executed.
+
+       PROT_READ  Pages may be read.
+
+       PROT_WRITE Pages may be written.
+
+       PROT_NONE  Pages may not be accessed
+
+  flags -- determines whether updates to the mapping are visible to other processes mapping the same region
+
+	MAP_SHARED  	Share  this  mapping
+	MAP_PRIVATE	Create a private copy-on-write mapping.
+
+Theory5:
+Memory mapped by mmap() is preserved across fork(2), with the same attributes.
+
+Theory6:
+Use of a mapped region can result in these signals:
+=======================================================
+
+SIGSEGV            Attempted write into a region mapped as read-only.
+
+Theory7:
+Can I ftruncate a shared memory object after it has ben mmap'ed?
+=================================================================
+
+You can truncate the underlying file anytime
+
+Theory8:
+Are the changes in the shared memory to other processes before calling munmap()?

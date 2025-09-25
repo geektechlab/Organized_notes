@@ -1,0 +1,8 @@
+Example
+------------
+
+Local APIC can be enabled/disabled by setting/clearing bit 11 of the IA32_APIC_BASE Model Specific Register (MSR) 
+
+disable_local_APIC is using it 
+
+File: arch/x86/kernel/apic/apic.c

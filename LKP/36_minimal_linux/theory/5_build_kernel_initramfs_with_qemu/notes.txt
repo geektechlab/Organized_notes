@@ -1,0 +1,30 @@
+Boot the kernel/initramfs with QEMU
+====================================
+
+Step1 : Install qemu emulator
+
+$ sudo apt install qemu-system-x86
+
+$ qemu-system-x86_64 --version
+
+Step2: 
+
+$ qemu-system-x86_64 -kernel linux_build/arch/x86/boot/bzImage -initrd initramfs.cpio.gz -m 512
+
+kernel option specifies the kernel image
+
+initrd option specifies the initramfs
+
+m option to specify the memory size (optional)
+
+Step 3:
+
+If you want it to boot on your terminal instead of a separate screen you can tell the kernel to use ttyS0
+
+$ qemu-system-x86_64 -kernel linux_build/arch/x86_64/boot/bzImage -initrd initramfs.cpio.gz  -nographic -append "console=ttyS0"
+
+Exit Qemu by hitting Ctl-a c then typing “quit” at the qemu monitor shell.
+
+---
+check boot time. It is very less.
+also check /proc/meminfo and find that it is using very less memory.

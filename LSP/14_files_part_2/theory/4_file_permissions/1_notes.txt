@@ -1,0 +1,84 @@
+File Permissions
+====================
+
+All files and directories in Linux have a standard set of access permissions.
+
+These access permissions control who can access what files, and provides a fundamental level of security to the files and directories in a system.
+
+Linux divides authorization into 2 levels.
+
+	Ownership
+	Permission
+
+
+Ownership of Linux files
+===========================
+
+Every file and directory on your Unix/Linux system is assigned 3 types of owner,
+
+User:
+===========
+
+	The username of the person who owns the file/directory.
+
+	By default, the user who creates the file/directory will become its owner.
+
+Group:
+============
+
+	A user- group can contain multiple users. All users belonging to a group will have the same access permissions to the file. 
+
+Other:
+=============
+
+	Any other user who has access to a file. 
+
+	 This person has neither created the file, nor he belongs to a usergroup who could own the file. 
+
+	Practically, it means everybody else. 
+
+Permissions
+=================
+
+Every file and directory in your UNIX/Linux system has following 3 permissions defined for all the 3 owners 
+
+	Read:
+		For a file, the read permission means the file can be opened and read.
+
+		For a directory, the read permission means the user can list the contents of the directory.
+
+
+	Write:
+
+		For a file, write permission means the user can modify the file, and write new data to the file.
+
+		For a directory, the write permission means the user is allowed to modify the content of the directory. The user can add, remove or rename files belongs to the particular directory.
+
+
+	Execute:
+
+		For a file, execute permission means the user can execute the file as a program or a shell script
+
+		For a directory, the execute permission allows the user to access files in the directory and enter it, with the cd command but you are not allowed to list the content.
+
+
+Viewing Permissions
+====================
+
+You can view the permission of the current directory by typing the following command
+
+$ ls -l
+
+Identifying Permissions
+========================
+
+r = read permission
+w = write permission
+x = execute permission
+- = no permission
+
+Linux has given values for the above permissions for the ease of use as below.
+
+r = 4
+w = 2
+x = 1

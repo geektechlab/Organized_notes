@@ -1,0 +1,236 @@
+Theory0:
+Tasklets
+------------
+
+Tasklets are bottom half mechanism built on top of softirqs.
+
+Handlers of tasklets are executed by softirqs
+
+Implementation
+----------------
+
+Tasklets are implemented on top of softirqs.
+
+Tasklets are represented by two softirqs: HI_SOFTIRQ and TASKLET_SOFTIRQ.
+
+The only difference in these types is that the HI_SOFTIRQ-based tasklets run prior to the TASKLET_SOFTIRQ based
+tasklets.
+
+Data Structure
+----------------
+
+tasklet_struct
+Header File: <linux/interrupt.h>
+
+struct tasklet_struct
+{
+        struct tasklet_struct *next; /* next tasklet in the list */
+        unsigned long state;   /* state of the tasklet */
+        atomic_t count;		/* reference counter */
+        void (*func)(unsigned long); /* tasklet handler function */
+        unsigned long data;  /* argument to the tasklet function */
+};
+
+Theory1:
+state field
+-------------
+
+It can be 
+	a) 0
+	b) TASKLET_STATE_SCHED
+	c) TASKLET_STATE_RUN
+
+TASKLET_STATE_SCHED denotes a tasklet that is scheduled to run
+TASKLET_STATE_RUN denotes a tasklet that is running
+
+TASKLET_STATE_RUN is used only on multiprocessor machines.
+It is used to protect tasklets against concurrent execution on several processors.
+
+count field
+------------
+
+used as a reference count for the tasklet
+count = 0 		the tasklet is enabled and can run if marked pending
+count = nonzero		the tasklet is disabled and cannot run
+
+Theory2:
+Declaring Tasklets
+===================
+
+Static Initialization
+----------------------
+
+DECLARE_TASKLET
+
+	#define DECLARE_TASKLET(name, func, data) \
+	struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(0), func, data }
+
+DECLARE_TASKLET_DISABLED
+
+	#define DECLARE_TASKLET_DISABLED(name, func, data) \
+	struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(1), func, data }
+
+Both these macros statically create a struct tasklet_struct with the given name.
+When the tasklet is scheduled, the given function func is executed and passed data as argument.
+
+The difference between the two macros is the initial reference count.
+
+Dynamic
+--------
+
+void tasklet_init(struct tasklet_struct *t,
+                         void (*func)(unsigned long), unsigned long data);
+
+Theory3:
+Scheduling Tasklets
+--------------------
+
+The kernel maintains two per-CPU tasklet linked lists for queuing scheduled tasklets
+
+kernel/softirq.c
+
+static DEFINE_PER_CPU(struct tasklet_head, tasklet_vec);
+static DEFINE_PER_CPU(struct tasklet_head, tasklet_hi_vec);
+
+tasklet_vec : for regular tasklets, run by TASKLET_SOFTIRQ and 
+tasklet_hi_vec : for high-priority tasklets, run by HI_SOFTIRQ
+
+Both of these structures are linked lists of tasklet_struct structures.
+
+Each tasklet_struct structure in the list represents a different tasklet.
+
+struct tasklet_head {
+        struct tasklet_struct *head;
+        struct tasklet_struct **tail;
+};
+
+Tasklets are scheduled via the tasklet_schedule() and tasklet_hi_schedule()
+
+static inline void tasklet_schedule(struct tasklet_struct *t)
+{
+        if (!test_and_set_bit(TASKLET_STATE_SCHED, &t->state))
+                __tasklet_schedule(t);
+}
+
+The above function checks whether the tasklet is already scheduled, if not it atomically sets the state to
+TASKLET_STATE_SCHED and invokes __tasklet_schedule to add the tasklet into the pending queue.
+
+Theory4:
+Steps performed by tasklet_schedule
+------------------------------------
+
+1. Check whether the tasklet’s state is TASKLET_STATE_SCHED.
+	If it is, the tasklet is already scheduled to run and the function can immediately return.
+
+2. Call __tasklet_schedule()
+
+3. Save the state of the interrupt system, and then disable local interrupts by calling local_irq_save
+	This ensures that nothing on this processor will mess with the tasklet code while tasklet_schedule() is manipulating the tasklets
+
+4. Add the tasklet to be scheduled to the head of the tasklet_vec or tasklet_hi_vec linked list, which is unique to each processor in the system
+	 
+5. Raise the TASKLET_SOFTIRQ or HI_SOFTIRQ softirq, so do_softirq() executes this tasklet in the near future
+
+6. Restore interrupts to their previous state and return
+
+static void __tasklet_schedule_common(struct tasklet_struct *t,
+                                      struct tasklet_head __percpu *headp,
+                                      unsigned int softirq_nr)
+{
+        struct tasklet_head *head;
+        unsigned long flags;
+
+        local_irq_save(flags);
+        head = this_cpu_ptr(headp);
+        t->next = NULL;
+        *head->tail = t;
+        head->tail = &(t->next);
+        raise_softirq_irqoff(softirq_nr);
+        local_irq_restore(flags);
+}
+
+Theory5:
+Steps performed by tasklet softirq handlers
+--------------------------------------------
+
+Handlers: tasklet_action()/tasklet_hi_action()
+
+1. Disable local interrupt delivery and get the tasklet_vec or tasklet_hi_vec list for this processor
+
+2. Clear the list for this processor by setting it equal to NULL.
+
+3. Enable local interrupt delivery.
+
+        struct tasklet_struct *list;
+
+        local_irq_disable();
+        list = tl_head->head;
+        tl_head->head = NULL;
+        tl_head->tail = &tl_head->head;
+        local_irq_enable();
+
+4. Loop over each pending tasklet in the retrieved list.
+
+5. Check for a zero count value, to ensure the tasklet is not disabled. If the tasklet is disabled, skip it and go to the next pending tasklet.
+
+6. Run the tasklet handler.
+
+7. Repeat the next pending tasklet, until there are no more scheduled tasklets waiting to run.
+
+        while (list) {
+                struct tasklet_struct *t = list;
+
+                list = list->next;
+
+                if (tasklet_trylock(t)) {
+                        if (!atomic_read(&t->count)) {
+                                if (!test_and_clear_bit(TASKLET_STATE_SCHED,
+                                                        &t->state))
+                                        BUG();
+                                t->func(t->data);
+                                tasklet_unlock(t);
+                                continue;
+                        }
+                        tasklet_unlock(t);
+                }
+
+                local_irq_disable();
+                t->next = NULL;
+                *tl_head->tail = t;
+                tl_head->tail = &t->next;
+                __raise_softirq_irqoff(softirq_nr);
+                local_irq_enable();
+        }
+
+Theory6:
+How kernel avoids running the same tasklet on multiple processors
+------------------------------------------------------------------
+
+tasklet_trylock
+
+tasklet_unlock
+
+static inline int tasklet_trylock(struct tasklet_struct *t)
+{
+        return !test_and_set_bit(TASKLET_STATE_RUN, &(t)->state);
+}
+
+static inline void tasklet_unlock(struct tasklet_struct *t)
+{
+        smp_mb__before_atomic();
+        clear_bit(TASKLET_STATE_RUN, &(t)->state);
+}
+
+On a multiprocessor machine, the kernel checks whether TASKLET_STATE_RUN is set (which means another processor is running this tasklet).
+
+	If set, do not execute now and skip to the next pending tasklet
+	Else set the TASKLET_STATE_RUN flag so that another processor cannot execute
+	After the tasklet completes, clear the TASKLET_STATE_RUN flag
+
+Theory7:
+Can i sleep in tasklet handler?
+--------------------------------
+
+As tasklets are based on softirqs, you cannot sleep.
+
+You cannot use semaphores or other blocking functions in tasklet handler

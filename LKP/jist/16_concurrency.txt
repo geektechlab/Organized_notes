@@ -1,0 +1,311 @@
+Theory0:
+Problem with the code:
+---------------------------------
+	int *ptr = NULL;
+
+	int* getmem(){
+		if (!ptr) {
+			ptr = kmalloc(sizeof(int), GFP_KERNEL);
+			if (!ptr)
+				return -ENOMEM;
+		}
+		return ptr;
+	}
+
+---
+concurreny issue:
+because ptr is global, two threads share this varibale and if one updates it, other thread will also get updated value and then concurreny issues may happen.
+
+Theory1:
+concurrency: the ability to handle multiple outstanding tasks/process with the illusion or reality of simultaneity
+
+Single Core Environment(fake parallelism): concurrency is achieved via a process called context-switching i.e., at a particular time period, only a single task gets executed. If we see multiple processes running on single processor, then only one is running and other are waiting. Because processor can run a single process at a time.
+
+Multi Core Environment(true parallelism): Multiple processes executing simultaneously on multiple processors/CPU's.
+
+How to find out how many cores you have?
+$ grep -c ^processor /proc/cpuinfo
+$ nproc
+
+How to find the processor number in which process is running?
+$ ps -eaF
+The PSR column shows which <process> is running on which processor <number>
+
+Theory2:
+Multiprocessing systems:
+
+initial approach: Each CPU has its own OS. The simplest possible way to organize a multiprocessor operating system:
+    statically divide memory into as many partitions as there are CPUs and give each CPU its own private memory and its own private copy of the operating system. One obvious optimization is to allow all the CPUs to share the operating system code and make private copies of only the data
+
+    cpu1            cpu2            cpu3           cpu4         Memory               IO
+    --------        ---------       ---------      ----------   -----------          ---------
+    |Private|       |private|       |Private |     |Private |   |1   |2    |         |        |
+    |OS     |       |OS     |       |OS      |     |OS      |   |Data|Data |         |        |
+    --------        ---------       ---------       ----------  ---------- |         |        |
+      | |             | |             | |             | |       |3   |4    |         |        |
+      | |             | |             | |             | |       |Data|Data |         |        |
+      | |             | |             | |             | |       -----------|         ----------
+      | |             | |             | |             | |       |OS Code   |              | |
+      | |             | |             | |             | |       -----------               | |
+      | |             | |             | |             | |            | |                  | |
+      | |             | |             | |             | |            | |                  | |
+    --  --------------  --------------   --------------  ------------  -------------------   -----
+                BUS
+    -----------------------------------------------------------------------------------------------
+
+Problems with this approach:
+1. When a process makes a system call, the system call is caught and handled on its own CPU using the data structures in the operating system's tables. So, one CPU can't handle other's system calls.
+2. since each operating system has its own tables, it also has its own set of processes that it schedules by itself. There is no sharing of processes. As a consequence, it can happen that CPU 1 is idle while CPU 2 is loaded with work.
+3. no sharing of pages. It can happen that CPU 1 has pages to spare while CPU 2 is paging continuously. There is no way for CPU 2 to borrow some pages from CPU 1 since the memory allocation is fixed.
+4. if the operating system maintains a buffer cache of recently used disk blocks, each operating system does this independently of the other ones. Thus it can happen that a certain disk block is present and dirty in multiple buffer caches at the same time, leading to inconsistent results.
+
+A master-slave multiprocessor model:
+One copy of OS and its tables are present on CPU1 and not on any of the others. All system calls are redirected to CPU 1 for processing there. CPU 1 may also run user processes if there is CPU time left over. This model is called master-slave since CPU 1 is the master and all the others are slaves.
+
+    cpu1            cpu2/slave      cpu3/slave      cpu4/slave    Memory              IO
+    --------        ---------       ---------       ----------    -----------         ---------
+    |Master |       |user   |       |user    |      |user    |    |User      |        |        |
+    |runs OS|       |process|       |process |      |process |    |Processes |        |        |
+    --------        ---------       ---------       ----------    |          |        |        |
+      | |             | |             | |             | |         |          |        |        |
+      | |             | |             | |             | |         |          |        |        |
+      | |             | |             | |             | |         -----------|        ----------
+      | |             | |             | |             | |         |OS Code   |            | |
+      | |             | |             | |             | |         -----------             | |
+      | |             | |             | |             | |            | |                  | |
+      | |             | |             | |             | |            | |                  | |
+    --  --------------  --------------   --------------  ------------  -------------------   -----
+                BUS
+    -----------------------------------------------------------------------------------------------
+
+The master-slave model solves most of the problems of the first model. 
+    1. There is a single data structure (e.g., one list or a set of prioritized lists) that keeps track of ready processes.When a CPU goes idle, it asks the operating system for a process to run and it is assigned one.  Thus it can never happen that one CPU is idle while another is overloaded.
+    2. Similarly, pages can be allocated among all the processes dynamically and there is only one buffer cache, so inconsistencies never occur.
+
+Problem:
+    The problem with this model is that with many CPUs, the master will become a bottleneck. After all, it must handle all system calls from all CPUs. If, say, 10% of all time is spent handling system calls, then 10 CPUs will pretty much saturate the master, and with 20 CPUs it will be completely overloaded. Thus this model is simple and workable for small multiprocessors, but for large ones it fails.
+
+Symmetric Multiprocesors (SMP): One copy of the OS  is in memory, but any CPU can run it.
+
+UP: User Process
+    cpu1            cpu2            cpu3           cpu4         Memory               IO
+    --------        ---------       ---------      ----------   -----------          ---------
+    |Shared |       |Shared |       |Shared  |     |Shared  |   |          |         |        |
+    |OS/UP  |       |OS/UP  |       |OS/UP   |     |OS/UP   |   |          |         |        |
+    --------        ---------       ---------      ----------   |          |         |        |
+      | |             | |             | |             | |       |          |         |        |
+      | |             | |             | |             | |       |          |         |        |
+      | |             | |             | |             | |       -----------|         ----------
+      | |             | |             | |             | |       |OS Code   |              | |
+      | |             | |             | |             | |       -----------               | |
+      | |             | |             | |             | |            | |                  | |
+      | |             | |             | |             | |            | |                  | |
+    --  --------------  --------------   --------------  ------------  -------------------   -----
+                BUS
+    -----------------------------------------------------------------------------------------------
+
+Advantage: eliminates the master CPU bottleneck, since there is no master
+
+Problems:
+Imagine two CPUs simultaneously picking the same process to run or claiming the same free memory page. The simplest way around these problems is to associate a mutex (i.e., lock) with the operating system, making the whole system one big critical region. When a CPU wants to run operating system code, it must first acquire the mutex. If the mutex is locked, it just waits. In this way, any CPU can run the operating system, but only one at a time. It is called big kernel lock.
+
+With 20 CPUs, there will be long queues of CPUs waiting to get in. Fortunately, it is easy to improve. Many parts of the operating system are independent of one another. For example, there is no problem with one CPU running the scheduler while another CPU is handling a file system call and a third one is processing a page fault. This observation leads to splitting the operating system up into independent critical regions that do not interact with one another. Each critical region is protected by its own mutex, so only one CPU at a time can execute it.
+
+Theory3:
+Preemption means forcefully taking away of the processor from one process and allocating it to another process. Switching. Whereas, Switching from one running task/process to another/process is known as context switch.
+
+In the Linux kernel, the scheduler is called after each timer interrupt (that is, quite a few times per second). It determines what process to run next based on a variety of factors, including priority, time already run, etc.
+
+Difference between preemption and context switch?
+Preemption: Firing of timer interrupt is preempting the current running process and running the interrupt service routine of timer interrupt.
+Context Switch: what happens when the kernel alters the state of the processor (the registers, mode, and stack) between one process or thread's context and another. 
+
+context_switch() function is called in the kernel.
+
+Under Linux, user-space programs have always been preemptible: the kernel interrupts user-space programs to switch to other threads, using the regular clock tick. So, the kernel doesn't wait for user-space programs to explicitly release the processor. This means that an infinite loop in an user-space program cannot block the system.
+
+Kernel Space:
+Until 2.6 kernels, the kernel itself was not preemtible.
+	as soon as one thread has entered the kernel, it could not be preempted to execute an other thread.
+	The processor could be used to execute another thread:
+		when a syscall was terminated, or 
+		when the current thread explictly asked the scheduler to run another thread using the schedule()
+	This means that an infinite loop in the kernel code blocked the entire system.
+
+However, this absence of preemption in the kernel caused several problems with regard to latency and scalability. So, kernel preemption has been introduced in 2.6 kernels, and one can enable or disable it using the CONFIG_PREEMPT option. If CONFIG_PREEMPT is enabled, then kernel code can be preempted everywhere, except when the code has disabled local interrupts. An infinite loop in the code can no longer block the entire system.
+
+my understanding: so there is no relation between user space and kernel space process. Only kernel scheduler selects those and runs on SMP using different CPUs. So, kernel and user processes are just different in process types, nothing else ?
+
+Kernel preemption can occur:
+	When returning to kernel-space from an interrupt handler
+	When kernel code becomes preemptible again
+	If a task in the kernel explicitly calls schedule()
+	If a task in the kernel blocks (which results in a call to schedule())
+
+Case1: 
+	While process A executes an exception handler (necessarily in Kernel Mode), a higher priority process B becomes runnable. This could happen, for instance, if an IRQ occurs and the corresponding handler awakens process B. As the kernel is preemptive, a forced process switch replaces process A with B. The exception handler is left unfinished and will be resumed only when the scheduler selects again process A for execution.
+
+Case2:
+	consider a process that executes an exception handler and whose time quantum expires. As the kernel is preemptive, the process may be replaced immediately.
+
+Motivation for making the kernel preemptive:
+reduce the dispatch latency of the User Mode processes:
+	 the delay between the time they become runnable and the time they actually begin running.
+
+Processes performing timely scheduled tasks (such as external hardware controllers, environmental monitors, movie players, and so on) really benefit from kernel preemption, because it reduces the risk of being delayed by another process running in Kernel Mode.
+
+scheduler itself also is a process. It is scheduled by timer. When timer interrupt fires, in interrupt handler, scheduler gets called usually. Otherwise, by yielding also it can run. So, scheduler will run interrupt context/process context based on invokation path.
+
+at boot u-boot bootloader ( others also can based on design ) might start kernel. Then check [ cat /proc/interrupts ] for timer interrupt. Bringing Kernel from harddisk to RAM is done by bootloader like U-boot, GRUB ( x86 uses GRUB ). on x86, BIOS also. The moment kernel starts, it configures timer and then frequently gets updated.
+
+Theory4:
+A kernel control path denotes the sequence of instructions executed by the kernel to handle a system call, an exception, or an interrupt.
+
+Linux kernel is reentrant. This means that several processes may be executing in Kernel Mode at the same time. On uniprocessor systems, only one process can progress, but many can be blocked in Kernel Mode when waiting for the CPU or the completion of some I/ O operation.
+
+Example:
+	-->	after issuing a read to a disk on behalf of a process, the kernel lets the disk controller handle it and resumes executing other processes.
+	-->	An interrupt notifies the kernel when the device has satisfied the read, so the former process can resume the execution.
+
+How do we have reentrancy
+=============================
+
+Reentrancy in Linux Kernel:
+	1. Reentrant functions : They don't use/modify global data structures.
+	2. Non reentrant functions: Modify global data structures but use locking mechanism
+
+( IMP: difference between thread safe v/s reentrant function ) (https://stackoverflow.com/a/33445858, https://uvdn7.github.io/reentrant/ )
+
+Theory5:
+Synchronization and Critical Regions:
+Implementing a reentrant kernel requires the use of synchronization. If a kernel control path is suspended while acting on a kernel data structure, no other kernel control path should be allowed to act on the same data structure unless it has been reset to a consistent state. Otherwise, the interaction of the two control paths could corrupt the stored information.
+
+Example:
+    suppose a global variable V contains the number of available items of some system resource. 
+    Kernel Control path A               Kernel Control Path B
+    ---------------------------------------------------------------------------
+    reads the variable and value is 1    reads the same variable, and value is 1
+                                         increments V
+    increments V 
+
+Final Value of V is 2, instead of 3 which is wrong.
+
+When the outcome of a computation depends on how two or more processes are scheduled, the code is incorrect. We say that there is a race condition. Any section of code that should be finished by each process that begins it before another process can enter it is called a critical region
+
+Theory6:
+Causes of concurrency:
+1. Interrupts: An interrupt can occur asynchronously at almost any time; interrupting the currently executing code.
+2. Softirqs and tasklets: Kernel can raise or schedule a softirq or tasklet at almost any time.
+3. Kernel preemption: Because the kernel is preemptive, one task in the kernel can preempt another
+4. Sleeping and synchronization with user space: Task in the kernel can sleep and thus invoke the scheduler, resulting in running of a new process.
+5. Symmetrical multiprocessor: Two or more processors can execute kernel code at exactly the same time.
+
+Simple Solutions
+==============
+
+1. Kernel Preemption Disabling
+----------------------------------
+
+	disabling kernel preemption
+	critical region start 
+	......
+	.....
+	critical region end
+	enable kernel preemption
+
+Problem:
+	On Multiprocessor, two kernel paths running on different CPUs can concurrently access the same global data.
+2. Disabling Hardware Interrupts
+------------------------------------
+	Disabling Hardware Interrupts
+	critical region start
+	......
+	......
+	critical region end
+	enable hardware interrupts
+
+Problem:
+	If the critical region is large, interrupts can remain disabled for a relatively long time, potentially causing all hardware activities to freeze/ might get missed.
+	On a multiprocessor system, disabling interrupts on the local CPU is not sufficient, and other synchronization techniques must be used.
+
+Theory7:
+Maximum number of processors that an SMP kernel could support
+$ grep NR_CPUS /boot/config-`uname -r`
+You can override this with the nr_cpus kernel parameter in the bootloader command line.
+nr_cpus=12
+Use num_online_cpus() function to get the number of cpus online.
+
+Theory8:
+smp_processor_id() gives you the current processor number on which kernel is running
+IMP: video 46:00 - 50:00
+
+Theory10:
+Per CPU Variables:
+The simplest and most efficient synchronization technique consists of declaring kernel variables as per-CPU Variables. Basically a per CPU Variables is an array of data structures, one element  per each CPU in the system. A CPU should not access the elements  of the array corresponding to other CPU. It can freely read and modify its own element without fear of race conditions, because it is the only CPU Entitled to do so. The elements of the per-CPU array are aligned in main memory so that each data structure falls on a different line of the hardware cache.
+
+get_cpu() on top of returning the current processor number also disables kernel preemption.
+put_cpu() enables kernel preemption.
+
+Why is disabling kernel preemption needed ( look in program how it is getting called ? )
+Just consider, for instance, what would happen 
+	if a kernel control path gets the address of its local copy of a per-CPU variable, then it is preempted and moved to another CPU: the address still refers to the element of the previous CPU.
+
+Theory11:
+percpu interface:
+The 2.6 kernel introduced a new interface, known as percpu, for creating and manipulating per-CPU data. Creation and manipulation of per-CPU data is simplified with this new approach. The previously discussed method of creating and accessing per-CPU data is still valid and accepted. This new interface, however, grew out of the needs for a simpler and more powerful method for manipulating per-CPU data on large symmetrical multiprocessing computers.
+
+Header File: <linux/percpu.h>
+To create a per-CPU variable at compile time, use this macro
+
+DEFINE_PER_CPU(type, name);
+This creates an instance of a variable of type type, named name, for each processor on the system.
+
+E.g 
+DEFINE_PER_CPU(int, i);
+DEFINE_PER_CPU(int[3], my_array);
+
+If you need a declaration of the variable elsewhere, to avoid compile warnings, the following macro is your friend:
+DECLARE_PER_CPU(type, name);
+
+You can manipulate the variables with the get_cpu_var() and put_cpu_var() routines. A call to get_cpu_var() returns an lvalue for the given variable on the current processor. It also disables preemption, which put_cpu_var() correspondingly enables.
+
+What is lvalue?
+lvalue (locator value) represents an object that occupies some identifiable location in memory (i.e. has an address).
+
+int var;
+var = 4;
+var is lvalue.
+
+4 = var;       // ERROR!
+(var + 1) = 4; // ERROR!
+
+They're not lvalues because both are temporary results of expressions, which don't have an identifiable memory location (i.e. they can just reside in some temporary register for the duration of the computation). 
+
+Theory12:
+You can access another processor's copy of the variable with:
+
+per_cpu(variable, int cpu_id);
+
+If you write code that involves processors reaching into each other's per-CPU variables, you, of course, have to implement a locking scheme that makes that access safe.
+
+Theory14:
+Per-CPU Data at Runtime:
+Dynamically allocated per-CPU variables are also possible
+
+void *alloc_percpu(type); /* a macro */
+void *__alloc_percpu(size_t size, size_t align);
+void free_percpu(const void *);
+
+The alloc_percpu() macro allocates one instance of an object of the given type for every processor on the system. It is a wrapper around __alloc_percpu(), which takes the actual number of bytes to allocate as a parameter and the number of bytes on which to align the allocation.
+
+struct abc = alloc_percpu(struct abc);
+is the same as
+struct abc = __alloc_percpu(sizeof (struct abc), __alignof__ (struct abc));
+
+A call to alloc_percpu()or __alloc_percpu() returns a pointer, which is used to indirectly reference the dynamically created per-CPU data. A corresponding call to free_percpu() frees the given data on all processors
+
+get_cpu_var(ptr); /* return a void pointer to this processor’s copy of ptr */
+put_cpu_var(ptr); /* done; enable kernel preemption */
+
+Theory15:
+While per-CPU variables provide protection against concurrent accesses from several CPUs, they do not provide protection against accesses from asynchronous functions (interrupt handlers and deferrable functions). In these cases, additional synchronization primitives are required.

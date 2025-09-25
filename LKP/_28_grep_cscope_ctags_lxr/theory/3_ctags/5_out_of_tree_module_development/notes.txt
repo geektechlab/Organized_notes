@@ -1,0 +1,4 @@
+Out of tree modules development
+================================
+
+:set tags=/home/linuxtrainer/linux-5.2.8/tags

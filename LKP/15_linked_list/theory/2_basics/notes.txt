@@ -1,0 +1,61 @@
+Singly Linked Lists
+===============================
+
+Simplest data structure representing a single linked list:
+
+    //An element in a linked list
+    struct list_element
+    {
+        void *data; //the payload
+        struct list_element *next;  //pointer to the next element
+    };
+
+    -----------------       -----------------       ------------------      ----------------
+    |A      |next   |------>|V      |next   |------>|S      |next    |----->|   null       |
+    |       |       |       |       |       |       |       |        |      |              |
+    -----------------       -----------------       ------------------      ----------------
+
+Doubly Linked List
+=====================
+
+    --------    --------------------------       -------------------     ----------
+    |null  |<-- |prev   |A       | next   | ---->|prev | V   |  next|--->|null    |
+    |      |    |       |        |        |<---- |     |     |      |    |        |
+    -------     --------------------------       --------------------    ----------
+
+    //An element in a linked list
+    struct list_elememt
+    {
+        void *data; //the payload
+        struct list_element *next;  //pointer to the next element
+        struct list_element *prev;  //pointer to the previous element
+    };
+
+    As the last element in a linked list has no next element, it is set to point to a special value, such as NULL, to indicate it is the last element in the list.
+
+Circular Linked List
+=====================
+
+    In circular linked list, last element points to the first element of the node.
+                     -----------------------------------
+                     |                                 |
+                     |                                 v
+            --------------------------      ------------------- 
+            |prev   |A      | next   | ---->|prev | V   |  next|-----
+            |       |       |        |<---- |     |     |      |    |   
+            --------------------------      --------------------    |
+            ^                                                       |
+            |                                                       |
+            ---------------------------------------------------------
+
+
+Moving through linked list - First and last element
+===================================================
+
+In linked list implementation, the first element is often represented by a special pointer - called the head.
+
+Head node provides each access to the "start" of the list.
+
+Non-Circular linked list - Last element is marked by its next pointer being NULL.
+
+Circular Linked List - Last element is marked by its next pointer pointing to the head element

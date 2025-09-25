@@ -1,0 +1,27 @@
+Requesting I/O Ports
+====================
+
+Accessing I/O Ports is simple.
+
+Detecting which I/O ports have been assigned to I/O devices may not be easy.
+
+Often a device driver must blindly write into some I/O port to probe the hardware device.
+
+If this I/O port is used by some other hardware device, system crash could occur.
+
+To prevent such situations, the kernel keeps track of I/O ports assigned to each hardware device by means of "resources". (struct resource)
+
+To get exclusive access to the I/O Ports.
+
+struct resource *request_region(unsigned long first, unsigned long n,
+                                const char *name);
+Header File: #include <linux/ioport.h>
+
+Return Value: non-NULL if the allocation succeeds.
+	      NULL on failure
+
+To release a reserved region one must use the release_region() function
+
+void release_region(unsigned long start, unsigned long n);
+
+cat /proc/ioports will give information about all I/O addresses currently assigned to I/O devices.

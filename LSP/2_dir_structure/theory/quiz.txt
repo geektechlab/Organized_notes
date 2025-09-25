@@ -1,0 +1,70 @@
+1. Host specific configuration files are installed in
+
+	a) /etc directory
+b) /lib directory
+c) /root directory
+d) /bin directory
+
+2. The directory /media is the
+
+	a) mount point for removable media
+b) mount point for filesystem
+c) mount point for removable media & filesystem
+d) none of the mentioned
+
+3. The /boot directory stores the data that is used
+
+a) before the kernel begins executing user mode programs
+b) after the kernel begins executing user mode programs
+	c) before the bootloader is loaded in the RAM
+d) none of the mentioned
+-----
+because grub etc. bootloaders are also present in /boot directory, so C is correct.
+-----
+
+4. Which one of the directory does not contain binary files?
+a) /bin
+b) /sbin
+	c) /etc
+d) none of the mentioned
+
+5. Kernel modules are present in
+	a) /lib directory
+b) /root directory
+c) /boot directory
+d) none of the mentioned
+
+6. The directory /opt is reserved for
+	a) installation of add-on application software packages
+b) optional booting files
+c) optional user specific files
+d) none of the mentioned
+
+7.  Any file or directory present in the ______ directory may not be reserved between restarts
+a) /var
+	b) /tmp
+c) /etc
+d) all of the mentioned
+
+8. What does the / directory signify?
+	a. Root directory
+b. An empty directory
+c. An new directory
+
+9. The directory /srv contains
+	a) site-specific data which is served by the system
+b) all the system files
+c) all the service files provided by the specific user
+d) none of the mentioned
+
+10.  Operating system kernel must be located in
+a) /root
+	b) /boot
+c) /opt
+d) none of the mentioned
+
+11. What is /root?
+a) root filesystem
+	b) home directory of the root user
+c) the directory which contains all the directories of the filesystem
+d) none of the mentioned

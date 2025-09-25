@@ -1,0 +1,90 @@
+Theory0:
+Semaphores
+=================
+
+Semaphores are used for process and thread synchronization.
+
+A  semaphore  is an integer whose value is never allowed to fall below zero.
+
+Two operations can be performed on semaphores:
+	increment the semaphore value by one (sem_post(3))
+	and  decrement  the  semaphore value by one (sem_wait(3))
+
+If the value of a semaphore is currently zero, then a sem_wait(3) operation will block until the value becomes greater than zero.
+
+Types of Semaphores
+--------------------
+
+There are two types of POSIX semaphores
+	named
+	unnamed
+
+Named
+=============
+Named semaphores have a name, which is of the format /somename. The first character is a forward slash, followed by one or more characters, none of which is a slash. 
+
+Programs using POSIX semaphores need to be linked with the pthread library.
+
+$ man 7 sem_overview
+
+Theory1:
+POSIX Named Semaphore calls
+=============================
+
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <semaphore.h>
+
+sem_t *sem_open (const char *name, int oflag);
+sem_t *sem_open (const char *name, int oflag, mode_t mode, unsigned int value);
+
+sem_open opens an existing semaphore or creates a new semaphore and opens it for further operations. 
+	The last parameter, value is the initial value for the semaphore.
+
+This pointer has to be used in the subsequent calls for the semaphore. 
+ If the call fails, sem_open returns SEM_FAILED and errno is set the appropriate error.
+
+Under Linux, POSIX semaphores are created under the /dev/shm directory.
+
+The semaphores are named with a prefix, sem. followed by the name passed in the sem_open call.
+
+sem_unlink
+============
+
+#include <semaphore.h>
+
+int sem_unlink (const char *name);
+
+sem_unlink removes the semaphore associated with the name.
+
+Theory2:
+Two fundamental operations:
+sem_post(): increment by 1
+sem_wait(): decrement by 1
+
+sem_getvalue - get the value of a semaphore
+
+int sem_getvalue(sem_t *sem, int *sval);
+
+Theory3:
+int sem_trywait(sem_t *sem);
+
+sem_trywait() is the same as sem_wait(), except that if the decrement cannot be  immediately  performed
+
+then call returns an error (errno set to EAGAIN) instead of blocking.
+
+Unnamed Semaphores
+========================
+
+#include <semaphore.h>
+
+int sem_init(sem_t *sem, int pshared, unsigned int value);
+
+The sem_init() function initializes the unnamed semaphore specified by the sem argument and assigns that semaphore the value specified by the value argument.
+
+Once the semaphore has been successfully initializes, you can use it in subsequent calls to sem_wait and sem_post
+
+Semaphores created with sem_init() should only be destroyed with the sem_destroy() function 
+
+pshared -- a value of zero means semaphore is shared between threads
+           a value of non zero means sempahore is shared between processes.

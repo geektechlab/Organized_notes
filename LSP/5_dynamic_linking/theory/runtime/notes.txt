@@ -1,0 +1,7 @@
+what if we didn’t want to add libraries at compile time, but instead load them ourselves as needed during runtime? 
+
+Instead of a predefined dependency on a library, we could make its presence optional and adjust our program’s functionality accordingly.
+
+Well, we can do just that with the concept of dynamic loading
+
+

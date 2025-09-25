@@ -1,0 +1,77 @@
+theory1:
+adding __init / __exit attribute to function creates an entry in sections in generated .ko file. It can be used to create init or exit code.
+
+struct file_operations:
+Purpose: Holds pointers to functions defined by the driver that performs various operations on the device.
+Defined in : linux/fs.h
+
+struct file_operations {
+    struct module *owner;
+    loff_t (*llseek) (struct file *, loff_t, int);
+    ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+    ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+    [...]
+    long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+    [...]
+    int (*open) (struct inode *, struct file *);
+    int (*flush) (struct file *, fl_owner_t id);
+    int (*release) (struct inode *, struct file *);
+    [...]
+
+E.g.
+struct file_operations fops =
+{
+.read = device_read,
+.write = device_write,
+.open = device_open,
+.release = device_release
+};
+
+The above fops structure has defined four function pointers : For reading, writing, opening and closing the device file. It can be noticed that the signature of the function differs from the system call that the user uses. The operating system sits between the user and the device driver to simplify implementation in the device driver.
+
+for example, int (*open) (struct inode *, struct file *); has two arguments. Whereas, open system call has file path, permissions, and file flags. So parameters are different in user space and kernel space. Kernel will translate this parameter using VFS layer and then call kernel open where we register our own open call viz. device_open().
+
+open does not receive the parameter path or the various parameters that control the file opening mode.
+Similarly, read, write, release, ioctl, lseek do not receive as a parameter a file descriptor.
+Instead, these routines receive as parameters two structures: file and inode.
+
+Theory2:
+struct cdev:
+In kernel, each character device is represented using this structure.
+Header File: linux/cdev.h
+
+struct cdev
+{
+        /* module */
+        struct kobject kobj;
+        struct module *owner;
+        const struct file_operations *ops;
+        struct list_head list;
+        dev_t dev;
+        unsigned int count;
+} __randomize_layout;
+
+void cdev_init(struct cdev *, const struct file_operations *); --> initialize a cdev structure
+struct cdev *cdev_alloc(void); --> Allocates and returns a cdev structure
+int cdev_add(struct cdev *, dev_t, unsigned int minor_count); --> add a char device to the system
+void cdev_del(struct cdev *dev); --> remove a cdev from the system
+
+The owner field of the structure should be initialized to THIS_MODULE to protect against ill-advised module unloads while the device is active.
+
+Find cdev_alloc() vs cdev_init() difference.
+
+Theory4:
+Pseudo-Devices:
+Devices in Linux (and other Unix clones) do not necessarily have to correspond to physical devices. These are known as pseudo-devices. For example,
+    - /dev/urandom generates a stream of pseudo-random numbers (try running head /dev/urandom in a terminal)
+    - /dev/null produces no output, but accepts and discards any input (if you wanted to test your download speed without writing any data to your disk, you could download a file to /dev/null by running, e.g., wget http://some.website/big.file > /dev/null).
+        Read : Returns End of file (read returns 0)
+        Write: Data written is discarded
+    - /dev/zero: Used by developers to create a file with no meaningful data but a particular size
+        Read: Returns endless bytes of zeroes (\0 characters)
+        Write: Data written is discarded
+File: drivers/char/mem.c has the implementation for this devices
+
+go into linux source code and go into [ ls drivers/char/mem.c ] and chek it's called register_chrdev with MEM_MAJOR argument. check MEM_MAJOR using [ grep ] command and it comes out as 1. then [ cat /proc/devices ] and check [ ls -l /dev/zero ], [ ls -l /dev/null ], [ ls -l /dev/urandom ] and check all has major number 1 and only minor number differs.
+
+check chr_dev_init() internals and see how device number creation, assignment and registration etc. happens

@@ -1,0 +1,11 @@
+$ ./a.out
+$ ls -l file.hole check its size
+$ od -c file.hole let’s look at the actual contents
+
+We use the od(1) command to look at the contents of the file
+The -c flag tells it to print the contents as characters
+
+To prove that there is really a hole in the file, let’s compare the file we just created with a file of the same size, but without holes:
+
+$ ls -ls file.hole file.nohole
+

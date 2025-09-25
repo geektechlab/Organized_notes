@@ -1,0 +1,26 @@
+pthread_join vs wait
+====================
+
+Condition :
+
+	A thread being waited for must have its detached state attribute set as joinable, not detached. 
+
+	None; any child process can (and in fact must) be waited upon
+
+Hierarchy:
+
+	None: any thread can join on any other thread; there is no requirement of a parent-child relationship. In fact, we do not consider threads to live within a strict parent-child hierarchy as processes do; all threads are peers.
+
+	A strict parent-child hierarchy exists; only a parent can wait for a child process.
+
+Order:
+
+	With threads, one is forced to join (wait) upon the particular thread specified as the parameter to pthread_join(3).
+
+	With wait, a process can wait upon the death (or stoppage) of any child, or specify a particular child process to wait for with waitpid. So, it wait will complete for any of the child process.
+
+Signalling:
+
+	No signal is sent upon a thread's death.
+
+	Upon a process's death, the kernel sends the SIGCHLD signal to the parent process.

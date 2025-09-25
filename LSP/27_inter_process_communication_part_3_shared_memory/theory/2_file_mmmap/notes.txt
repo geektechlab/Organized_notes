@@ -1,0 +1,36 @@
+Memory Mapped I/O
+======================
+
+Memory-mapped I/O lets us map a file on disk into a buffer in memory so that
+	when we fetch bytes from the buffer, the corresponding bytes of the file are read.
+	when we store data in the buffer, the corresponding bytes are automatically written to the file
+This lets us perform I/O without using read() or write()
+
+To use this feature, we have to tell the kernel to map a given file to a region in memory. This is done by the mmap function.
+
+#include <sys/mman.h>
+
+       void *mmap(void *addr, size_t length, int prot, int flags,
+                  int fd, off_t offset);
+       int munmap(void *addr, size_t length);
+
+How does the operating system load my process and libraries into memory?
+========================================================================
+
+It maps the executable and library file contents into the address space of the process.
+
+If many programs only need read-access to the same file (e.g. /bin/bash, the C library) then the same physical memory can be shared between multiple processes
+
+Memory-mapped files have several uses and advantages over traditional file access functions:
+=============================================================================================
+
+	1. Memory-mapped files allow for multiple processes to share read-only access to a common file.
+	Eg. the C standard library (glibc.so) is mapped into all processes running C programs.
+	only one copy of the file needs to be loaded into physical memory, even if there are thousands of programs running.
+
+	2. Rather than using fseek() multiple times to jump to random file locations, the data can be accessed directly by using an index into an array.
+
+	3. Memory-mapped files provide more efficient access for initial reads.
+		When read() is used to access a file, the file contents are first copied from disk into the kernel's buffer cache. 
+		Then, the data must be copied again into the process's user-mode memory for access
+		Memory-mapped files bypass the buffer cache, and the data is copied directly into the user-mode portion of memory

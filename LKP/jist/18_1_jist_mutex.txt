@@ -1,0 +1,103 @@
+Theory0:
+Mutexes:
+Almost all semaphores found in the Linux kernel are used for mutual exclusion by count of 1. Using semaphore for mutual exclusion is overhead, so kernel provides a new interface: mutex. The mutex subsystem checks and enforces the following rules:
+    Only one task can hold the mutex at a time.
+    Whoever locked a mutex must unlock it.
+    That is you cannot lock a mutex in one context and unlock in another.
+    Recursive locks and unlocks are not allowed.
+    Process cannot exit while holding a mutex.
+    Mutex cannot be acquired from an interrupt handler.
+
+Differences between mutexes and semaphores:
+What happens when a process tries to acquire a mutex lock?
+        When acquiring a mutex, there are three possible paths that can be taken
+                1. Fast Path
+                2. Mid Path
+                3. Slow Path
+        The path which will be taken depends on the state of the mutex.
+
+Fast Path:
+        Taken when no process has acquired the mutex
+
+Mid Path:
+        When the mutex is not available, it tries to go for mid path. also called as optimistic spinning.
+        This path will be only executed if there are no other processes ready to run having high priority and the owner of mutex is running.
+        In this path, tries to spin using MCS lock hoping the owner will release the lock soon.
+        Avoids expensive context switch
+
+Slow Path:
+        last resort.
+        This path acts as a semaphore lock.
+        If the lock is unable to be acquired by the process, the task is added to wait queue.
+        It sleeps until woken up by the unlock path.
+
+Theory2:
+Documentation: Documentation/locking/mutex-design.txt
+
+Implementation: kernel/locking/mutex.c
+
+Header File:  <linux/mutex.h>
+Data structure: struct mutex
+struct mutex {
+        atomic_long_t           owner;
+        spinlock_t              wait_lock;
+        struct list_head        wait_list;
+};
+
+    owner -> used for both holding lock state, and reference to owner(task_struct) who has acquired it
+    wait_lock -> used for atomic updating wait_list
+
+Initialization:
+Static:
+    DEFINE_MUTEX(name)
+
+Dynamic:
+    mutex_init(mutex)
+
+void mutex_lock(struct mutex *lock);
+void mutex_unlock(struct mutex *lock);
+
+Theory5:
+int mutex_trylock(struct mutex *lock);
+
+Tries to acquire the given mutex
+Return:
+    1   --> Successful
+    0   --> Otherwise
+
+Theory6:
+int mutex_lock_interruptible(struct mutex *lock);
+    places the calling process in the TASK_UNINTERRUPTIBLE state when it sleeps
+Return value:
+    0 -> mutex is acquired
+    -EINTR  -> If the task receives a signal while waiting for mutex
+
+int mutex_lock_killable(struct mutex *lock);
+    places the calling process in the TASK_KILLABLE state when it sleeps, only fatal signal can interrupt
+Return value:
+    0 -> mutex is acquired
+    -EINTR  -> If the task receives a fatal signal while waiting for mutex
+
+Theory7:
+Mutex semantics are fully enforced when CONFIG DEBUG_MUTEXES is enabled.
+
+Theory8:
+Test if the mutex is taken:
+   int mutex_is_locked(struct mutex *lock);
+
+Return:
+    1 -> Locked
+    0 -> Unlocked
+
+Theory9:
+Which one do you choose in between semaphores and mutexes? Start with mutex and move to semaphore only if the strict semantics of mutexes are unsuitable
+
+Theory10:
+spinlock vs mutexes:
+    Requirement                         Recommended Lock
+    =========================================================
+    Low overhead locking                Spinlock
+    Short lock hold time                Spinlock
+    Long lock hold time                 Mutex
+    Need to lock from interrupt context Spinlock
+    Need to sleep while holding lock    Mutex

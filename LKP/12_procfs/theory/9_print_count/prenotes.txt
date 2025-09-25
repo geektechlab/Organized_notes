@@ -1,0 +1,16 @@
+struct proc_dir_entry *proc_create_data(const char *name, umode_t mode,struct proc_dir_entry *parent,
+										const struct file_operations *proc_fops,void *data);
+
+name: The name of the proc entry 
+mode: The access mode for proc entry 
+parent: The name of the parent directory under /proc 
+proc_fops: The structure in which the file operations for the proc entry will be created. 
+data: If any data needs to be passed to the proc entry. 
+
+To access the data in the proc_dir_structure we need to make use of the function PDE_DATA to which we pass the file pointer. 
+
+The function in turn returs a pointer to the data that was passed during the creation of the proc entry. 
+
+---
+see how proc_fs_mul prints 3 times
+---

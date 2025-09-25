@@ -1,0 +1,4 @@
+What happens when forking?
+=============================
+
+The child process inherits a copy of the parent's signal dispositions. In other words, if you have installed a SIGINT handler before forking, then the child process will also call the handler if a SIGINT is delivered to the child.

@@ -1,0 +1,16 @@
+How to dump BIOS data on to a file?
+====================================
+
+$ grep ROM /proc/iomem
+
+	which results in:
+	000c0000-000c7fff : Video ROM
+	000e2000-000e2fff : Adapter ROM
+	000f0000-000fffff : System ROM
+
+Starting Address = 0xf0000 = 960KB
+Ending Address = 0xfffff = 1024KB
+
+$ sudo dd if=/dev/mem of=pcbios.bin bs=1k skip=960 count=64
+
+$ cat pcbios.bin | strings -n 20

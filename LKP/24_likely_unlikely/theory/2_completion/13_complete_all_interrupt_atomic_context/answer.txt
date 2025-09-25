@@ -1,0 +1,4 @@
+Can i call complete() or complete_all() from interrupt/atomic context
+=========================================================================
+
+Signaling completion from IRQ context is fine as it will appropriately lock with spin_lock_irqsave()/spin_unlock_irqrestore() and it will never sleep.

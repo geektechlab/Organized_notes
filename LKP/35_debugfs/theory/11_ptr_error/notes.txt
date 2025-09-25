@@ -1,0 +1,32 @@
+Pointers and Error Values
+=========================
+
+Many internal kernel functions return a pointer value to the caller. 
+
+Many of those functions can also fail.
+
+In most cases, failure is indicated by returning a NULL pointer value. 
+
+This technique works, but it is unable to communicate the exact nature of the problem.
+
+Some interfaces really need to return an actual error code so that the caller can make the right decision based on what actually went wrong.
+
+A number of kernel interfaces return this information by encoding the error code in a pointer value
+
+A function returning a pointer type can return an error value with:
+
+void *ERR_PTR(long error);
+
+where error is the usual negative error code.
+
+Header File: <linux/err.h>
+
+The caller can use IS_ERR to test whether a returned pointer is an error code or not:
+
+long IS_ERR(const void *ptr);
+
+If you need the actual error code, it can be extracted with:
+
+long PTR_ERR(const void *ptr);
+
+Note: use PTR_ERR only on a value for which IS_ERR returns a true value;

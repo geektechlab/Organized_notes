@@ -1,0 +1,20 @@
+$ ls -l a.out
+-rwxrwxr-x 1 sar 15945 Nov 30 12:10 a.out
+$ ./a.out a.out
+read access OK
+open for reading OK
+$ ls -l /etc/shadow
+-r-------- 1 root 1315 Jul 17 2002 /etc/shadow
+$ ./a.out /etc/shadow
+access error for /etc/shadow: Permission denied
+open error for /etc/shadow: Permission denied
+$ su become superuser
+Password: enter superuser password
+# chown root a.out change file’s user ID to root
+# chmod u+s a.out and turn on set-user-ID bit
+# ls -l a.out check owner and SUID bit
+-rwsrwxr-x 1 root 15945 Nov 30 12:10 a.out
+# exit go back to normal user
+$ ./a.out /etc/shadow
+access error for /etc/shadow: Permission denied
+open for reading OK

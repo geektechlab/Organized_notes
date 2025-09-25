@@ -1,0 +1,6 @@
+ asm("movq %1, %0" :
+		"=r"(num): //output operand
+		 "I" (0xff00aaffaaff) //input operand
+	);
+
+Replace "I" with "i" and it will work

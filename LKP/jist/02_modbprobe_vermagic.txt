@@ -1,0 +1,143 @@
+Theory1:
+kernel use kbuild system to build the kernel modules. kbuild system reads  the assignment of "obj-m := modulename.o"  from the makefile. Now the kbuild system know that it has to build "modulename.ko" and will look for "modulename.c" for the source. In case these files are not present in the directory passed to "M" , the compiling will stop with an error. If the files are present the source file is compiled to a "modulname.o",  and "modulename.mod.c" is created which is compiled to "modulename.mod.o". The modulename.mod.c is a file that basically contains the information about the module (Version information etc). The modulename.o and the modulename.mod.o are linked together by modpost in the next stage to create the "modulename.ko".
+
+Other Files:
+"module.symvers": This will contain any of external symbols that is defined in your module and hence not present in the module.symvers of the kernel .
+
+"modules.order" : In case you are compiling multiple modules together, it will list out the order in which the compilation and creation of .ko takes 
+
+Theory2:
+lsmod – List Modules that Loaded Already
+insmod – Insert Module into Kernel
+modinfo – Display Module Info
+rmmod – Remove Module from Kernel
+modprobe – Add or Remove modules from the kernel
+
+insmod:		Loads the module given 'insmod /path/to/module.ko'
+modprobe:	Loads the module only in /lib/modules/$(uname -r) 'modprobe /home/test/hello.ko' will not work
+
+insmod:		Dependencies if present are not loaded
+modprobe:	modprobe calculates dependencies, loads the dependencies and then the main module
+
+Modprobe depends on depmod tool to calculate dependencies.
+depmod calculates dependencies of all the  modules present in /lib/modules/$(uname -r) folder, and places the dependency information in /lib/modules/$(uname -r)/modules.dep file ( try to [ cat /lib/modules/$(uname -r)/modules.dep ] )
+
+E.g. kernel/drivers/net/wireless/admtek/adm8211.ko: kernel/net/mac80211/mac80211.ko kernel/net/wireless/cfg80211.ko      kernel/drivers/misc/eeprom/eeprom_93cx6.ko
+
+When you say modprobe adm8211.ko, eeprom_93cx6.ko, cfg80211.ko is loaded first and then adm8211.ko. Modules are loaded right to left and removed left to right. So while removing adm8211.ko is removed, then cfg80211.ko and finally eeprom_93cx6.ko. We can re-load the modules.dep file by running "depmod -a" command
+
+Theory3:
+We know on insmod, the function passed in the module_init macro is called, and on rmmod, the argument passed in the module_exit is called.
+/* Each module must use one module_init(). */
+#define module_init(initfn)                 \
+    static inline initcall_t __inittest(void)       \
+    { return initfn; }                  \
+    int init_module(void) __attribute__((alias(#initfn)));
+
+#initfn will get expanded to "initfn"
+
+/* This is only required if you want to be unloadable. */
+#define module_exit(exitfn)                 \
+    static inline exitcall_t __exittest(void)       \
+    { return exitfn; }                  \
+    void cleanup_module(void) __attribute__((alias(#exitfn)));
+
+The purpose of defining __inittest function is to check during compile time, the function passed to module_init() macro is compatible with the initcall_t type.
+
+initcall_t is defined in linux/init.h:
+typedef int (*initcall_t)(void);
+
+If you declare module_init function which returns void instead of int, the compiler will throw warning: The last line uses the alias attribute of gcc to assign another name to init_module, so that you can have a better name as per your driver (e.g. cdrom_init instead of init_module), instead of each driver having init_module. Same is the case with module_exit, giving whatever name in module_exit as parameter to cleanup_module.
+
+Theory4:
+In C Programs, we pass command line parameters through argc/argv. Kernel programming also allows us to pass command line parameters. The command line parameters provides a single linux driver to do multiple things, for example
+ - instead of fixing to a single I/O address for read/write, it can provide that as command line argument and allow user to read/write any address. 
+ - Enable/disable debug logs/printk
+ - Allow user to set the mode if the driver supports multiple modes
+
+We can add parameters using module_param macro. Declared in moduleparam.h file
+
+#define module_param(name, type, perm)              \
+    module_param_named(name, name, type, perm)
+
+name: name of the variable
+type: Type of the Variable. Supported types are charp, bool, invbool, int, long, short, uint, ulong, ushort
+perm: Permissions for the sysfs entry.  
+E.g. S_IRUGO : Only read by all users
+       0 : No sysfs entry
+You can also use numeric values like 0644 for permission entry.
+
+we can check our module's argumnets at
+[ ls sys/module/<module_name>/parameters ]
+
+and module's argumnets' permissions at
+[ ls sys/module/<module_name>/parameters ]
+
+we can check assigned values to arguments via
+[ cat sys/module/<module_name>/parameters/<argument> ]
+
+How to pass parameters:
+sudo insmod ./argument.ko name="EMBED" loop_count=5
+
+How can we pass arguments which are called by modprobe?
+modprobe reads /etc/modprobe.conf file for parameters.
+
+How can we pass string in argument?
+If we run the following command: "insmod argument.ko name="Linux World"
+We get the error "Unknown parameter 'World' ignored" in dmesg
+
+This happens because shell removes double quotes and pass it to insmod, to avoid this add a single quotes over the string. Run the following command: "insmod argument.ko name='"Linux World"' to pass the whole string
+
+Theory5:
+To pass multiple parameters we need to pass parameter array. To pass array we need to use module_param_array() function instead of module_param() function
+sudo insmod ./parameter_array.ko param_array=1,2,4
+
+Theory6:
+A symbol is a name given to a space in the memory which stores:
+ - data (Variables, For reading and writing)
+ - instructions (Functions, for executing)
+So symbol in the programming language is either a variable or function.
+
+What is Symbol table?
+Data Structure created by compiler containing all the symbols used in the program. Every kernel image that you build has a symbol table with it. The Linux kernel symbol table contains names and addresses of all the kernel symbols. When you install the kernel it will be present in /boot/System.map-<linux_version>
+
+System.map-<linux_version> is generated while compiling kernel. When we install it, it resides in boot folder.
+
+How to Export your symbols?
+When you define a new function in your module, the default behavior of this function is local, only the module in which the function is defined can access it, cannot be accessed by other modules.
+
+To export this module we need to use EXPORT_SYMBOL or EXPORT_SYMBOL_GPL. Once you export them, they will be available to other modules to use.
+
+Difference between EXPORT_SYMBOL and EXPORT_SYMBOL_GPL
+EXPORT_SYMBOL: The exported symbol can be used by any kernel module
+EXPORT_SYMBOL_GPL: The exported symbol can be used by only GPL licensed code.
+
+What is the difference between System.map and /proc/kallsyms?
+/proc/kallsyms: Contains symbols of dynamically loaded modules as well as builtin modules
+System.map: Contains symbols of only builtin modules. Because System.map-<linux_version> is generated while compiling kernel. When we install it, it resides in boot folder.
+
+$cat /boot/System.map-* | grep ttyprintk_exit
+$cat /proc/kallsyms | grep ttyprintk_exit
+
+Theory7:
+What is module stacking?
+New modules using the symbols exported by old modules.
+
+Examples of modules stacking in Linux Kernel:
+Msdos filesystem relies on symbols exported by fat module
+Parallel port printer driver (lp) relies on symbols exported by generic parallel port driver (parport)
+
+Theory9:
+Vermagic is a magic string present in the Linux Kernel and added into the .modinfo section of the Linux Kernel Modules. This is used to verify whether the kernel module was compiled for the particular kernel version or not. ‘VERMAGIC_STRING’ is generated by the kernel configuration.
+
+#define VERMAGIC_STRING                         \
+    UTS_RELEASE " "                         \
+    MODULE_VERMAGIC_SMP MODULE_VERMAGIC_PREEMPT             \
+    MODULE_VERMAGIC_MODULE_UNLOAD MODULE_VERMAGIC_MODVERSIONS   \
+    MODULE_ARCH_VERMAGIC                        \
+    MODULE_RANDSTRUCT_PLUGIN
+
+we can check Vermagic of module at
+1) dmesg once module is loaded
+2) modinfo ./vermagic.ko
+we can check Vermic of kernel at [ uname -a ]

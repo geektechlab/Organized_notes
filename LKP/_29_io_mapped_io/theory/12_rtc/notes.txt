@@ -1,0 +1,15 @@
+RTC (Real Time Clock)
+=======================
+
+Integrated circuit that maintains:
+    --> The date and
+    --> The time of the day
+
+even when the PC is switched-off and unplugged
+
+In addition, it:
+    Includes alarm functionality and can generate interrupts at specified times of the day;
+    Can generate interrupts periodically
+    Includes at least 50 non-volatile one-byte registers, which are usually used by the BIOS to store PC’s configuration
+
+On X86: Motorola 146818

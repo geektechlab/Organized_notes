@@ -1,0 +1,7 @@
+What is the difference between pthread_exit and pthread_join?
+
+pthread_exit() will terminate the thread that is called.If you call it from your main thread,the main thread is terminated and your spawned threads continue execution. So anything you write after pthread_exit in the main thread will not be execcuted.This will be useful in a scenario in which your main thread has to just spawn threads.
+
+pthread_join() will suspend the execution of the currently running thread until the particular thread you want is terminated,after that it resumes its execution.Useful where you have to wait until a particular thread completes its execution
+
+If you write exit or return in your main thread , the whole process is terminated,but if you write pthread-exit in your main thread only that particular thread terminates and remaining threads continue their execution.

@@ -1,0 +1,18 @@
+$ gcc -S userprog.c
+
+	movl	-8(%rbp), %edx
+#APP
+# 7 "userprog.c" 1
+	movl %edx, %eax
+movl %eax, %edx;
+# 0 "" 2
+#NO_APP
+	movl	%edx, -4(%rbp)
+	movl	-8(%rbp), %eax
+
+GCC is free here to allocate any register when the "r" constraint is used
+In our example it chose %edx for storing x
+After reading the value of x in %edx, it allocated the same register for y.
+Since y is specified in the output operand section, the updated value in %edx is stored in -8(%ebp), the location of y on stack.
+
+since %eax is specified in the clobbered list, GCC doesn't use it anywhere else to store data

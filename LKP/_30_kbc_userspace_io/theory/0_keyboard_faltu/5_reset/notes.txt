@@ -1,0 +1,15 @@
+Reset
+==========
+
+At Reset Command,  the keyboard performs a diagnostic self-test referred to as BAT (Basic Assurance Test) and loads the following default values
+
+	Typematic delay 500 ms.
+	Typematic rate 10.9 cps.
+	*Scan code set 2.
+	*Set all keys typematic/make/break.
+
+*Variable in some keyboards, hard-coded in others. 
+
+When entering BAT, the keyboard enables its three LED indicators, and turns them off when BAT has completed. 
+
+At this time, a BAT completion code of either 0xAA (BAT successful) or 0xFC (Error) is sent to the host.

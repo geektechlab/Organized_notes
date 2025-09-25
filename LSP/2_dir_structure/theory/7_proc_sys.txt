@@ -1,0 +1,43 @@
+-------------
+these are most used in device drivers.
+these are virtual file systems. It means that files are not present in hard disk or in any media storage.
+these are stored in RAM and whenever we start system, files will be created in RAM.
+
+e.g. if we do [ ls -l proc/cmdline ], size will show as 0. but [ cat proc/cmdline ] will give print the content. Since it has content, it should have some size. But since it is not stored in hard dsik/storage/memory, ls shows 0 size.
+--------------
+difference between virtual file and actual file:
+virtual file has 0 size
+actual file has some size
+--------------
+
+proc
+=======================
+	It contains special files that represent system and process information.
+	quite a lot of system utilities are simply calls to files in this directory
+	'lsmod' is the same as 'cat /proc/modules'. We can verify it by [ strace lsmod | grep modules ]
+	'lspci' is a synonym for 'cat /proc/pci'. We can verify it by [ strace lspci ] tahat it uses sys filesystem.
+	/proc/meminfo contains a bunch of information about your system's memory
+	/proc/uptime uptime information (in seconds).
+	/proc/partitions detailed info about partitions available to the system.
+	/proc/cmdline kernel command line information.
+====================================================
+
+The /proc filesystem maps mostly to the process table.
+People found this very useful, and started adding other things to it as well - cpuinfo, memory statistics, device information 
+but it also raised the issue that /proc was SUPPOSED to be for the process table
+So they added another instance, and named it sys aimed to hold system information
+
+=============================
+sys
+========================
+
+	sysfs is used by programs such as udev to access device and device driver information. 
+	To get the a network card's MAC address
+	cat /sys/class/net/eth0/address
+
+------------
+All process related informations are present in proc filesystem. We can verify it by [ ls /proc ].
+Whereas, all hardware related informations are present in sys filesystem. We can verify it by [ ls /sys ].
+------------
+whenever we create a new module, new folder will get created in /sys/module directory.
+whenever we add a new device, new folder will get created in /sys/dev or /sys/bus directory.

@@ -1,0 +1,10 @@
+The ioctl driver method has a prototype that differs somewhat from the user space version:
+
+generally, IOCTL is used for custom commands implemented for a particular given device. unlocked_ioctl is custom command for a character driver, which we implemented. Se how it gets assigned in device_fops. See what values are received in kernel space.
+
+long (*unlocked_ioctl) (struct file *filp, unsigned int cmd, 
+                            unsigned long arg);
+
+The filp pointer is the value corresponding to the file descriptor fd passed on by the application and is the same parameters to the open method.
+
+The cmd argument ( from user space ) is passed from the user unchanged, and the optional arg argument is passed in the form of an unsigned long

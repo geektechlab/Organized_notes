@@ -1,0 +1,37 @@
+What are Pthreads?
+=====================
+
+Historically, hardware vendors have implemented their own proprietary versions of threads. 
+
+These implementations differed substantially from each other making it difficult for programmers to develop portable threaded applications.
+
+In order to take full advantage of the capabilities provided by threads, a standardized programming interface was required.
+
+	For UNIX systems, this interface has been specified by the IEEE POSIX 1003.1c standard (1995).
+	Implementations adhering to this standard are referred to as POSIX threads, or Pthreads.
+
+To use pthread
+=================
+
+Header File: #include <pthread.h>
+
+While compilation: -lpthread
+
+Creating Thread
+==================
+
+Initially, your main() program comprises a single, default thread. All other threads must be explicitly created by the programmer.
+
+To create a thread use the function pthread_create. This function takes four arguments:
+
+int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
+                   void *(*start_routine) (void *), void *arg);
+
+The first is a pointer to a variable that will hold the id of the newly created thread.
+The second is a pointer to attributes that we can use to tweak and tune some of the advanced features of pthreads
+The third is a pointer to a function that we want to run
+Fourth is a pointer that will be given to our function
+
+when we create a new thread using pthread_create(), which thread will start executing first, the parent thread or the new thread ?
+
+no gurantee is given as to which thread will start executing first.

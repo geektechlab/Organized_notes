@@ -1,0 +1,18 @@
+Kernel Symbols
+---------------
+
+A symbol is either a variable or function.
+It is name representing an space in memory which stores data (variable for reading/writing) or instructions(function for executing)
+
+Kernel Symbols are visible at three different levels in the kernel source code.
+
+1. static  : visible only within their own source file
+2. extern  : visible to any other code built into the kernel
+3. exported: visible and available to any loadable module
+		Kernel code can make a symbol available to loadable modules with the EXPORT_SYMBOL() and EXPORT_SYMBOL_GPL() macros
+
+Kernel Symbol Table
+----------------------
+
+1. System.map	 : Contains symbols exported by code built into the kernel
+2. /proc/kallsyms: Contains symbols exported by code built into the kernel + loadable kernel modules

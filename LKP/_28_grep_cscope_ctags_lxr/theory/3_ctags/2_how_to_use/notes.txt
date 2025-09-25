@@ -1,0 +1,16 @@
+How to use ctags 
+===================
+
+Vi will, by default, expect a tag file by the name "tags" in the current directory
+
+$ vim kernel/locking/semaphore.c  +183
+
+Jump to definition
+===================
+
+To view the definition of a function or a structure we need to take our cursor over it and press ctrl + ]
+
+Return From Definition
+=======================
+
+To come back to function call from definition we use:  ctrl + t 

@@ -1,0 +1,17 @@
+schedule_timeout
+=================
+
+long schedule_timeout (	signed long  timeout);
+
+timeout - timeout value in jiffies
+
+Make the current task sleep until timeout jiffies have elapsed. 
+
+The routine will return immediately unless the current task state has been set using set_current_state.
+
+The current task state is guaranteed to be TASK_RUNNING when this routine returns.
+
+Return value:
+
+	0	when the timer has expired
+	remaining time in jiffies, if the signal is received or process is woken up

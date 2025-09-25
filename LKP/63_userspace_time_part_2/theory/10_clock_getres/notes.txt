@@ -1,0 +1,6 @@
+clock_getres
+===============
+
+int clock_getres(clockid_t clk_id, struct timespec *res);
+
+The function clock_getres() finds the resolution (precision) of the specified clock clk_id.

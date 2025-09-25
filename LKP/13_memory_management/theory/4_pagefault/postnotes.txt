@@ -1,0 +1,13 @@
+A page fault is generated when the kernel traps an access to a page that has not been mapped.
+
+In fact, there are two kinds of page fault: minor and major. 
+
+With a minor fault, the kernel just has to find a page of physical memory and map it into the process address space
+
+A major page fault occurs when the virtual memory is mapped to a file, for example using mmap(2)
+
+major faults are much more expensive in time and system resources
+
+---
+here, program pagefault diffrence is 256 for 1kb request and 1024 for 4kb.
+---

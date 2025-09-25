@@ -1,0 +1,18 @@
+The biggest difference between the Windows and Linux file systems is to understand where the root of the file system begins.  In Windows, the root begins at the drive letter, usually C:\, which basically means it begins at the hard drive.
+To understand the Linux directory structure, we will be using a tool 'tree'
+
+To install this tool in Ubuntu: sudo apt install tree
+
+Once installed, stay in your terminal window and run tree like this:
+
+$ tree /
+
+When you run tree and tell it to start with /, you will see the whole directory tree, all directories and all the subdirectories in the whole system, with all their files, fly by.
+
+$ tree -L 1 /
+
+The above command will show only the 1st level of the directory tree starting at root (/).
+
+The -L option tells tree how many levels down you want to see.
+
+$ man hier  --> the man-page on the filesystem hierarchy

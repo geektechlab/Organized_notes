@@ -1,0 +1,14 @@
+signal_pending
+==================
+
+The above function can be used to check whether the wait was interrupted by signal.
+
+Returns : 1	-> If the process has pending signals
+	  0     -> If no signal
+
+static inline int signal_pending(struct task_struct *p)
+{
+        return unlikely(test_tsk_thread_flag(p,TIF_SIGPENDING));
+}
+
+kernel/signal.c(signal_wake_up/signal_wake_up_state) 	->	Sets the TIF_SIGPENDING whenever a signal is delivered.

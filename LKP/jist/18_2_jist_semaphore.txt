@@ -1,0 +1,122 @@
+Theory0:
+Semaphores: Semaphores in Linux are sleeping locks
+
+What happens when the semaphore lock is unavailable?
+        the semaphore places the task onto a wait queue and puts the task to sleep.
+        the processor is then free to execute other code
+
+What happens after the semaphore becomes available?
+        one of the tasks on the wait queue is awakened so that it can then acquire the semaphore.
+
+Theory1:
+Implementation: A semaphore is a single integer value combined with a pair of functions that are typically called P and V (Dutch words).
+
+P() ---> Proberen  (test)
+V() ---> Verhogen  (increment)
+
+Entering critical section: A process wishing to enter a critical section will call P() on the relevant semaphore
+        if the semaphore's value is greater than zero, that value is decremented by one and the process continues. 
+        If, instead, the semaphore's value is 0 (or less), the process must wait until somebody else releases the semaphore.
+
+Exiting critical section:
+        accomplished by calling V()
+        this function increments the value of the semaphore and, if necessary, wakes up processes that are waiting
+
+Theory2:
+Types of Semaphore: Spin locks allow only one task to hold the lock at a time. With semaphores,number of tasks to hold the lock at a time can be specified while initializing/declaring semaphore. This value is called as usage count or simply count.
+
+Count = 1   --> Binary Sempahore
+                Used for mutual exclusion
+Count > 1   --> Counting Semaphore
+
+Theory3:
+Can i use counting semaphores in critical section ? Counting semaphores are not used to enforce mutual exclusion because they enable multiple threads of execution in the critical region at once. Instead, they are used to enforce limits in certain code. They are not used much in the kernel.
+
+Theory4:
+Implementation:
+kernel/locking/semaphore.c
+
+Data structures:
+Header File: <linux/semaphore.h>
+Data structures: struct semaphore
+struct semaphore {
+        raw_spinlock_t          lock;
+        unsigned int            count;
+        struct list_head        wait_list;
+};
+
+lock - spinlock for a semaphore data protection;
+count - amount available resources;
+wait_list - list of processes which are waiting to acquire a lock.
+
+Initialization:
+	Dynamic:
+        void sema_init(struct semaphore *sem, int val);
+                where val is the initial value to assign to a semaphore.
+	Static: 
+		DEFINE_SEMAPHORE(name)
+		#define DEFINE_SEMAPHORE(name)  \
+		struct semaphore name = __SEMAPHORE_INITIALIZER(name, 1)
+	P       --> down        --> Decrements the value of the semaphore
+    V       --> up          --> Increments the value of semaphore
+
+        void down(struct semaphore *sem);
+        void up(struct semaphore *sem);
+
+Theory5:
+down():
+	decrements the count by one
+	If count >= 0 task can enter the critical region
+	Else task is placed on the wait queue
+
+up():
+	increments the count by one
+
+Theory6:
+int down_interruptible(struct semaphore *sem);
+
+down vs down_interruptible:
+	down() places the calling process in the TASK_UNINTERRUPTIBLE state when it sleeps.
+	down_interruptible() places the calling process to sleep in the TASK_INTERRUPTIBLE state
+	If the task receives a signal while waiting for the semaphore, it is awakened and down_interruptible() returns -EINTR.
+
+Theory7:
+int down_trylock(struct semaphore *sem);
+If the semaphore is not available at the time of the call, down_trylock returns immediately with a nonzero return value
+
+Theory8:
+int down_timeout(struct semaphore *sem, long jiffies);
+	Attempts to acquire the semaphore.
+	If no more tasks are allowed to acquire the semaphore, calling this function will put the task to sleep.
+	If the semaphore is not released within the specified number of jiffies, this function returns -ETIME.
+	It returns 0 if the semaphore was acquired.
+
+Theory9:
+int down_killable(struct semaphore *sem);
+
+The down_killable function does the same as the down_interruptible function. Only the fatal signals can be delivered like kill signal. What are fatal signals?
+	Any signal listed with a default action of “terminate” or “dump core” is fatal, unless it’s ignored or handled explicitly.
+	Eg. SIGCONT, SIGCHLD, SIGSTP ..
+
+Theory10:
+Important points while using semaphore:
+1. Semaphores are well suited to locks that held for a long time. As the tasks trying to acquire the lock sleep if it is not available.
+2. Semaphores are not suited for locks that held for a short time.
+	Due to overhead of
+		a. sleeping
+		b. maintaining the wait queue.
+		c. waking back up 
+	total time can easily overweigh the total lock hold time.
+3. As we sleep if the lock is not available, cannot be used in interrupt context.
+4. Semaphores do not disable kernel preemption, and consequently code holding a sempahore can be preempted.
+
+Advantages of semaphore over spinlock:
+	better processor utilization as no time is spent busy looping
+
+Theory11:
+Which one to choose for critical region: spin lock vs semaphore?
+	1. Sleep: Semaphore is the only option. 
+	2. Lock hold time: Sempahores are good for longer lock hold times
+			   Spinlocks are useful when the lock hold time is small
+	3. Scheduling latency: As semaphores do not disable kernel preemption, scheduling latency is better
+			       when compared to spinlocks.

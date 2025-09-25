@@ -1,0 +1,6 @@
+hrtimer_restart
+------------------
+
+A canceled timer can be restarted by passing it to hrtimer_restart()
+
+void hrtimer_restart(struct hrtimer *timer);

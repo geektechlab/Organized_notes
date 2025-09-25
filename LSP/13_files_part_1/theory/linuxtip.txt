@@ -1,0 +1,20 @@
+watch
+==============
+
+watch is used to run any designated command at regular intervals. 
+
+The basic syntax of watch is
+
+watch [option(s)] command
+
+When used without any of its few options, watch executes the specified command every two seconds.
+
+$ watch date
+
+The time interval between reports can be changed from its default two seconds by using the -n option followed by an integer which represents the desired number of seconds
+
+$ watch -n 5 free
+
+The -d, or --difference, option will highlight the differences between successive updates
+
+$ watch -d -n 5 free

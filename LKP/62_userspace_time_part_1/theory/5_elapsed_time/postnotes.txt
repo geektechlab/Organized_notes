@@ -1,0 +1,8 @@
+If you want to display the time to a user of your program, you query the time of day.
+
+However, if your program needs to measure elapsed time, you need a timer that will give the right answer even if the user changes the time on the system clock.
+
+What if i change the system date using date command?
+======================================================
+
+$ sudo date --set='-1 hour'

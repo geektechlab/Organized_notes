@@ -1,0 +1,18 @@
+GPIO
+==========
+
+101e4000-101e4fff : gpio@101e4000
+101e5000-101e5fff : gpio@101e5000
+101e6000-101e6fff : gpio@101e6000
+101e7000-101e7fff : gpio@101e7000
+
+The PrimeCell GPIO provides eight programmable inputs or outputs
+
+GPIO base + 0x400 - GPIODIR -  PrimeCell GPIO data direction register Width - 8
+
+Bits set to HIGH in the GPIODIR configure corresponding pin to be an output.
+
+Clearing a bit configures the pin to be input.
+
+How do you Configure GPIO1 pin 4 as output?
+==========================================

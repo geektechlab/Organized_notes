@@ -1,0 +1,16 @@
+Accessing I/O Ports
+=======================
+
+Since physical ports are differentiated by the number of bits (8, 16, or 32 bits), there are different port access functions depending on their size. 
+
+unsigned inb(int port)			: reads one byte (8 bits) from port
+void outb(unsigned char byte, int port) : writes one byte (8 bits) to port
+unsigned inw(int port)			: reads two bytes (16-bit) ports
+void outw(unsigned short word, int port): writes two bytes (16-bits) to port
+unsigned inl (int port)			: reads four bytes (32-bits) from port
+void outl(unsigned long word, int port)	: writes four bytes (32-bits) to port
+
+Some devices may have problems when the processor is trying to transfer data too fast to and from the device. 
+
+There are functions which add a delay by internally executing a dummy instruction. These functions end with _p,
+eg. inb_p, outb_p, inw_p, outw_p, inl_p, outl_p

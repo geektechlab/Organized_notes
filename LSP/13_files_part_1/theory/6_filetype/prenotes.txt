@@ -1,0 +1,30 @@
+Most files on a UNIX system are either regular files or directories, but there are additional types of files
+
+The types are
+	1. Regular file. The most common type of file, which contains data of some form. There is no distinction to the UNIX kernel whether this data is text or binary. Any interpretation of the contents of a regular file is left to the application processing the file
+
+	2. Directory file. A file that contains the names of other files and pointers to information on these files. 
+		Any process that has read permission for a directory file can read the contents of the directory, but only the kernel can write directly to a directory file.
+
+	3. Block special file. A type of file providing buffered I/O access in fixed-size units to devices such as disk drives
+
+	4. Character special file. A type of file providing unbuffered I/O access in variable-sized units to devices. All devices on a system are either block special files or character special files.
+
+	5. FIFO. A type of file used for communication between processes. It’s sometimes called a named pipe
+
+	6. Socket. A type of file used for network communication between processes. 
+		A socket can also be used for non-network communication between processes on a single host.
+
+	7. Symbolic link. A type of file that points to another file. 
+
+The type of a file is encoded in the st_mode member of the stat structure.
+
+We can determine the file type with the macros
+
+S_ISREG() regular file
+S_ISDIR() directory file
+S_ISCHR() character special file
+S_ISBLK() block special file
+S_ISFIFO() pipe or FIFO
+S_ISLNK() symbolic link
+S_ISSOCK() socket

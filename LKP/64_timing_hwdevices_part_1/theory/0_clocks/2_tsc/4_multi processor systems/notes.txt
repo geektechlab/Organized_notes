@@ -1,0 +1,23 @@
+Issues using TSC's with multi processor systems
+------------------------------------------------
+
+1. each core had its own TSC, in order to be sure that two measurements were accurate relative to each
+other, it was neccessary to pin the measuring code to a single core.
+
+2. the TSC would run at the frequency of the CPU itself: if that changed due to power management, the TSC ON that CPU would also slow down or stop.
+
+Both of these problems are solved in more recent CPUs:
+
+    • a constant TSC keeps all TSC’s synchronized across all cores in a system,
+    • an invariant (or nonstop) TSC keeps the TSC running at a fixed rate regardless of changes in CPU frequency
+
+How to check whether my CPU supports this
+============================================
+
+$ cat /proc/cpuinfo | grep -i tsc
+
+        Flag            Meaning
+        tsc             The system has a TSC clock.
+        rdtscp          The RDTSCP instruction is available.
+        constant_tsc    The TSC is synchronized across all sockets/cores.
+        nonstop_tsc     The TSC is not affected by power management code.

@@ -1,0 +1,21 @@
+Source in one place, Output in Another
+======================================
+
+Sometimes it is easier to have the source code for the kernel tree in a read-only location, and place
+the output of the kernel build elsewhere, so that you do not disturb the original source tree.
+
+You can achieve it with 'O=' option.
+
+ $ make O=destdir menuconfig   [configure]
+ $ make O=destdir              [build]
+
+Advantages of this technique
+============================
+
+1. Several users can be sharing the same kernel source tree.
+
+2. Even if there is only one user, that user can be working with multiple configurations, perhaps even multiple architectures, simultaneously.
+
+3. This approach leaves your source tree clear to, perhaps, continue searching for strings or phrases without having to wade through all of the object files that are generated as part of a build
+
+Note:All of your make commands must be run from the top of the source tree, not the destination tree

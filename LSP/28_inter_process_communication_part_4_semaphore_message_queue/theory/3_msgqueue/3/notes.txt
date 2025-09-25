@@ -1,0 +1,22 @@
+Sending  Message Queues
+=======================================
+
+Once a message queue is open, you can send messages to another process using the mq_send function.
+
+int mq_send(mqd_t mqdes, const char *msg_ptr,
+                     size_t msg_len, unsigned int msg_prio);
+
+The mq_send function takes four parameters, including: 
+	the message queue descriptor, 
+	a pointer to a message buffer, 
+	the size of the buffer, and 
+	the message priority
+
+
+The read/write permissions are checked along with the length of the message, the status of the message queue, and the message flag.
+
+If all checks are successful, the message is added to the message queue.
+
+If the queue is already full, the sending process can block until space in the queue becomes available
+
+it can return immediately, if we set the O_NONBLOCK flag when it called the mq_open function.

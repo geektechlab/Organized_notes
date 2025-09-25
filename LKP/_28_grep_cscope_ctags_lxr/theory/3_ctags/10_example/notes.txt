@@ -1,0 +1,5 @@
+Use ctags and cscope to find out the definition of 
+
+1. stdout, stderr, stdin
+
+2. find out the definition of open system call

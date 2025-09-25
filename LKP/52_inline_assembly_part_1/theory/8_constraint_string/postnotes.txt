@@ -1,0 +1,39 @@
+Code Explanation
+----------------
+
+This code copies the value of a to b
+
+The code makes use of an
+	input register (%1)
+	output register (%0)
+	temporary register (%%eax)
+
+The input and output register are selected by the compiler and are denoted as %1  and %0 in the assembler code
+
+The name of the temporary register must be specified explicitl. Our example used eax.
+
+Recall that two percent symbols must be entered in the source code in order to produce one percent symbol in the compiler output, which is why the register is given as %%eax.
+
+Generated Assembly Output
+--------------------------
+
+	movl	$2, -8(%rbp)
+	movl	-8(%rbp), %edx
+#APP
+# 8 "userprog.c" 1
+	movl %edx, %eax
+movl %eax, %edx
+# 0 "" 2
+#NO_APP
+	movl	%edx, -4(%rbp)
+	movl	-8(%rbp), %eax
+
+The compiler first copies the value of the local  variable a held at position rbp -8 into register edx
+
+The assembly code we included is clearly indicated by the compiler, between the #APP and #NO_APP delimiters.
+
+The assembler code is executed and copies the value (pointlessly) into register eax;
+
+The next statement copies it back to edx register
+
+Next it copies the result back to rbp - 4 which is the address of b.

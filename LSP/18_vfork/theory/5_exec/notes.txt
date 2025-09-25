@@ -1,0 +1,11 @@
+Key points during an exec operation
+=======================================
+
+---> The successor process overwrites (or overlays) the predecessor's virtual address space.  
+	In effect, the predecessor's text, data, library, and stack segments are now replaced by that of the successor's. 
+	The OS will take care of the size adjustments.
+
+---> No new process has been created - the successor runs in the context of the old predecessor
+	Several predecessor attributes (including but not limited to the PID and open files) thus get auto-inherited by the successor.
+
+---> On a successful exec, there is no possibility of returning to the predecessor; it's gone.

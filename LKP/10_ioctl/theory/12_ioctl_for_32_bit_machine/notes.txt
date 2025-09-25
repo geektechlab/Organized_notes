@@ -1,0 +1,3 @@
+64 bit ioctl will fail for 32 will -ENOTTY.
+
+to use older 32 bit ioctl, we can use compact_ioctl instead of unlock_ioctl. compact_ioctl convert to unlock_ioctl arguments.

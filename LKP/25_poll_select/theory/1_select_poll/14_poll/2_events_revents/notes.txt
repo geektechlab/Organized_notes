@@ -1,0 +1,22 @@
+events/revents
+=================
+
+events: input parameter, a bit mask specifying the events the application is  interested in for the file descriptor fd
+
+revents: output parameter, filled by the kernel with the events that actually  occurred.
+
+Input to Events
+===============
+
+POLLIN          There is data to read.
+
+POLLOUT         Writing is now possible
+
+Error value in revents
+======================
+
+POLLERR:        This is set if an error condition has occurred on the file descriptor.
+
+POLLHUP:        This is set when the file descriptor refers to a terminal that has been hung upon.
+
+POLLNVAL:       Invalid request: fd not open

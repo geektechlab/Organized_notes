@@ -1,0 +1,49 @@
+C Data Types
+==============
+
+Common data types used in C:
+	char
+	int
+	float
+	double
+
+System Data Types
+======================
+
+Historically, certain C data types have been associated with certain UNIX system variables.
+
+	For example, major and minor device numbers have historically been stored in a 16-bit short integer, with 8 bits for the major device number and 8 bits for the minor device number.
+
+	the 32-bit version of Solaris uses 32 bits for the device number: 14 bits for the major and 18 bits for the minor
+
+The header <sys/types.h>  defines some implementation-dependent data types, called the primitive system data types. More of these data types are defined in other headers as well. 
+
+These data types are defined in the headers with the C typedef facility. Most end in _t.
+
+By defining these data types this way, we do not build into our programs implementation details that can change from one system to another
+
+clock_t counter of clock ticks (process time) 
+comp_t compressed clock ticks 
+dev_t device numbers (major and minor)
+fd_set file descriptor sets 
+fpos_t file position 
+gid_t numeric group IDs
+ino_t i-node numbers
+mode_t file type, file creation mode 
+nlink_t link counts for directory entries 
+off_t file sizes and offsets (signed) (lseek)
+pid_t process IDs and process group IDs (signed)
+pthread_t thread IDs 
+ptrdiff_t result of subtracting two pointers (signed)
+rlim_t resource limits 
+sig_atomic_t data type that can be accessed atomically 
+sigset_t signal set 
+size_t sizes of objects (such as strings) (unsigned) 
+ssize_t functions that return a count of bytes (signed) (read, write)
+time_t counter of seconds of calendar time 
+uid_t numeric user IDs
+wchar_t can represent all distinct character codes
+
+----
+generally, anything ending with _t is system data type.
+----

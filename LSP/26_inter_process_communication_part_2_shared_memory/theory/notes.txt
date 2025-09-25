@@ -1,0 +1,15 @@
+Both System V IPC (XSI IPC) and POSIX IPC including three different mechanisms for inter-processes communication:
+
+	Message queues : pass messages between processes
+
+	Semaphores : synchronize for multiple processes by kernel
+
+	Shared memory: share region of memory
+
+POSIX IPC has the following general advantages when compared to System V IPC:
+===============================================================================
+	The POSIX IPC interface is simpler than the System V IPC interface.
+
+	The POSIX IPC model—the use of names instead of keys, and the open, close , and unlink functions—is more consistent with the traditional UNIX file model.
+
+	POSIX IPC objects are reference counted. This simplifies object deletion, because we can unlink a POSIX IPC object, knowing that it will be destroyed only when all processes have closed it.

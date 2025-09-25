@@ -1,0 +1,3 @@
+$ gcc -S likely.c -masm=intel -O1
+
+$ gcc -S unlikely.c -masm=intel -O1

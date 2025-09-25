@@ -1,0 +1,42 @@
+Soft Link
+======================
+
+The basic command structure for creating a soft link is:
+
+ln -s <SOURCE> <LINK>
+
+SOURCE is the original file
+
+LINK is the new file you will create that will point to the original source.
+
+The primary difference between hard and symbolic link creation, is that you use the -s option. 
+
+Example:
+
+$ touch file.txt
+
+$ echo "hello world" > file.txt
+
+$ ls -li
+
+$ ln -s file.txt soft_file.txt
+
+$ ls -li
+
+Important Points
+=====================
+
+1. Soft Links will have different inode number, file size are different and permissions are also different ( verify it by [ ls -li <filename> ], first number is inode ? ).
+
+2. Soft link contains the path to the original file and not the contents
+
+3. Removing soft link doesn't affect anything, but when the original file is removed, the link becomes a 'dangling' link that points to nonexistent file
+
+4. Soft link can link to a directory
+
+5. Symbolic links can span file systems as they are simply the name of another file.
+
+-------
+- when creating a dynamic library, we create soft link. so it be thought as pointer to a file.
+- hard link can be used for backup.
+-------

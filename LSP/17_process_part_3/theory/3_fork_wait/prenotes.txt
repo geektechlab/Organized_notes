@@ -1,0 +1,36 @@
+In general, we never know whether the child starts executing before the parent, or vice versa. The order depends on the scheduling algorithm used by the kernel.
+
+If it’s required that the child and parent synchronize their actions, some form of interprocess communication is required.
+
+When a process terminates, either normally or abnormally, the kernel notifies the parent by sending the SIGCHLD signal to the parent.
+
+Because the termination of a child is an  asynchronous event—it can happen at any time while the parent is running — this signal is the asynchronous notification from the kernel to the parent
+
+The parent can choose to ignore this signal, or it can provide a function that is called when the signal occurs: a signal handler. The default action for this signal is to be ignored.
+
+#include <sys/wait.h>
+pid_t wait(int *statloc);
+pid_t waitpid(pid_t pid, int *statloc, int options);
+
+a process that calls wait or waitpid can
+
+	Block, if all of its children are still running
+
+	Return immediately with the termination status of a child, if a child has terminated and is waiting for its termination status to be fetched
+
+	Return immediately with an error, if it doesn’t have any child processes
+
+The differences between these two functions are as follows:
+
+	The wait function can block the caller until a child process terminates, whereas waitpid has an option that prevents it from blocking
+
+	If the caller blocks and has multiple children, wait returns when one terminates. We can always tell which child terminated, because the process ID is returned by the function.
+
+Why should we use WIFEXITED?
+==============================
+
+wait returning >= 0 tells you a child process has terminated (and that calling wait didn't fail), but it does not tell you whether that process terminated successfully or not (or if it was signalled).
+
+WIFEXITED(status): did the process exit normally? (as opposed to being signalled).
+
+WEXITSTATUS(status) == 0: did the process exit with exit code 0 

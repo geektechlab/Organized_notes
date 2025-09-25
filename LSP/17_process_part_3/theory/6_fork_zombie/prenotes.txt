@@ -1,0 +1,18 @@
+Zombies
+==================
+
+When a child finishes (or terminates) it still takes up a slot in the kernel process table. 
+
+Furthermore, they still contain information about the process that got terminated, such as process id, exit status, etc. (i.e. a skeleton of the original process still remains)
+
+Only when the child has been 'waited on' will the slot be available and the remaining information can be accessed by the parent.
+
+A long running program could create many zombies by continually creating processes and never wait-ing for them.
+
+
+What would be effect of too many zombies?
+===========================================
+
+Eventually there would be insufficient space in the kernel process table to create a new processes. 
+
+Thus fork() would fail and could make the system difficult / impossible to use - for example just logging in requires a new process!

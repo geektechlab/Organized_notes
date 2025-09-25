@@ -1,0 +1,1 @@
+What happens if i only have show function and no store and i call echo?

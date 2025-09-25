@@ -1,0 +1,16 @@
+Why Signals are Needed
+==========================
+
+With Signals, a process can asynchronously receive information about certain events or condition.
+
+A process can trap or subscribe to a signal; when this occurs, the process will asynchronously be notified of the fact by the OS, and will then run the code of a function in response: a signal handler.
+
+Examples:
+
+1. The developer wants to perform a common task: set up a timer and have it expire in, say, 1.5 seconds from now. How will the OS inform the process that the timer has expired?
+
+2. A process has an inadvertent defect (a bug); it makes an invalid memory access. subsystem (well, technically, the MMU and the OS) determines it must be killed. How exactly will it be killed?
+
+3. Linux's asynchronous IO (AIO) framework, and many other such scenarios.
+
+All of these example scenarios are serviced by the same mechanism: signals.

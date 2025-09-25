@@ -1,0 +1,16 @@
+Linux Cross Reference (LXR)
+==============================
+
+Link: https://elixir.bootlin.com/
+
+Code indexing tool with a web interface
+
+Allows to :
+
+	Browse the code of different Linux versions
+
+	Search for identifiers (functions, variables, etc.)
+
+	Quickly lookup a function declaration/definition
+
+Click on a function call to search for the definition

@@ -1,0 +1,24 @@
+Proc File System
+===================
+
+Proc is a pseudo file system for interfacing with the kernel internal data structures.
+
+As a user, you can use proc files for system diagnostics  – CPU, memory, Interrupts and many more.
+
+You can also configure a lot of parameters like scheduler parameters, kernel objects, memory and more
+
+The common interaction with proc is using cat and echo from the shell. For example:
+# cat /proc/cpuinfo
+# echo "50"> /proc/sys/kernel/sched_rr_timeslice_ms
+
+---
+it has proc has may modules such as modules, cpuinfo, meminfo.
+
+procfs is for processes. sysfs is for kernel. But still some legacy are using procfs.
+
+cat /proc/cmdline
+cat /proc/<pid>
+cat /proc/misc
+cat /proc/devices
+cat /proc/memeinfo
+cat /proc/uptime

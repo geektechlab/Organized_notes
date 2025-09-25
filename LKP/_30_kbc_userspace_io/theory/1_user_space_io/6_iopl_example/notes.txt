@@ -1,0 +1,14 @@
+iopl
+===========
+
+int iopl(int level);
+
+iopl() changes the I/O privilege level of the calling process, as specified by the two least significant bits in level
+
+The I/O privilege level for a normal process is 0
+
+Return Value:
+===============
+
+On success, zero is returned.
+On error, -1 is returned, and errno is set appropriately.

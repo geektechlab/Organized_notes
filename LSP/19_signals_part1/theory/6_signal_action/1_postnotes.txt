@@ -1,0 +1,7 @@
+And if we run this program, we see that, yes, it Ctrl-c is ineffective and we have to use Ctrl-\ to quit the program:
+But, it would seem like a pain to always have to write the silly little ignore function that does nothing, and so, when there is a need, there is a way.
+
+The signal.h header defines a set of actions that can be used in place of the handler:
+
+SIG_IGN : Ignore the signal
+SIG_DFL : Replace the current signal handler with the default handler

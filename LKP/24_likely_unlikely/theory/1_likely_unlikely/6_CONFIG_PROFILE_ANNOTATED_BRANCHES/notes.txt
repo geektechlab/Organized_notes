@@ -1,0 +1,11 @@
+CONFIG_PROFILE_ANNOTATED_BRANCHES
+====================================
+
+By enabling CONFIG_PROFILE_ANNOTATED_BRANCHES in the kernel build config file, all the likely() and unlikely() macros will be recorded to see how many times they were correct or not.
+
+$ cat /sys/kernel/debug/tracing/trace_stat/branch_annotated
+
+This will show what branches are correct or not.
+
+----
+for higher performance, we use likely/unlikely. watch video [ 22 - 24 ]

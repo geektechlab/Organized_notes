@@ -1,0 +1,5 @@
+A far more accurate way to measure the time spent—and performance characteristics in general—is by using the well-known perf(1) utility
+
+$ perf stat ./fork
+
+$ perf stat ./thread

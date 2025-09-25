@@ -1,0 +1,29 @@
+Electric Fence helps you detect two common programming bugs:
+
+	1) software that overruns the boundaries of a malloc()memory allocation,
+
+	2) software that touches a memory allocation that has been released by free().
+
+Electric Fence replaces the C library's normal malloc() function with a version that allocates the requested memory and (usually) allocates a section of memory immediately after this, which the process is not allowed to access! 
+
+Electric Fence creates a virtual fence around each allocated buffer in a way that any illegal memory access results in a segmentation fault. 
+
+Advantage:
+============
+
+it doesn't require you to make any changes in the source code of your program.
+
+You just need to link your program with the tool's library during compilation.
+
+makes sure that a segmentation fault is generated on the very first instruction that causes a bounds violation. 
+
+Disadvantage:
+===================
+
+Cannot detect memory leaks
+
+As the tool allocates an inaccessible virtual memory page both before and after a user-allocated memory buffer, it ends up consuming a lot of extra memory if your program makes too many dynamic memory allocations.
+
+----
+gcc <file name.c> -o <output file> -lefence -g
+----

@@ -1,0 +1,1 @@
+This will fail if there is no process that has the FIFO open for reading

@@ -1,0 +1,150 @@
+Theory0:
+What is IPC?
+==================
+
+Inter process communication is any way for one process to talk to another process.
+Signals was one kind of IPC Mechanism
+
+What is a pipe
+==================
+
+We use the term pipe to mean connecting a data flow from one process to another. Generally you attach or pipe the output of one process to the input of another.
+
+For shell commands, this is done using the pipe character to join the commands
+	$ command1 | command2
+
+1. The standard input to command1 will comes from the terminal keyboard
+2. The standard output from command1 is fed to command2 as its standard input
+3. The standard output from command2 is connected to the terminal screen.
+
+A pipe is created by calling the pipe function.
+
+#include <unistd.h>
+int pipe(int fd[2]);
+
+Returns: 0 if OK, −1 on error
+
+	--> pipe is passed (a pointer to) an array of two integer file descriptors. 
+	--> it fills the array with two new file descriptors and returns a zero.
+	--> The two file descriptors returned are connected in a special way.
+	--> Any data written to file_descriptor[1] can be read back from file_descriptor[0].
+	--> The first element of the array is the reading-end of the pipe, the second is the writing end.
+
+Theory1:
+A pipe has a limited capacity.  If the pipe is full, then a write(2) will block or fail, depending on whether the O_NONBLOCK flag is set 
+
+ulimit -a  ( 8*512)
+
+Theory2:
+You should be aware that the effect of trying to write using file_descriptor[0] or read using file_descriptor[1] is undefined
+
+Theory3:
+A pipe in a single process is next to useless.
+
+Normally, the process that calls pipe then calls fork, creating an IPC channel from the parent to the child, or vice versa.
+
+fork() man page tells us that the child will receive a copy of all the parent's file descriptors, and this includes a copy of the pipe's file descriptors
+
+The mistake in above code is that there is still a reader for the pipe! The child still has the pipe's first file descriptor open 
+
+When forking, It is common practice to close the unnecessary (unused) end of each pipe in the child and parent process. 
+
+For example the parent might close the reading end and the child might close the writing end (and vice versa if you have two pipes)
+
+What happens if a child process won't close the pipe from writing, while reading
+===============================================================================
+
+If the process — parent or child — is not going to use the write end of a pipe, it should close that file descriptor. Similarly for the read end of a pipe.
+
+The system will assume that a write could occur while any process has the write end open, even if the only such process is the one that is currently trying to read from the pipe, and the system will not report EOF, 
+
+How to check if the pipe is opened before writing?
+======================================================
+
+If I write a message to a closed pipe then program will crash
+
+Theory4:
+Want to use pipes with printf and scanf? Use fdopen!
+======================================================
+
+POSIX file descriptors are simple integers 0,1,2,3...
+
+At the C library level, C wraps these with a buffer and useful functions like printf and scanf, so we that we can easily print or parse integers, strings etc. 
+
+If you already have a file descriptor then you can 'wrap' it yourself into a FILE pointer using fdopen
+
+Theory5:
+Creating FIFO's from Command line
+====================================
+
+Two commands are provided by Linux
+
+$ mknod filename p
+
+$ mkfifo filename
+
+ls -l -> you will see p which indicates pipe
+
+Theory6:
+Accessing a FIFO
+=====================
+
+1. Try, reading the empty FIFO
+
+$ cat < /tmp/my_fifo
+
+2. Now, try writing to the FIFO from another terminal
+
+$ echo "hello world" > /tmp/my_fifo
+
+You will see the output appear from the cat command.
+
+Theory7:
+This will fail if there is no process that has the FIFO open for reading
+
+Theory8:
+Pipe capacity
+================
+
+In Linux versions before 2.6.11, the capacity of a pipe was the same as the system page size (e.g., 4096 bytes on i386)
+
+Since Linux 2.6.11, the pipe capacity is 16 pages (i.e., 65,536 bytes in a system with a page size of 4096 bytes).
+the capacity can be queried and set using the fcntl(2) F_GETPIPE_SZ and F_SETPIPE_SZ operations
+
+PIPE_BUF
+============
+
+POSIX.1 says that write(2)s of less than PIPE_BUF bytes must be atomic: the output data is written to the pipe as a contiguous sequence. 
+
+Writes of more than PIPE_BUF bytes may be nonatomic: the kernel may interleave the data with data written by other processes. POSIX.1 requires PIPE_BUF to be at least 512 bytes
+
+Theory9:
+Named Pipes/FIFO
+==================
+
+Unnamed pipes (the kind we've seen up to this point) live in memory (do not take up any disk space) and are a simple and efficient form of inter-process communication (IPC) that is useful for streaming data and simple messages. 
+
+Once all processes have closed, the pipe resources are freed.
+
+Unnamed pipes can be used only between related processes when a common ancestor has created the pipe.
+
+An alternative to unamed pipes is named pipes created using mkfifo.
+
+FIFOs are sometimes called named pipes.
+
+With FIFOs, however, unrelated processes can exchange data
+
+a FIFO is a type of file. One of the encodings of the st_mode member of the stat structure indicates that a file is a FIFO. We can test for this with the S_ISFIFO macro.
+
+Creating a FIFO is similar to creating a file. Indeed, the pathname for a FIFO exists in the file system.
+
+#include <sys/stat.h>
+int mkfifo(const char *path, mode_t mode);
+int mkfifoat(int fd, const char *path, mode_t mode);
+Both return: 0 if OK, −1 on error
+
+The specification of the mode argument is the same as for the open function
+
+Once we have used mkfifo or mkfifoat to create a FIFO, we open it using open. 
+
+Indeed, the normal file I/O functions (e.g., close, read, write, unlink) all work with FIFOs.

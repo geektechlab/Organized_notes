@@ -1,0 +1,4 @@
+How to check if the pipe is opened before writing?
+======================================================
+
+If I write a message to a closed pipe then program will crash

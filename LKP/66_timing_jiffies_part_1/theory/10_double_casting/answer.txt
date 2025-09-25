@@ -1,0 +1,11 @@
+Why do we have double casting in the below code
+
+#define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))
+
+the negative signed int (-300*HZ) is converted to an unsigned int with sign extension to whatever size an unsigned int is on that implementation (typically 32 bits)
+
+then the second cast (to unsigned long) casts that up to the size of an unsigned long (32 or 64 bits depending on implementation) with zero extension
+
+In the case of 32 bit unsigned long, the second (leftmost) cast does nothing
+
+In the case of 64 bit unsigned long, the second cast would cause the upper 32 bits to be set to 0.

@@ -1,0 +1,36 @@
+How do you access all registers present in the Configuration Space?
+==================================================================
+
+Accessing these registers is like accessing RTC(CMOS) Memory.
+
+PCI Index Port  0xCF8h
+PCI Data Port   0xCFCh
+
+PCI Index Port (0xCF8)
+============================
+    31                                   0
+    ---------------------------------------------------------------------------
+    | |Reserved |Bus Number |Device Number|Function Number|Register Number|0|0|
+    ---------------------------------------------------------------------------
+                          B      D         F                Offset
+
+Bit 31 when set, all reads and writes to CONFIG_DATA are PCI Configuration transactions
+
+Bits 30:24 are read-only and must return 0 when read 
+
+Bits 23:16 select a specific Bus in the system (up to 256 buses) 
+
+Bits 15:11 specify a Device on the given Bus (up to 32 devices) 
+
+Bits 10:8 Specify the function of a device (up to 8 devices)
+
+Bits 7:0 Select an offset within the Configuration Space (256 bytes)
+
+Addresses are often given in B/D/F, Offset notation (also written as B:D:F, Offset) 
+
+PCI Data Port (0xCFCh)
+======================
+
+Read and Write to 0xCFCh with Bit 31 enabled in 0xCF8 results in PCI configuration transaction.
+
+If the Bit 31 is not enabled, according to PCI Spec, transaction is forwarded out as Port I/O

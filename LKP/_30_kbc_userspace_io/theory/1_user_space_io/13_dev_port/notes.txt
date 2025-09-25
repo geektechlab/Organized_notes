@@ -1,0 +1,6 @@
+/dev/port
+=============
+
+Another way to access I/O ports is to open() /dev/port for reading and/or writing
+
+This method is probably slower than the ioperm/iopl because code flow has to pass through a kernel driver

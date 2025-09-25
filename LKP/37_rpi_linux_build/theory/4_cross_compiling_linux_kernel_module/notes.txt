@@ -1,0 +1,9 @@
+Cross Compiling Linux Kernel Module
+===================================
+
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C ~/raspberrypi/linux/ M=${PWD} modules
+
+$ make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -C ~/raspberrypi/linux/ M=${PWD} clean
+
+---
+then copy generated .ko using ssh and then install it using [ sudo insmod ]

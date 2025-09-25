@@ -1,0 +1,35 @@
+Branch Prediction
+==================
+
+Branches are instructions that can change the flow of a program's execution.
+
+if (i < 0)
+ 	i = 0;
+else
+	i = 1;
+
+Branches (i.e., conditional jumps) present a difficulty for the processor pipeline.
+
+After fetching a branch instruction, the processor needs to fetch the next instruction.
+
+With 'if' we will be having two possibilities of the next instruction.
+
+Instead of stalling the pipeline until the branch instruction is fully executed, modern processors attempt to predict/guess the branch.
+
+Branch Predictor: Digital Circuit that tries to guess which way a branch will go before this is known definitively
+
+Branch predictor plays a critical role in achieving high effective performance in many modern pipelined microprocessor architecture such as x86.
+
+If the guess/prediction found to be wrong, then the processor will simply discard the partially executed instructions that are in pipeline and starts over with the correct branch, incurring a delay.
+
+Command:
+===========
+
+$ perf stat <command>
+
+----
+for example, perf stat ls
+it will show page fault, context switches, branch misses etc.
+----
+
+Run on Direct Machine without any virtualization

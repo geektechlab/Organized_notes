@@ -1,0 +1,18 @@
+Cleaning Targets
+=================
+
+$ make clean
+	Remove most generated files
+	keeps the config
+	enough build support to build external modules
+
+$ make mrproper
+	Remove all generated files
+	Removes config
+	Removes various backup files (include/config, include/generated, scripts/basic, scripts/fixdep)
+
+$ make distclean
+	Performs all operations of make mrproper
+	Deletes temporary code navigation files:tags, cscope*
+	Deletes files generated as a side-effect of working with patches: *.orig *.rej *.bak
+	Deletes core dump files

@@ -1,0 +1,28 @@
+Do we need a separate buffer in the kernel for write operation?
+==================================================================
+
+No. The data can remain in the user space buffer
+
+Benefit of a separate buffer for write:
+=========================================
+
+	Reduced number of context switches and user-level/kernel-level transitions.
+
+Consider a slow device where the hardware can only accepts data transfer in few bytes
+
+Kernel Driver without output buffer.
+
+1. User Process tries to write more than 100 bytes, as there is no output buffer, process writes few bytes:write()
+2. Kernel driver tries to write few bytes to the hardware and puts the process to sleep until write completes
+3. During this time, the context switch can happen, another process is given a chance
+4. Once the write on the hardware completes, the process is resumed (context switch)
+5. write() returns (kernel level to user level transition)
+6. User process loops until it performs the same operation.
+
+With an output buffer in the kernel.
+
+1. Write call succeed with a single system call 
+2. Data is copied into the kernel output buffer
+3. Buffered data will be pushed later to device.
+
+So, as no going back to user space for second or third write and increased performance. 

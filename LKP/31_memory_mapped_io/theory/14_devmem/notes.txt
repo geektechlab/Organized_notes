@@ -1,0 +1,30 @@
+devmem present in busybox
+==========================
+
+devmem is a small program that reads and writes from physical memory using /dev/mem
+
+Usage: devmem ADDRESS [WIDTH [VALUE]]
+
+Read/write from physical address
+
+    ADDRESS Address to act upon
+    WIDTH   Width (8/16/...)
+    VALUE   Data to be written
+
+$ devmem 0x00000000 8
+
+$ devmem 0x00000000 16
+
+$ devmem 0x00000000 32
+
+UART0 is mapped: 0x101f1000. 
+
+The code that emulates the serial port inside QEMU implements a subset of the functionalities of the PL011 Prime Cell UART from ARM
+
+UARTDR register that is used to transmit (when writing in the register) and receive (when reading) bytes; this register is placed at offset 0x0
+
+$ devmem 0x101f1000 8 0x61
+
+On Ubuntu
+ 
+$ sudo apt install devmem2

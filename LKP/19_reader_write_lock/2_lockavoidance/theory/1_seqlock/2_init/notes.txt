@@ -1,0 +1,32 @@
+How it works
+===============
+
+It uses
+       Sequence Counter (Integer)
+       Spin lock
+
+Data structure: seqlock_t
+
+Header File: linux/seqlock.h
+
+typedef struct seqcount {
+        unsigned sequence;
+} seqcount_t;
+
+typedef struct {
+        struct seqcount seqcount;
+        spinlock_t lock;
+} seqlock_t;
+
+	seqcount -> sequence counter
+	lock     -> lock to atomic update in case of writers
+
+Initialization
+----------------
+
+        Static:         DEFINE_SEQLOCK(x)
+
+        Dynamic:        seqlock_init(x)
+
+----
+spinlock is used only in write operation

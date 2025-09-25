@@ -1,0 +1,44 @@
+Minimal Linux with QEMU/Busybox
+===============================
+
+QEMU (short for Quick Emulator) is a free and open-source  hypervisor that performs hardware virtualization.
+
+Busybox : combines tiny versions of many common UNIX utilities into a single small executable.
+	  BusyBox provides a fairly complete environment for any small or embedded system.
+	  Note: The utilities in BusyBox generally have fewer options than their full-featured GNU cousins
+
+How it is useful?
+====================
+
+Building a minimal Linux kernel and booting it on an emulator allows developers to quickly build additional Linux kernel features.
+
+Build Busybox
+=============
+
+Step 1: Download busybox from their website : https://busybox.net/
+
+	$ wget https://busybox.net/downloads/busybox-1.31.0.tar.bz2
+
+Step 2: Extract the sources.
+
+	$ tar xvf busybox-1.31.0.tar.bz2
+
+Step 3: The busybox build system supports O= means “place build output here”.
+	This allows you to host multiple different configurations out of the same source tree. 
+
+	$ cd busybox-1.31.0
+	$ mkdir -pv build
+	$ make O=build defconfig
+
+Step 4: We need to statically link busybox in order to avoid fiddling with shared libraries.
+	$ make O=build menuconfig
+
+	Settings -> Build Options -> Build Static Binary
+
+Step 5: Compile/Install busybox
+
+	$ cd build
+	$ time make -j8
+	$ time make install
+
+Step 6: Now, build/_install directory will have a directory structure with all the unix tools.

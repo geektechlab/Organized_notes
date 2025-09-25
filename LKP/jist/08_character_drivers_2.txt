@@ -1,0 +1,109 @@
+Theory2:
+How many times device driver open and release will be called in case of fork?
+The open and release function is only called once.
+
+When you do fork(), it will not create a new file structure and close() will call the release method of the driver only when the counter of the file structure becomes zero.
+
+vi ~/linux-5.2.8/include/linux/fs.h check struct file -> count variable.
+
+Theory3:
+struct file:
+Header File: <linux/fs.h>
+
+struct file is different when compared to FILE of user space program. A FILE is defined in the C library and never appears in kernel code. A struct file, on the other hand, is a kernel structure that never appears in user programs.
+
+The file structure represents an open file. (It is not specific to device drivers; every open file in the system has an associated struct file in kernel space.) Whenver you open a file, kernel creates a struct file in kernel space. It is created by the kernel on open and is passed to any function that operates on the file, until the last close. After all instances of the file are closed, the kernel releases the data structure. An open file is different from a disk file, represented by struct inode.
+
+Important Fields:
+struct file {
+	//The file mode identifies the file as either readable or writable
+	fmode_t                 f_mode;
+
+	//The current reading or writing position. loff_t is a 64-bit value 
+	loff_t f_pos;
+	
+	//These are the file flags, such as O_RDONLY, O_NONBLOCK, and O_SYNC. The file mode identifies the file is opened in either read or write mode ?
+	unsigned int            f_flags;
+
+	//The operations associated with the file.
+	struct file_operations *f_op;
+	
+	//The open system call sets this pointer to NULL before calling the open method for the driver.
+	//The driver can use the field to point to allocated data, but then must free memory in the release method before the file structure is destroyed by the kernel
+	// private_data is a useful resource for preserving state information across system calls
+	void *private_data;
+}; 
+
+Theory4:
+struct inode:
+we can verify inode related information using stat command. [ stat hello.c ]
+Header File: <linux/fs.h>
+
+The inode structure is used by the kernel internally to represent files. An inode uniquely identifies a file in a file system. It represents a file on disk. struct inode is different from struct file. Whenever we open a file, struct file gets created. But when file gets created, struct inode gets created.
+
+struct inode {
+	//mode
+	umode_t                 i_mode;
+
+	kuid_t                  i_uid;
+    kgid_t                  i_gid;
+
+	//inode number
+	unsigned long           i_ino;
+
+	//Contains the actual device number
+	dev_t                   i_rdev;
+
+	// Kernel representation of char device
+	struct cdev *i_cdev
+};
+
+Kernel developers have added two macros that can be used to obtain the major and minor numbers from an inode.
+( MAJOR(inode->i_rdev), MINOR(inode->i_rdev) )
+
+unsigned int iminor(struct inode *inode);
+unsigned int imajor(struct inode *inode);
+
+Check example 4 for understanding inode better.
+
+Theory5:
+difference between struct inode vs struct file:
+if we run userapp or kernel driver multiple times then file strucutre pointer will be different whereas inode will same because file structure will get created again but inode will remain same because it points to same file.
+
+Theory6:
+Accessing process address space can not be done directly (by de-referencing a user-space pointer). Because kernel driver can't/shouldn't access user space memory. If we try to do that, then page domain fault will happen and OOPs will happen.
+
+Direct access of a user-space pointer can lead to 
+	- incorrect behavior (depending on architecture, a user-space pointer may not be valid or mapped to kernel-space), ( in ARM architecture, EL0 address access might not be allowed from EL1 ? )
+	- a kernel oops (the user-mode pointer can refer to a non-resident memory area) or 
+	- security issues. 
+
+Proper access to user-space data is done by calling the macros / functions below:
+old linux version before 4.x:
+#include <asm/uaccess.h>
+
+latest linux version:
+#include <linux/uaccess.h>
+
+put_user(type val, type *address);
+get_user(type val, type *address);
+unsigned long copy_to_user(void __user *to, const void *from, unsigned long n);
+unsigned long copy_from_user(void *to, const void __user *from, unsigned long n)
+
+Theory7:
+The copy_from_user function copies a block of data from user space into a kernel buffer. It accepts:
+	destination buffer (in kernel space), 
+	a source buffer (from user space), and 
+	a length defined in bytes
+
+Theory8:
+The copy_to_user function copies a block of data from the kernel into user space. This function accepts:
+	pointer to a user space buffer, 
+	a pointer to a kernel buffer, and 
+	a length defined in bytes. 
+
+Theory9:
+put_user function is used to write a simple variable from the kernel into user space. It supports simple types like char and int, but not larger data types like structures or arrays.
+
+Theory10:
+get_user is used to read a simple variable from user space.

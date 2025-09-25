@@ -1,0 +1,3 @@
+Let's disassemble our program 4 with objdump to look at the "memory address" of the main function:
+
+objdump -M intel -j .text -d 4 | grep '<main>:' -A 5

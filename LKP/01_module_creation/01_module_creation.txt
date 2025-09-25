@@ -1,0 +1,294 @@
+A device driver has three sides:
+    one side talks to the rest of the kernel, one talks to the hardware and one talks to the user
+
+    ==================
+    =                =
+    =   User         =  ---------
+    =                =          |
+    ==================          |
+        |                       |
+        |                       |
+        |                       |
+    ==================          |
+    =                =          |
+    =   Kernel       =          |
+    =                =          |  Via Device File
+    ==================          |
+        |                       |
+        |Device Driver 
+        |                       |
+    ==================          |
+    =                =          |
+    =   Hardware     = ---------
+    =                =
+    ==================
+
+Traditional way of adding code to the kernel was to recompile the kernel and reboot the system. Instead of that, Kernel Modules ( Loadable Kernel Modules (LKM) ) are piece of code that can be loaded/inserted and unloaded/removed from the kernel as per the demand/need. In boot process, base kernel is loaded first and then after the kernel image is loaded successfully it has initialized all the hardware peripherals it will start mounting the root file system and then it will load the kernel modules which are present in lib modules. Modules can save you memory, because you have to have them loaded only when you're actually using them ( the base kernel will always be present in the ram in the memory, but with modules we add/remove the code from the base kernel ) As the kernel modules are loaded very late in the boot process, hence core functionality has to go in the base kernel (E.g. Memory Management) ( all the kernel code can not be added as a kernel module because the core functionality like memory management cannot be configured as kernel module because the kernel modules as we have discussed they will be loaded late in the boot ) ( once the kernel is completely initialized and it has mounted the root file system then only the kernel can load the kernel modules hence the core functionality cannot be part of the kernel module ). Whenever we load an out of tree module it taints the kernel.
+
+All modules are installed in the /lib/modules/<kernel version> directory of the rootfs by default. 
+check all installed kernel modules by:
+	ls /lib/modules/`uname -r`/kernel/
+Find kernel modules by:
+	cd /lib/modules/`uname -r`/kernel/
+	find . -name '*.ko'
+Find kernel modules count by:
+	cd /lib/modules/`uname -r`/kernel/ | find . -name '*.ko' | wc -l
+
+In order to support modules, the kernel must have been built with the following option enabled:
+CONFIG_MODULES=y
+we can check it at
+	cat /boot/config-`uname -r` | grep CONFIG_MODULES
+
+1. In-Source Tree: Modules present in the Linux Kernel Source Code ( these are present in the linux kernel source code so we download the source code from kernel.org can be configured as kernel modules )
+2. Out-of-Tree: Modules not present in the Linux Kernel Source Code. ( are not part of the kernel source code and which are distributed separately which by the vendor )
+All modules start out as "out-of-tree" developments, that can be compiled using the context of a source-tree.
+
+1. List Modules: (lsmod) lsmod gets its information by reading the file /sys/modules. ( we can check it by "strace lsmod" ) ( also we can check by "ls /sys/modules" )
+2. Module Information: (modinfo) : prints the information of the module. ( it provides various info such as word magic value and then you have what all parameters which are which can be passed to this module so while loading the module )
+
+printk() writes to the kernel buffer which can be read by dmesg, whereas printf() writes on the standard output
+printk(KERN_log_priority "hello world\n");
+
+To Build Modules ( we are using /lib/modules/`uname -r`/build/Makefile, but it looks for another makefile in current folder which tells which modules to build. We specify this other makefile through M=${PWD} ):
+	make -C /lib/modules/`uname -r`/build M=${PWD} modules
+To clean:
+	make -C /lib/modules/`uname -r`/build M=${PWD} clean
+
+-----------
+Once built, check generated module by
+	file ./hello.ko
+	modinfo ./hello.ko
+Load it by
+	sudo insmod ./hello.ko ( because only root user can load module )
+Check loading by
+	lsmod
+We can remove module by
+	sudo rmmod hello
+Verify removal by
+	lsmod
+Or check by
+	ls /sys/module/hello/
+We need to check print messages by printk by
+	dmesg
+-----------
+
+Kernel modules must have at least two functions: 
+	a "start" (initialization) function : which is called when the module is loaded into the kernel
+	an "end" (cleanup) function called : which is called just before it is removed
+e.g.
+module_init(test_hello_init);
+module_exit(test_hello_exit);
+
+When we do insmod on a module, it performs a series of steps:
+a) It calls init_module() to intimate the kernel that a module is attempted to be loaded and transfers the control to the kernel
+b) In kernel, sys_init_module() [ https://elixir.bootlin.com/linux/latest/source/include/linux/module.h#L76 ] is run. It does a sequence of operations as follows:
+		--> Verifies if the user who attempts to load the module has the permission to do so or not
+		-->	The load_module function assigns temporary memory and copies the elf module from user space to kernel memory using copy_from_user
+		--> It then checks the sanity of the ELF file ( Verification if it is a proper ELF file )
+		--> Then based on the ELF file interpretation, it generates offset in the temporary memory space allocated. This is called the convenience variables
+		-->	User arguments to the module are also copied to the kernel memory
+		-->	Symbol resolution is done
+		-->	The load_module function returns a reference to the kernel module.
+		-->	The reference to the module returned by load_module is added to a doubly linked list that has a list of all the modules loaded in the system
+		-->	Then the module_init function in the module code is called
+
+==========================
+dmesg
+==========================
+
+Kernel keeps all the logs in a ring buffer. This is done to avoid the boot logs being getting lost until the syslog daemon starts and collects them and stores them in /var/log/dmesg. We will loss the boot up logs if we don't store them in ring buffer. dmesg command is used to control or print kernel ring buffer. Default is to prints messages from the kernel ring buffer on to console. ( we can check by strace dmesg -> it will write to STDOUT )
+
+when the kernel boots, there is no root file system. This means it does not have capability to write to any file so that's the reason why dmesg stores contents in a ring buffer. Once the system is up, syslog daemon starts and it will collect contents of the ring buffer and store them in a file which is specific to the distribution. So, if you look into the process list we'll be seeing there's a syslog daemon running ( check by [ ps -ef | grep syslog ] ) so which is actually reading periodically reading the kernel buffer contents of kernel buffer and it's writing into some file in /var/log which depends on the distribution ( check by [ cat /var/log/kern.log ] ).
+
+----
+To Build Modules ( we are using /lib/modules/`uname -r`/build/Makefile, but it looks for another makefile in current folder which tells which modules to build. We specify this other makefile through M=${PWD} ):
+
+	make -C /lib/modules/`uname -r`/build M=${PWD} modules
+
+To clean:
+
+	make -C /lib/modules/`uname -r`/build M=${PWD} clean
+
+
+The above commands starts by changing its directory to the one provided with the -C option (that is your kernel source directory)
+
+There it finds the kernel's top level makefile. The M= option causes the Makefile to move back into your module source directory before trying to build the modules.
+
+Note: M is not make option but argument passed to it
+
+obj-m refers to the list of modules 
+
+The kernel Makefile will read our Makefile to find out what to build, we specify that by writing obj-m += hello.o
+
+-----------
+
+Once built, check generated module by
+	file ./hello.ko
+	modinfo ./hello.ko
+Load it by
+	sudo insmod ./hello.ko ( because only root user can load module )
+Check loading by
+	lsmod
+We can remove module by
+	sudo rmmod hello
+Verify removal by
+	lsmod
+Or check by
+	ls /sys/module/hello/
+We need to check print messages by printk by
+	dmesg
+
+-----------
+
+whenever we load an out of tree module it taints the kernel
+
+Hello World Kernel Module
+============================
+
+In C/C++ Programming we have the main() as the entry point and exit point.
+
+Kernel modules must have at least two functions: 
+	a "start" (initialization) function : which is called when the module is loaded into the kernel
+	an "end" (cleanup) function called : which is called just before it is removed
+
+This is done with the module_init() and module_exit() macros
+
+Licensing
+============
+
+Module should specify which license you are using MODULE_LICENSE() macro
+
+	"GPL"				[GNU Public License v2 or later]
+	"GPL v2"			[GNU Public License v2]
+	"GPL and additional rights"	[GNU Public License v2 rights and more]
+	"Dual BSD/GPL"			[GNU Public License v2
+					 or BSD license choice]
+	"Dual MIT/GPL"			[GNU Public License v2
+					 or MIT license choice]
+	"Dual MPL/GPL"			[GNU Public License v2
+					 or Mozilla license choice]
+
+	"Proprietary"			[Non free products]
+
+
+Header Files
+============
+	Every kernel module needs to include linux/module.h. for macro expansion of module_init and module_exit
+	linux/kernel.h only for the macro expansion for the printk() log level
+
+------
+
+printf vs  printk
+==================
+
+printf() is a function in the C Standard Library
+
+printk() is a kernel level function
+
+The printk() is called with one more argument than printf(), like this:
+
+printk(KERN_log_priority "hello world\n");
+
+Here, log_priority is one of the eight values (predefined in linux/kernel.h, similar to /usr/include/sys/syslog.h)
+
+	EMERG, 
+	ALERT, 
+	CRIT, 
+	ERR, 
+	WARNING, 
+	NOTICE, 
+	INFO, 
+	DEBUG (in order of decreasing priority).
+
+printk() writes to the kernel buffer which can be read by dmesg, whereas printf() writes on the standard output
+
+With this Makefile, we can just use "make" command instead of entire long command
+
+------------------------
+
+============================================
+What happens when we do insmod on a module 
+============================================
+
+What is a kernel module?
+
+	Kernel module is a piece of kernel code which can be added to the running kernel when loaded and can be removed from the kernel when the functionality is removed.
+
+When we do insmod on a module, it performs a series of steps:
+
+	a) It calls init_module() to intimate the kernel that a module is attempted to be loaded and transfers the control to the kernel
+
+	b) In kernel, sys_init_module() [ https://elixir.bootlin.com/linux/latest/source/include/linux/module.h#L76 ] is run. It does a sequence of operations as follows:
+
+		--> Verifies if the user who attempts to load the module has the permission to do so or not
+
+		--> After verification, load_module function is called.
+
+				-->	The load_module function assigns temporary memory and copies the elf module from user space to kernel memory using copy_from_user
+
+				--> It then checks the sanity of the ELF file ( Verification if it is a proper ELF file )
+
+				--> Then based on the ELF file interpretation, it generates offset in the temporary memory space allocated. This is called the convenience variables
+
+				-->	User arguments to the module are also copied to the kernel memory
+
+				-->	Symbol resolution is done
+
+				-->	The load_module function returns a reference to the kernel module.
+
+		-->	The reference to the module returned by load_module is added to a doubly linked list that has a list of all the modules loaded in the system
+
+		-->	Then the module_init function in the module code is called
+
+--------
+
+========================================
+Linux dmesg command Tutorial 
+=======================================
+
+==========================
+What does dmesg command do?
+==========================
+
+Kernel keeps all the logs in a ring buffer.
+
+This is done to avoid the boot logs being getting lost until the syslog daemon starts and collects them and stores them in /var/log/dmesg.
+
+We will loss the boot up logs if we don't store them in ring buffer.
+
+dmesg command is used to control or print kernel ring buffer. Default is to prints messages from the kernel ring buffer on to console.
+
+( we can check by strace dmesg -> it will write to STDOUT )
+
+==========================
+Important dmesg commands:
+==========================
+
+1. Clear Ring buffer: 
+	
+	$dmesg -c -> Will clear the ring buffer after printing
+	$dmesg -C -> Will clear the ring buffer but does not prints on the console.
+
+2. Don't Print Timestamps: 
+
+	$dmesg -t -> Will not print timestamps
+
+3. Restrict dmesg command to list of levels.
+
+	$ dmesg -l err,warn will print only error and warn messages
+
+4. Print human readable timestamps:
+
+	$dmesg -T will print timestamps in readable format. Note: Timestamp could be inaccurate.
+
+5. Display the log level in the output:
+
+	$dmesg -x will add loglevel to the output.
+
+6. You can combine options, so dmesg -Tx will print both human readable time and loglevel.
+
+-----------------------
+
+when the kernel boots, there is no root file system. This means it does not have capability to write to any file so that's the reason why dmesg stores contents in a ring buffer. Once the system is up, syslog daemon starts and it will collect contents of the ring buffer and store them in a file which is specific to the distribution.
+
+So, if you look into the process list we'll be seeing there's a syslog daemon running ( check by [ ps -ef | grep syslog ] ) so which is actually reading periodically reading the kernel buffer contents of kernel buffer and it's writing into some file in /var/log which depends on the distribution ( check by [ cat /var/log/kern.log ] ).

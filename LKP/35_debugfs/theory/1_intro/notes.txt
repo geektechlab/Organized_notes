@@ -1,0 +1,30 @@
+debugfs
+===========
+
+debugfs helps kernel developers export large amounts of debug data into user-space.
+
+procfs  - Used for information about process
+sysfs   - Has strict one-value-per-file rule
+debugfs - no rules, any information can be placed by developers
+
+CONFIG_DEBUG_FS
+==============
+
+To compile a Linux kernel with the debugfs facility, the CONFIG_DEBUG_FS option must be set to yes.
+
+$ cat /boot/config-`uname -r` | grep CONFIG_DEBUG_FS
+
+Mounting debugfs
+================
+
+$ mount | grep debugfs
+
+If debugfs is not already mounted, you can mount it with the below command,
+
+$ mount -t debugfs none /sys/kernel/debug
+
+Note:
+========
+1. Debugfs directory is accessible to only root user by default, can be changed with uid/gid/mode options while mounting
+
+2. Can be used by only GPL Modules

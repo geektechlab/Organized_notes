@@ -1,0 +1,24 @@
+Submitting Patches
+===================
+
+The development process itself happens entirely over emails. 
+
+Every kernel subsystem has a mailing list. 
+
+Patches touching a specific driver/subsystem are sent to the maintainer listed in MAINTAINER. The MAINTAINER file consists of subsystem git information and mailing lists for each of the subsystem.
+
+Contributors send patches to mailing lists through email
+
+While sending the patch, carbon copy (cc) to  linux-kernel@vger.kernel.org (Linux Kernel Mailing List)
+
+Subject of the mail: "[PATCH] brief description"
+
+Body of the mail: Technical details of your changes patch makes and reasons behind those changes
+
+Add Kernel version to the email.
+
+Attach the patch as plain text 
+
+Note: If your patch is large or contains several logical changes, you should break the patch into chunks with each chunk representing a logical change.
+
+Each Email should send one patch

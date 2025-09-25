@@ -1,0 +1,103 @@
+Theory0:
+static inline struct delayed_work *to_delayed_work(struct work_struct *work)
+{
+        return container_of(work, struct delayed_work, work);
+}
+
+Header File: <linux/workqueue.h>
+
+Theory1:
+Perform periodic task using workqueues
+--------------------------------------
+
+To perform some task periodically,
+	requeue the work from the work function itself
+
+Theory2:
+WQ_SYSFS
+-------------
+
+A given workqueue can be made visible in the sysfs filesystem by passing the WQ_SYSFS to that workqueue's alloc_workqueue()
+
+$ ls sys/devices/virtual/workqueue
+
+# echo 1 > /sys/devices/virtual/workqueue/cpumask
+
+Theory3:
+# echo 2 > /sys/devices/virtual/workqueue/my_queue/cpumask 
+
+---
+can be used to run work queues to run on particular CPU.
+
+Theory4:
+Other Flags
+-------------
+
+WQ_FREEZABLE:
+
+	A freezable wq participates in the freeze phase of the system  suspend operations.
+	This flag is used in the context of power management and file systems, and is especially important for creating the system image in the suspend phase
+	workqueues which can run tasks as part of the suspend/resume process should not have this flag set.
+	You can find more information about this topic in Documentation/power/freezing-of-tasks.txt.
+
+
+WQ_MEM_RECLAIM:
+	
+	All workqueues which might be used in the memory reclaim paths must have this flag set.
+	The workqueue is guaranteed to have at least one woker, a so-called rescuer thread, regardless of memory pressure.
+	Let us consider the following scenario:
+		Workqueue W has 3 items A, B and C.
+
+		A does some work and then waits until C has finished some work.
+		
+		Afterwards, B does some GFP KERNEL allocations and blocks as there is not enough memory available.
+	
+		As a result, C cannot run since B still occupies the W's worker;
+
+		another worker cannot be created because there is not enough memory.
+
+		A pre-allocated rescuer thread can solve this problem, by executing C which then wakes up A.
+
+		B will continue as soon as there is enough available memory to allocate.
+
+WQ_CPU_INTENSIVE:
+
+		tasks on this workqueue can be expected to use a fair amount of CPU time.
+
+		In other words, runnable CPU intensive work items will not prevent other work items in the same worker pool from starting execution.
+
+Theory5:
+flush_workqueue
+---------------
+
+void flush_workqueue(struct workqueue_struct *wq);
+
+This function sleeps until all work items which were queued on entry have been finished.
+
+typically used in driver shutdown handlers
+
+Theory6:
+WQ_MAX_UNBOUND_PER_CPU - number of unbound workqueues that can be associated with a cpu
+
+WQ_UNBOUND_MAX_ACTIVE -  total number of unbound workqueues
+
+Theory7:
+alloc_ordered_workqueue
+------------------------
+
+#define alloc_ordered_workqueue(fmt, flags, args...)
+
+Allocate an ordered workqueue
+
+An ordered workqueue executes at most one work item at any given time in the queued order
+
+They are implemented as unbound workqueues with max_active of one
+
+Theory8:
+What happens when you call queue_work?
+--------------------------------------
+
+Use cscope/ctags to find out
+
+----
+IMP: watch video https://youtu.be/Ew3KI0-ybGc?list=PLCFZYUMGKxqCOP3tSrSW1XgNUI8RBOxCH at 20:00

@@ -1,0 +1,6 @@
+Theory0:
+Browsing/Navigating Linux Kernel Source:
+Linux source code is huge and evolves very fast
+	27 million lines of code
+
+Tools such as cscope, ctags and lxr allows to easily browse the kernel source code

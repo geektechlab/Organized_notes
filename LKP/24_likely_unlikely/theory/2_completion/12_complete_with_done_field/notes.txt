@@ -1,0 +1,1 @@
+If complete() is called multiple times then this will allow for that number of waiters to continue - each call to complete() will simply increment the done field.

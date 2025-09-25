@@ -1,0 +1,145 @@
+Theory0:
+I/O Memory: The most widely supported form of IO is memory mapped IO.
+
+A part of the CPU’s address space is interpreted not as accesses to memory, but as accesses to a device. Some architectures define devices to be at a fixed address, but most have some method of discovering devices. Advantage of memory mapped I/O is that it keeps the instruction set small. Logic of creating separate I/O address space initially because the memory address space of processors was quite limited. When x86 moved to 32-bit, the address space was still same 64KB, even after it moved to 64-bit.
+
+Examples of I/O Memory:
+a) Holding Video Data
+b) Ethernet Packets
+c) Device Registers
+
+Theory1:
+Requesting I/O Memory: Functions equivalent to request_region() and release_region(), but for I/O memory
+
+struct resource *request_mem_region(
+		unsigned long start,
+		unsigned long len,
+		char *name);
+void release_mem_region(
+		unsigned long start,
+		unsigned long len);
+
+request_mem_region:
+	---> Informs kernel that your driver is going to use this range of I/O addresses
+	---> This prevents other drivers from using it through request_mem_region
+
+cat /proc/iomem lists all the kernel drivers requested 'request_mem_region'
+
+Theory2:
+Can we access(read/write) MMIO memory directly?
+No, we can't . Kernel is running in virtual address space. Like user space, the kernel accesses memory through page tables. So, when kernel code needs to access memory-mapped I/O devices, it must first set up an appropriate kernel page-table mapping.
+
+void *ioremap(unsigned long phys_addr, unsigned long size);
+void iounmap(void * addr);
+
+A successful call to ioremap() returns a kernel virtual address corresponding to start of the requested physical address range. Return address of ioremap is not normally meant to be dereferenced directly, though, for a number of (often architecture-specific) reasons.
+
+Functions to read and write data using memory mapped by ioremap()
+unsigned int ioread8(void *addr);
+unsigned int ioread16(void *addr);
+unsigned int ioread32(void *addr);
+
+void iowrite8(u8 value, void *addr);
+void iowrite16(u16 value, void *addr);
+void iowrite32(u32 value, void *addr);
+
+Why do we need to call ioread instructions why can't i directly access by dereferencing?
+Compiler can perform optimizations. For example, the below logic:
+
+if (x)
+	y = *ptr
+
+Can be converted to 
+
+tmp = *ptr;
+if (x)
+	y = tmp
+
+Another example,
+*reg  = 1; *reg = 2;
+
+will be converted to 
+
+*reg = 2;
+
+MMIO registers will have side effects, so you must force the compiler to avoid optimizations by using volatile and avoid hardware caching using barriers. ioread functions internally perform these operations.
+
+Theory3:
+Ports as I/O Memory: Linux kernel provides a function ioport_map which maps I/O ports and make them appear as I/O Memory.
+
+void *ioport_map(unsigned long port, unsigned int count);
+
+To unmap:
+void ioport_unmap(void *addr);
+
+Note: I/O Ports must still be allocated with request_region before they can be remapped in this way.
+
+Theory4:
+Accessing mmio from user space:
+/dev/mem is a character device file that is an image of the main memory of the computer. ( main memory is not just RAM but includes all other devices also ). Byte addresses in /dev/mem are interpreted as physical memory addresses.
+
+[ man 4 mem ] for more information Implemented by drivers/char/mem.c
+
+Accessing /dev/mem from command line:
+$ hexdump -C /dev/mem
+$ cat /dev/mem | strings
+$ cat /dev/mem | strings -n 20
+
+Theory5:
+CONFIG_STRICT_DEVMEM: Since Linux 2.6.26, and depending on the architecture, the CONFIG_STRICT_DEVMEM kernel configuration option limits the areas which can be accessed through /dev/mem
+
+# cat /boot/config-`uname -r` | grep CONFIG_STRICT_DEVMEM
+
+It is enabled by default x86/x86_64 and ARM platforms. Enabling CONFIG_STRICT_DEVMEM implements strict access to /dev/mem so that it only allows user-space access to memory mapped peripherals. With this option disabled, the root user from user-space can access all kernel and user-space memory through /dev/mem. Try with qemu-system-arm. The QEMU emulator supports the VersatilePB platform, that contains an ARM926EJ-S core. Memory map can be read : cat /proc/iomem
+
+Theory6:
+devmem present in busybox: devmem is a small program that reads and writes from physical memory using /dev/mem
+Usage: devmem ADDRESS [WIDTH [VALUE]]
+
+Read/write from physical address
+    ADDRESS Address to act upon
+    WIDTH   Width (8/16/...)
+    VALUE   Data to be written
+
+$ devmem 0x00000000 8
+$ devmem 0x00000000 16
+$ devmem 0x00000000 32
+
+UART0 is mapped: 0x101f1000. The code that emulates the serial port inside QEMU implements a subset of the functionalities of the PL011 Prime Cell UART from ARM. UARTDR register that is used to transmit (when writing in the register) and receive (when reading) bytes; this register is placed at offset 0x0.
+
+$ devmem 0x101f1000 8 0x61
+
+On Ubuntu,
+$ sudo apt install devmem2
+
+Theory7:
+GPIO:
+101e4000-101e4fff : gpio@101e4000
+101e5000-101e5fff : gpio@101e5000
+101e6000-101e6fff : gpio@101e6000
+101e7000-101e7fff : gpio@101e7000
+
+The PrimeCell GPIO provides eight programmable inputs or outputs
+GPIO base + 0x400 - GPIODIR -  PrimeCell GPIO data direction register Width - 8
+
+Bits set to HIGH in the GPIODIR configure corresponding pin to be an output. Clearing a bit configures the pin to be input. How do you Configure GPIO1 pin 4 as output?
+$ devmem 0x101e5400 w 0x10
+$ devmem 0x101e5400 b
+
+Theory8:
+How to dump BIOS data on to a file?
+$ grep ROM /proc/iomem
+	which results in:
+	000c0000-000c7fff : Video ROM
+	000e2000-000e2fff : Adapter ROM
+	000f0000-000fffff : System ROM
+
+Starting Address = 0xf0000 = 960KB
+Ending Address = 0xfffff = 1024KB
+
+$ sudo dd if=/dev/mem of=pcbios.bin bs=1k skip=960 count=64
+$ cat pcbios.bin | strings -n 20
+
+Theory9:
+If i say echo "linux is the future" and strings /dev/mem | grep "linux is the future"? will it be present in RAM?
+Yes

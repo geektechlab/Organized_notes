@@ -1,0 +1,14 @@
+If you only need a single function entry (call) to produce all the desired proc-fs output, just use single_open() and single_release().
+
+single_open() gets a parameter that is the "show" function for the data that is to be written to /proc.
+
+int single_open(struct file *file, int (*show)(struct seq_file *m, void *p), void *data);
+
+The "show" function does everything that is needed to write the data, all in one function call.
+
+The data value given to single_open() can be found in the private field of the seq_file structure.
+
+This is useful either for writing small amounts of data to /proc, for cases in which the output is not iterative, or for cases in which recursion is more appropriate, since the non-single methods don't fit well with recursive techniques
+
+When using single_open(), the programmer should use single_release() instead of seq_release() in the file_operations structure to avoid a memory leak.
+~

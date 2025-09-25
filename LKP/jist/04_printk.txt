@@ -1,0 +1,20 @@
+For Linux, a console is a device to which you can write text data and read text data. By default, the console is the screen and keyboard. When one boots his PC, the kernel prints a lot of messages, like "initializing this...", "initializing that...". These all get printed via printk that sends the message to the console driver. In Linux, graphics mode is implemented not inside the kernel but in user space and thus it cannot print messages in graphics mode, but as a usermode process called X sends a message via IPC to the X server and says it how the X server should draw the window. This message passing is implemented in a shared library. To display all kernel messages, [ dmesg -n 5 ].
+
+[ cat /proc/sys/kernel/printk ] will display 4 numbers:
+They are associated with the following variables: – 
+console_loglevel: level under which the messages are logged on the console device 
+default_message_loglevel: priority level that is associated by default with messages for which no priority value is specified 
+minimum_console_loglevel: minimum level to allow a message to be logged on the console device 
+maximum_console_loglevel: maximum level 
+
+$echo 8 > /proc/sys/kernel/printk
+Will change the console_loglevel
+
+pr_error etc. message displays more info than printk().
+
+When a user-space process uses floating-point instructions, the kernel manages the transition from integer to floating point mode. Many programs don't use floating point or don't use it on any given time slice and saving the FPU registers and other FPU state takes time; therefore an OS kernel may simply turn the FPU off. Presto, no state to save and restore, and therefore faster context-switching. 
+
+If a program attempts an FPU op, the program will trap into the kernel and the kernel will turn the FPU on restore any saved state that may already exist, and then return to re-execute the FPU op. At context switch time, it knows to actually go through the state save logic. (And then it may turn the FPU off again.) The reason that the kernel doesn't particularly need FPU ops and also needs to run on architectures without an FPU at all.
+
+A function, printk_ratelimit is to restrict the logging using which we can set a limit on the number of prints that we want our program to do. The limit on the number of prints is set in the file /proc/sys/kernel/printk_ratelimit_burst
+$ cat /proc/sys/kernel/printk_ratelimit_burst 

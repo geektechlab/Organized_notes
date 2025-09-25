@@ -1,0 +1,6 @@
+/etc/passwd: regular
+/etc: directory
+/dev/log: socket
+/dev/tty: character special
+/dev/sr0: block special
+/dev/cdrom: symbolic link

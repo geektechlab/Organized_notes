@@ -1,0 +1,12 @@
+Accessing a FIFO
+=====================
+
+1. Try, reading the empty FIFO
+
+$ cat < /tmp/my_fifo
+
+2. Now, try writing to the FIFO from another terminal
+
+$ echo "hello world" > /tmp/my_fifo
+
+You will see the output appear from the cat command.

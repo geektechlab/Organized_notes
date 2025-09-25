@@ -1,0 +1,23 @@
+Object Relationships
+====================
+
+Objects throughout the kernel are referenced by multiple subsystems.
+
+When a block device is registered, a symbolic link is created to the device’s directory in the physical hierarchy
+
+ A symbolic link is also created in the device’s directory that points to the corresponding directory under the block directory.
+
+----
+go in /sys/block and execute [ ls -la ] and check all are symbolic links.
+----
+
+int sysfs_create_link(struct kobject *kobj, struct kobject *target, char *name);
+
+This function creates a link named name in the directory mapped from kobj to the directory mapped from target
+
+Return Value:
+        Success - 0
+        Failure - Negative Error Code
+
+void sysfs_remove_link(struct kobject *kobj, char *name);
+

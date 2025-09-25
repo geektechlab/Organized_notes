@@ -1,0 +1,15 @@
+How can i convert jiffies in seconds/milliseconds?
+-----------------------------------------------------
+
+Jiffies can be converted to other time units such as milliseconds, microseconds, and nanoseconds
+using routines jiffies_to_msecs(), jiffies_to_usecs(), jiffies64_to_nsecs()
+
+unsigned int jiffies_to_msecs(const unsigned long j);
+
+unsigned int jiffies_to_usecs(const unsigned long j);
+
+u64 jiffies_to_nsecs(const unsigned long j);
+
+Header File: <linux/jiffies.h>
+
+Definition: kernel/time/time.c

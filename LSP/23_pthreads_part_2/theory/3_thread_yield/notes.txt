@@ -1,0 +1,7 @@
+Calling pthread_yield api by any thread will give up the cpu to the other threads.
+
+The current thread will be placed in the end of the run queue and another thread will be scheduled by the scheduler
+
+Syntax: int pthread_yield(void);
+
+Returns 0 on success and error value on error.

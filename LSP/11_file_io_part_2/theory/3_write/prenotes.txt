@@ -1,0 +1,16 @@
+Data is written to an open file with the write function.
+
+#include <unistd.h>
+ssize_t write(int fd, const void *buf, size_t nbytes);
+
+Returns: number of bytes written if OK, −1 on error
+
+The return value is usually equal to the nbytes argument; otherwise, an error has occurred.
+
+A common cause for a write error is either filling up a disk or exceeding the file size limit for a given process
+
+For a regular file, the write operation starts at the file’s current offset.
+
+If the O_APPEND option was specified when the file was opened, the file’s offset is set to the current end of file before each write operation.
+
+After a successful write, the file’s offset is incremented by the number of bytes actually written.

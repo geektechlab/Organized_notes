@@ -1,0 +1,21 @@
+Requesting I/O Memory
+=======================
+
+Functions equivalent to request_region() and release_region(), but for I/O memory
+
+struct resource *request_mem_region(
+		unsigned long start,
+		unsigned long len,
+		char *name);
+
+void release_mem_region(
+		unsigned long start,
+		unsigned long len);
+
+request_mem_region:
+
+	---> Informs kernel that your driver is going to use this range of I/O addresses
+
+	---> This prevents other drivers from using it through request_mem_region
+
+cat /proc/iomem lists all the kernel drivers requested 'request_mem_region'

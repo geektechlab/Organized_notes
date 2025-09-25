@@ -1,0 +1,5 @@
+Receiving Data
+=============
+
+1. Wait until bit 0 of the status register becomes set
+2. Read the received byte of data from IO Port 0x60

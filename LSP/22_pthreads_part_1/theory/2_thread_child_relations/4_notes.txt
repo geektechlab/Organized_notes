@@ -1,0 +1,36 @@
+pthread_exit
+=============
+
+When a thread terminates, it calls the pthread_exit function, much a process calls exit when it terminates.
+
+This function terminates the calling thread, returning a pointer to an object.
+
+Never return a pointer to a local variable, because the variable will be gone when the thread exits.
+
+#include <pthread.h>
+void pthread_exit(void *retval);
+
+pthread_join
+=============
+
+pthread_join is the thread equivalent of wait that processes use to collect child processes.
+
+int pthread_join(pthread_t thread, void **thread_return);
+
+First parameter is the thread for which to wait
+Second argument is a pointer to pointer that itself points to the return value from the thread.
+
+What is the purpose of pthread_join?
+====================================
+	Wait for a thread to finish
+	Clean up thread resources
+	Grabs the return value of the thread
+
+What happens if you don't call pthread_join?
+===============================================
+
+Finished threads will continue to consume resources.
+
+Eventually, if enough threads are created, pthread_create will fail.
+
+In practice, this is only an issue for long-running processes but is not an issue for simple, short-lived processes as all thread resources are automatically freed when the process exits.

@@ -1,0 +1,20 @@
+SOCK_STREAM vs SOCK_DGRAM
+==========================
+
+In case if AF_INET, SOCK_STREAM uses TCP (reliable) and SOCK_DGRAM used udp (unreliable)
+
+Unix sockets are always reliable
+
+The difference between SOCK_STREAM and SOCK_DGRAM is in the semantics of consuming data out of the socket
+
+Stream socket allows for reading arbitrary number of bytes, but still preserving byte sequence. 
+
+ In other words, a sender might write 4K of data to the socket, and the receiver can consume that data byte by byte. 
+
+The other way around is true too - sender can write several small messages to the socket that the receiver can consume in one read. Stream socket does not preserve message boundaries.
+
+Datagram socket, on the other hand, does preserve these boundaries - one write by the sender always corresponds to one read by the receiver(even if receiver's buffer given to read(2) or recv(2) is smaller then that message).
+
+So if your application protocol has small messages with known upper bound on message size you are better off with SOCK_DGRAM since that's easier to manage.
+
+If your protocol calls for arbitrary long message payloads, or is just an unstructured stream (like raw audio or something), then pick SOCK_STREAM and do the required buffering.

@@ -1,0 +1,5 @@
+SEQ_START_TOKEN is a special value which can be returned by the start() function 
+
+It can be used if you wish to instruct your show() function to print a header at the top of the output.
+
+SEQ_START_TOKEN should only be used if the offset is zero, however.

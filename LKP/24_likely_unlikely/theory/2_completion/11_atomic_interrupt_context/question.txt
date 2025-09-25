@@ -1,0 +1,2 @@
+Can wait_for_completion() and its variants are safe to use in atomic/interrupt contexts
+=======================================================================================

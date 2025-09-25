@@ -1,0 +1,3 @@
+Each thread created using pthread_create api is assigned an unique id.
+
+After the pthread_create is executed successfully,the parent can get the thread id,but what if we want to know the id of the thread while it is in execution,this can be achieved by calling a function pthread_self()

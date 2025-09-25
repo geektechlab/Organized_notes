@@ -1,0 +1,345 @@
+Theory0:
+sysfs: sysfs is a virtual file system. It provides information about
+	a) various kernel subsystems
+	b) hardware devices
+	c) and associated device drivers
+
+from the kernel's device model to user space through virtual files.
+
+CONFIG_SYSFS: By default syfs is compiled in the Linux Kernel. It depends on CONFIG_SYSFS being enabled in the Linux kernel configuration.
+
+$ cat /boot/config-`uname -r` | grep CONFIG_SYSFS
+
+Mounting Sysfs:
+$ mount | grep sysfs
+
+If sysfs is not already mounted, you can mount it with the below command,
+$ mount -t sysfs sysfs /sys 
+
+Source Code:
+Present in fs/sysfs directory
+
+Documentation:
+Documentation/filesystems/sysfs.txt
+
+Theory1:
+sysfs: The root of the sysfs contains at least 10 directories
+
+block:
+	Contains one directory for each of the registered block devices on the system
+	Each of those directories, in turn, contains any partitions on the block device
+	Connect a USB drive and you should see, directory should be created in /sys/block
+	Disconnect USB drive, and directory should be removed.
+
+bus:
+	provides a view of the system buses.
+	Inside each of these directories are two subdirectories
+
+	a) devices:
+		Correspond to devices discovered on this bus
+	b) drivers:
+		Device drivers loaded for this bus		
+	
+	Connect a USB drive, and you should see directory in /sys/bus/usb/devices
+	Disconnect USB drive, and directory should be removed
+
+class:
+	contains a view of the devices on the system organized by high-level function
+	Examples: input, network, backlight, sound etc
+
+Theory2:
+dev:
+	Contains two sub directories:
+		block
+		char
+	Inside each of the sub directories are symbolic links of the form major-id:minor-id
+
+	Load a character driver and see the behavior is /sys/dev/char. try adding and removing char driver and check that entry is coming and getting deleted after unloading
+
+devices:
+	Contains information about all devices represented in the device model
+	Most of the data present in other directories is symlink to this directory.
+
+firmware:
+	contains interfaces for viewing and manipulating firmware-specific objects and attributes
+	Eg. ACPI, EDD, EFI
+	If you booted with UEFI enabled, you will be seeing a /sys/firmware/efi folder. check by running ls into it. We will see efi, dmi, acpi etc.
+
+fs:
+	contains a view of registered filesystems.
+
+Theory3:
+kernel:
+	contains various files and subdirectories that provide information about the running kernel
+
+module:
+	contains one subdirectory for each module that is loaded into the kernel.
+	 name of each directory is the name of the module.
+	/sys/module/<modulename>/parameters: each file containing the value of the corresponding parameter.
+
+power:
+	Contains information about power management sleep states
+
+hypervisor
+
+Theory4:
+Linux Device Model: Linux Device Model was introduced in 2.6
+
+Purpose: To provide information like:
+	1. what devices are in the system
+	2. how they are in terms of power management
+	3. what bus they are attached to
+	4. what drivers they have
+
+The device model provides a single mechanism for representing devices and describing their topology in the system.
+
+Benefits:
+--> The capability to enumerate all the devices in the system, view their status, and see to what bus they attach
+--> The capability to generate a complete and valid tree of the entire device structure of the system, including all buses and interconnections
+--> The capability to link devices to their drivers and vice versa
+--> The capability to categorize devices by their class, such as input device, without the need to understand the physical device topology
+--> The capability to walk the tree of devices from the leaves up to the root, powering down devices in the correct order
+
+Theory5:
+kobject (Kernel Object): Linux Device Model provides a number of structures to ensure the interaction between a hardware device and a device driver. kobject is the heart of the device model. kobject provides various functionalities:
+	---> Reference Counting
+	---> Parent Pointer which enables creation of hierarchy of objects
+
+struct kobject {
+        const char              *name;
+        struct list_head        entry;
+        struct kobject          *parent;
+        struct kset             *kset;
+        struct kobj_type        *ktype;
+        struct kernfs_node      *sd; /* sysfs directory entry */
+        struct kref             kref;
+#ifdef CONFIG_DEBUG_KOBJECT_RELEASE
+        struct delayed_work     release;
+#endif
+        unsigned int state_initialized:1;
+        unsigned int state_in_sysfs:1;
+        unsigned int state_add_uevent_sent:1;
+        unsigned int state_remove_uevent_sent:1;
+        unsigned int uevent_suppress:1;
+};
+
+name --> Points to the name of this kobject, will show in sysfs
+parent --> Points to this kobject's parent, this makes object hierarchical structure
+kref --> Provides reference counting
+ktype,kset --> Used to group kobjects
+
+Kobjects are usually embedded in other structures and are generally not interesting on their own. For example, the cdev structure has the following definition <linux/cdev.h>
+
+/* cdev structure - object representing a character device */
+struct cdev {
+	struct kobject kobj;
+	struct module *owner;
+	const struct file_operations *ops;
+	struct list_head list;
+	dev_t dev;
+	unsigned int count;
+};
+
+Theory6:
+kobject Operations:
+kobject_init:
+void kobject_init(struct kobject *kobj, struct kobj_type *ktype);
+
+Initialize a kobject structure.
+
+kobj --> kobject to initialize
+
+Before calling this function, the kobject must be zeroed.
+
+struct kobject *kobj;
+kobj = kmalloc(sizeof (*kobj), GFP_KERNEL);
+if (!kobj)
+	return -ENOMEM;
+memset(kobj, 0, sizeof (*kobj));
+kobj->kset = my_kset;
+kobject_init(kobj, my_ktype);
+
+kobject_create:
+The above multistep effort is handled by kobject_create()
+
+struct kobject * kobject_create(void);
+
+struct kobject *kobj;
+kobj = kobject_create();
+if (!kobj)
+	return –ENOMEM;
+
+Theory7:
+Adding and Removing kobjects from sysfs: Initialized kobjects are not automatically exported to sysfs. To represent a kobject to sysfs,you use kobject_add():
+
+int kobject_add(struct kobject *kobj, struct kobject *parent, const char *fmt, ...);
+
+A given kobject’s location in sysfs depends on the kobject’s location in the object hierarchy. If the kobject’s parent pointer is set, the kobject maps to a subdirectory in sysfs inside its parent. If the parent pointer is not set, the kobject maps to a subdirectory inside kset->kobj. If neither the parent nor the kset fields are set in the given kobject, the kobject is assumed to have no parent and maps to a root-level directory in sysfs. Regardless, the name of the directory representing the kobject in sysfs is given by fmt, which accepts a printf()-style format string.
+
+kobject_create_and_add():
+combines the work of kobject_create() and kobject_add() into one function
+
+struct kobject * kobject_create_and_add(const char *name, struct kobject *parent);
+
+kobject_del():
+Removing a kobject’s sysfs representation is done via kobject_del():
+
+void kobject_del(struct kobject *kobj);
+
+Implementation: lib/kobject.c
+
+using [ grep ] for kobject_create_and_add will tell which file is creating particular sysfs entry.
+
+Theory8:
+Adding Files to sysfs: kobjects map to directories, what about files? Attributes map kernel data to files in sysfs.
+
+Header File: <linux/sysfs.h>
+struct attribute {
+        const char              *name;
+        umode_t                 mode;
+};
+
+name --> will be the file name of the resulting file in sysfs
+mode --> permissions of the file in sysfs
+
+A bare attribute contains no means to read or write the value of the attribute. 
+struct kobj_attribute {
+        struct attribute attr;
+        ssize_t (*show)(struct kobject *kobj, struct kobj_attribute *attr,
+                        char *buf);
+        ssize_t (*store)(struct kobject *kobj, struct kobj_attribute *attr,
+                         const char *buf, size_t count);
+};
+
+When an attribute is opened, a PAGE_SIZE buffer is allocated for transferring the data between the kernel and userspace.
+show(): Invoked when the sysfs entry is read from user space.
+        It should copy the value of attribute given by attr into buffer(third argument)
+        size of buffer is PAGE_SIZE
+        Return Value:
+                Success, Number of bytes written
+                Negative error code on Failure
+store(): Read the size bytes from the buffer into the variable represented by attribute attr.
+        size of buffer is PAGE_SIZE or less
+        Return Value:
+                Success, Number of bytes read
+                Negative error code on Failure
+
+Theory9:
+Creating New Attributes:
+int sysfs_create_file(struct kobject *kobj, const struct attribute *attr);
+
+This function associates the attribute structure pointed at by attr with the kobject pointed at by kobj. Before it is invoked, the given attribute should be filled out.
+
+Return Value: 
+	Success - 0
+	Failure - Negative error code
+
+void sysfs_remove_file(struct kobject *kobj, const struct attribute *attr);
+
+Theory10:
+kstrtoint - convert a string to an int
+
+Implemented in lib/kstrtox.c
+
+int kstrtoint(const char *s, unsigned int base, int *res);
+
+s: The start of the string. The string must be null-terminated, 
+	The first character may also be a plus sign or a minus sign.
+
+base:  The number base to use. The maximum supported base is 16.
+	If base is given as 0, then the base of the string is automatically detected with the conventional semantics (eg. 0x)
+
+res: Where to write the result of the conversion on success
+
+Return: 0 on success
+	-ERANGE on overflow
+	-EINVAL on parsing error
+
+Theory10:
+__ATTR macros: linux/sysfs.h defines helper macros that make defining the attributes more straightforward.
+
+#define __ATTR(_name, _mode, _show, _store) {                           \
+        .attr = {.name = __stringify(_name),                            \
+                 .mode = VERIFY_OCTAL_PERMISSIONS(_mode) },             \
+        .show   = _show,                                                \
+        .store  = _store,                                               \
+}
+
+#define __ATTR_RO(_name) {                                              \
+        .attr   = { .name = __stringify(_name), .mode = 0444 },         \
+        .show   = _name##_show,                                         \
+}
+
+#define __ATTR_RO_MODE(_name, _mode) {                                  \
+        .attr   = { .name = __stringify(_name),                         \
+                    .mode = VERIFY_OCTAL_PERMISSIONS(_mode) },          \
+        .show   = _name##_show,                                         \
+}
+
+#define __ATTR_WO(_name) {                                              \
+        .attr   = { .name = __stringify(_name), .mode = 0200 },         \
+        .store  = _name##_store,                                        \
+}
+
+Theory11:
+Attribute Groups: The attribute group interface is a simplified interface for easily adding and removing a set of attributes with a single call.
+
+struct attribute_group {
+        const char              *name;
+        umode_t                 (*is_visible)(struct kobject *,
+                                              struct attribute *, int);
+        umode_t                 (*is_bin_visible)(struct kobject *,
+                                                  struct bin_attribute *, int);
+        struct attribute        **attrs;
+        struct bin_attribute    **bin_attrs;
+};
+
+An attribute group is simply an array of attributes to be added to an object, as represented by the attrs field. Why they were created?
+
+To make it easier to keep track of errors when registering multiple attributes at one time, and 
+To make it more compelling to clean up all attributes that a piece of code may create for an object
+
+static int sysfs_create_group(struct kobject *kobj, const struct attribute_group *grp)
+
+Theory12:
+Object Relationships: Objects throughout the kernel are referenced by multiple subsystems. When a block device is registered, a symbolic link is created to the device’s directory in the physical hierarchy. A symbolic link is also created in the device’s directory that points to the corresponding directory under the block directory.
+
+go in /sys/block and execute [ ls -la ] and check all are symbolic links.
+
+int sysfs_create_link(struct kobject *kobj, struct kobject *target, char *name);
+
+This function creates a link named name in the directory mapped from kobj to the directory mapped from target
+
+Return Value:
+        Success - 0
+        Failure - Negative Error Code
+
+void sysfs_remove_link(struct kobject *kobj, char *name);
+
+Theory13:
+Binary Attributes: Convention of sysfs is to have a single value in human readable text format for each attribute. Other kind of attributes is binary attributes for handling larger chunks of binary data.
+
+Examples: Passing Firmware from user space program
+	  PCI Configuration Space Registers
+
+struct bin_attribute {
+        struct attribute        attr;
+        size_t                  size;
+        void                    *private;
+        ssize_t (*read)(struct file *, struct kobject *, struct bin_attribute *,
+                        char *, loff_t, size_t);
+        ssize_t (*write)(struct file *, struct kobject *, struct bin_attribute *,
+                         char *, loff_t, size_t);
+        int (*mmap)(struct file *, struct kobject *, struct bin_attribute *attr,
+                    struct vm_area_struct *vma);
+};
+
+attr -> name and permissions
+size -> Maximum size of the binary attribute
+read,write,mmap -> Work similar to char driver
+
+Creating a binary attribute:
+int sysfs_create_bin_file(struct kobject *kobj, struct bin_attribute *attr);
+
+Removing a binary attribute:
+int sysfs_remove_bin_file(struct kobject *kobj, struct bin_attribute *attr);

@@ -1,0 +1,11 @@
+Need for Long Term Kernel release model
+==========================================
+
+Many different users of Linux wanted a kernel to be supported for longer than just a few months
+
+How a long term kernel is selected?
+====================================
+
+Originally it was merely based on what kernel the stable maintainer’s employer was using for their product (2.6.16.y and 2.6.27.y)
+
+Current Selection: Last kernel of the year is selected as LTS

@@ -1,0 +1,58 @@
+Process Termination
+==========================
+
+There are eight ways for a process to terminate.
+
+Normal termination occurs in five ways:
+
+	1. Return from main
+	2. Calling exit /* run [ man exit ] for more details, it is library call */
+	3. Calling _exit or _Exit /* run [ man exit ] for more details, it is system call */
+	4. Return of the last thread from its start routine
+	5. Calling pthread_exit from the last thread
+
+Abnormal termination occurs in three ways
+	6. Calling abort
+	7. Receipt of a signal
+	8. Response of the last thread to a cancellation request
+
+#include <stdlib.h>
+void exit(int status);
+void _Exit(int status);
+#include <unistd.h>
+void _exit(int status);
+
+_exit and _Exit, which return to the kernel immediately,
+
+exit, which performs certain cleanup processing and then returns to the kernel.
+
+What happens when we call exit():
+===================================
+
+void exit(int status);
+
+A call to exit() performs some basic shutdown steps, and then instruct the kernel to terminate the process.
+
+The function has no way of returning an error - in fact, it never returns at all.
+
+status parameter is used to denote the process's exit status. status & 0377 is returned to the parent
+
+EXIT_SUCCESS and EXIT_FAILURE are defined as portable ways to represent success and failure.
+
+exit(EXIT_SUCCESS);
+
+Before terminating the process, the C Library performs the following shutdown steps in order:
+
+1. Call any functions registered with atexit(), in the reverse order of their registration
+2. Flush all open standard I/O streams
+3. Remove any temporary files created with the tmpfile() function.
+
+The above operations are performed in user space, so exit() invokes the system call _exit() to let the kernel handle the rest of the termination process.
+
+void _exit(int status);
+
+The kernel cleans up the 
+	allocated memory, 
+	open files,
+	System V Semaphores
+	Destroys the process and notifies the parent of the child exit

@@ -1,0 +1,24 @@
+------------------
+tainting of kernel will be stored in dmesg only once. re-loading will not display that message.
+so, to check it we need to do following:
+------------------
+
+At runtime, you can query the tainted state by reading 
+
+$cat /proc/sys/kernel/tainted
+-------
+After [reboot], value of above file will be 0
+-------
+
+If that returns 0, the kernel is not tainted;
+
+any other number indicates the reasons why it is.
+
+The easiest way to decode that number is the script kernel-chktaint
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/tools/debugging/kernel-chktaint
+
+----------
+running above script will tell the reason of tainting
+For raw taint value decoding from the message, check flags.txt in this directory
+----------

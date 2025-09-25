@@ -1,0 +1,31 @@
+panther2@ubuntu:~/Linux_System_Prog/day1/compilation_steps/7$ ./getreg_cr0 
+Segmentation fault (core dumped)
+
+It crashes
+
+the essential job of the CPU is to read in machine instructions from memory, decipher, and execute them.
+
+In the early days of computing, this is pretty much all the processor did.
+
+But then, engineers, thinking deeper on it, realized that there is a critical issue with this: if a programmer can feed an arbitrary stream of machine instructions to the processor, which it, in turn, blindly and obediently executes, herein lies scope to do damage, to hack the machine!
+
+Intel processor's CR0 control register: Contains system control flags that control operating mode and states of the processor. If one has unlimited (read/write) access to the CR0 register, one could toggle bits that could do the following:
+
+	Turn hardware paging on or off 
+	Disable the CPU cache 
+	Change caching and alignment attributes 
+	Disable WP (write protect) on memory (technically, pages) marked as read-only by the OS
+
+only the OS should be allowed this kind of access.
+
+Precisely for reasons such as the security, robustness, and correctness of the OS and the hardware resources it controls, all modern CPUs include the notion of privilege levels
+
+The modern CPU will support at least two privilege levels, or modes, which are generically called the following:
+
+	Supervisor -- OS Code Runs here -- Kernel Space
+
+	User	--	Application Code Runs here -- User space
+
+--------------
+We can access normal registers from user space, but control and other priviledged regsiters can be accessed only through kernel space. So, we can access those using kernel modules.
+--------------

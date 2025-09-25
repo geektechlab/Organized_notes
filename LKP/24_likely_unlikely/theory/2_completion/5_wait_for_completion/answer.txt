@@ -1,0 +1,6 @@
+What happens when a call to complete happens before wait_for_completion
+==========================================================================
+
+the waiting side simply will continue immediately as all dependencies are satisfied
+
+If not, it will block until completion is signalled by complete()

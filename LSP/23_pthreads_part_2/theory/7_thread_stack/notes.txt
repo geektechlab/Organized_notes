@@ -1,0 +1,8 @@
+Stack Location
+==================
+
+Where in memory (technically, where in the VAS of the given process) does the thread stack actually reside?
+
+	The stack of the main thread is always situated at the very top of the process VAS.
+
+	The stacks of all other threads in the process are located somewhere between the process heap segment and the stack of main;

@@ -1,0 +1,9 @@
+#include <signal.h>
+
+int sigsuspend(const sigset_t *mask);
+
+sigsuspend() temporarily replaces the signal mask of the calling process with the mask given by mask and
+then suspends the process until delivery of a signal whose action is to invoke a signal  handler  or  to
+terminate a process.
+
+In other words, the program is effectively suspended until one of the signals that is not a member of set arrives.

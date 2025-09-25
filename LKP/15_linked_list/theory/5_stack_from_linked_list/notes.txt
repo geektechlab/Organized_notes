@@ -1,0 +1,78 @@
+Manipulating Linked Lists
+===========================
+
+Kernel provides a family of functions to manipulate linked lists.
+
+Adding a node to linked list
+=============================
+
+To add a node to a linked list:
+
+list_add(struct list_head *new, struct list_head *head);
+
+This function adds the new node to the given list immediately after the head node.
+
+static inline void list_add(struct list_head *new, struct list_head *head)
+{
+        __list_add(new, head, head->next);
+}
+
+static inline void __list_add(struct list_head *new,
+                              struct list_head *prev,
+                              struct list_head *next)
+{
+        if (!__list_add_valid(new, prev, next))
+                return;
+
+        next->prev = new;
+        new->next = next;
+        new->prev = prev;
+        WRITE_ONCE(prev->next, new);
+}
+
+struct mylist
+{
+    int data;
+    struct list_head list;
+};
+
+LIST_HEAD(listhead);
+
+struct mylist *node1 = kmalloc(sizeof(struct mylist), GFP_KERNEL);
+node1->data = 1;
+list_add(&node1->list, &listhead);
+                ------------------------------------    
+                |                                  |   
+                |                --------------    | 
+                |                |1            |   |
+                V                |             |   |
+        -------------------      |-------------|   |
+        |prev    | next    |<--- |prev  |next  |   |
+   -----|        |         |     |      |      |----
+   |    -------------------      -------------
+   |        listhead          node1 ^
+   |                                |
+   ----------------------------------
+
+
+struct mylist *node2 = kmalloc(sizeof(struct mylist), GFP_KERNEL);
+node2->data = 1;
+list_add(&node2->list, &listhead);
+
+                -------------------------------------------------------------   
+                |                                                           |
+                |               --------------       --------------         |
+                |               |2            |      |1           |         |
+                V               |             |      |            |         |
+        -------------------     |-------------|      |-------------         | 
+        |prev   | next    |<--->|prev  |next  |<---->|prev  |next |---------
+   -----|       |         |     |      |      |      |      |     |
+   |    -------------------      -------------        -------------
+   |        listhead                  node2          node1 ^
+   |                                                       |
+   |                                                       |
+   ---------------------------------------------------------
+
+This function is good for implementing stacks
+
+Note: the head need not be the nominal head of the list; if you pass a list_head structure that happens to be in the middle of the list somewhere, the new entry goes immediately after it.

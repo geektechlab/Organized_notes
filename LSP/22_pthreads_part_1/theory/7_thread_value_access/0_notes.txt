@@ -1,0 +1,4 @@
+Can you pass pointers to stack variables from one thread to another?
+=====================================================================
+
+Yes. However you need to be very careful about the lifetime of stack variables.

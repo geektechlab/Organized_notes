@@ -1,0 +1,91 @@
+Create Static Library
+=====================
+A static library is basically a set of object files that were copied into a single file with the suffix .a.
+
+The basic tool used to create static libraries is a program called ar (archiver). 
+
+This program can be used to 
+	create static libraries (also known as archive files), 
+	modify object files in the static library, 
+	list the names of object files in the library, etc.
+
+In order to create a static library, we have to perform two steps:
+
+	1.Create the object files from the source files of the project
+
+	2. Create the static library (the archive file) from the object files
+
+
+Create object Files
+=======================
+$ gcc -c add.c
+
+$ gcc -c mul.c
+
+$ gcc -c div.c
+
+$ gcc -c sub.c
+
+Create Static library
+======================
+
+$ ar rcs libarith.a add.o mul.o div.o sub.o
+
+c -- create the archive if it doesn't exist
+
+r -- replace the older object files in the library, with the new object files
+
+s -- Write an object-file index into the archive
+
+	This index is later will be used by the compiler to speed up symbol-lookup inside the library
+
+Linking static library into application
+==========================================
+
+$ gcc main.c -o main -larith -L.
+
+
+The -L flag indicates (a non standard) directory where the libraries can be found.
+
+The -l flag indicates the name of the library
+Note the -larith will be converted to libarith.a by the compiler
+
+
+See the contents of the static library 
+========================================
+
+$ ar -t libarith.a 
+displays  number of object files inside it.
+
+$ nm -C libarith.a
+
+displays the symbols present in the static library
+
+The default information that the ‘nm’ command provides is :
+
+	Virtual address of the symbol
+
+	A character which depicts the symbol type. 
+		If the character is in lower case then the symbol is local but if the character is in upper case then the symbol is external
+		U : Undefined symbol.
+		T : Global text symbol.
+		t  : Local text symbol.
+		d : Local data symbol.
+		D : Global data symbol.
+		B : Global bss symbol.
+		b : Local bss symbol.
+
+	Name of the symbol
+
+	
+
+Extract the object files of the static library
+==============================================
+
+$ ar -x libarith.a
+
+----------------
+If there is bug in static library, then you have to recompile and then link again and generate final executable. So, this is a disadvantage.
+----------------
+In shared library, application and shared libraries are just dependent. We have to only recompile shared library.
+----------------

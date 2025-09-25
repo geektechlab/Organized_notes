@@ -1,0 +1,2 @@
+What is the default operation in Linux when you call read() and there is no data: block/nonblock
+=================================================================================================

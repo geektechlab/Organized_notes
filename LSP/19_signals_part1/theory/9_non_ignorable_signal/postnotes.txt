@@ -1,0 +1,1 @@
+The two signals that can never be ignored or handled are: SIGKILL and SIGSTOP.

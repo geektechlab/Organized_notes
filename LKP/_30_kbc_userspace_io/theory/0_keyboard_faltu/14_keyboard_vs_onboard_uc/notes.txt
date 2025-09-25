@@ -1,0 +1,2 @@
+Bytes written to port 60h are sent to the keyboard microcontroller and 
+Bytes written to port 64h are sent to the on-board microcontroller.

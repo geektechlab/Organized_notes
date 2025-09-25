@@ -1,0 +1,3 @@
+difference between struct inode vs struct file
+
+in this example, if we run ./userapp 2 times then file strucutre pointer will be different whereas inode will same because file structure will get created again but inode will remain same because it points to file.

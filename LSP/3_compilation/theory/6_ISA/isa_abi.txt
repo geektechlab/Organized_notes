@@ -1,0 +1,50 @@
+Instruction Set Architecture
+=============================
+
+We know gcc converts C code to Machine code.
+
+The compiler to convert uses Instruction Set Architecture to convert source code to machine code
+
+	Instruction set Architecture provides the software below information
+
+		-->	What instructions are available?
+
+			For example, every architecture has its own way of coding for an instruction that adds two integers.
+
+
+		--> How many and what kind of registers are available?
+
+		--> Memory: How to access contents
+
+Different CPUs implement different sets of instructions. 
+
+	Examples: ARM, Intel x86, IBM/Motorola PowerPC (Macintosh), MIPS
+
+Software compiled for one ISA will not run on hardware with a different ISA
+
+Application Binary Interface (ABI)
+======================================
+
+	ABI = ISA + More
+
+	ABI Handles the following:
+
+		Calling Conventions
+
+			How function arguments are passed
+
+			How function return values are retrieved
+
+			 for example, whether all parameters are passed on the stack or some are passed in registers
+
+			 which registers are used for which function parameters
+			
+			whether the first function parameter passed on the stack is pushed first or last onto the stack
+		
+		Data Type
+
+			the sizes, layouts, and alignments of basic data types that the processor can directly access
+
+		Binary format of object files
+
+	It defines a standard for binary portability across computers

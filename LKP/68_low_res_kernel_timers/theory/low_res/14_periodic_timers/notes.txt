@@ -1,0 +1,4 @@
+Periodic timers
+------------------
+
+You can make the timer periodic by calling mod_timer in the timer handler

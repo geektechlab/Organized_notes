@@ -1,0 +1,21 @@
+Epoch Time/Unix Time
+=====================
+
+Number of seconds that have elapsed since January 1 1970
+
+Command: date +%s
+
+To get the epoch time from your C Program:
+===========================================
+
+#include <time.h>
+
+time_t time(time_t *tloc);
+
+time() returns the time as the number of seconds since the Epoch.
+
+If tloc is non-NULL, the return value is also stored in the memory pointed to by tloc
+
+Return value:
+===============
+On  success,  the value of time in seconds since the Epoch is returned.

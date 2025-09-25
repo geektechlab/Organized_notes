@@ -1,0 +1,4 @@
+How can i synchronize between process context and timer handler?
+=================================================================
+
+You need to use spin_lock API

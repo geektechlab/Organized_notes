@@ -1,0 +1,11 @@
+hrtimer_cancel
+---------------
+
+cancel a timer
+
+int hrtimer_cancel(struct hrtimer *timer);
+
+Returns:
+
+        0 when the timer was not active
+        1 when the timer was active

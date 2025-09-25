@@ -1,0 +1,18 @@
+Linux Kernel Release Cycle
+===========================
+
+1. Linus Torvalds releases a new kernel and opens a 2-week merge window.
+
+2. Subsystem maintainers collects patches ahead of time and send them to Linus during this merge window.
+
+3. Nearly 10,000 patches get pulled into linus's tree during these 2 weeks.
+
+4. At the end of two weeks Linus declares the merge window has closed ande releases the first release candidate known as rc1.
+
+5. At this point, the release cycle moves into a bug fixes-only mode, with a series of release candidate(rc) from Linus.
+
+6. Every week a new rc is released with the name 5.12.rc1, 5.12.rc2, and so on.
+
+7. Finally after the end of these rc weeks the kernel is stable and ready for release as version 5.12.
+
+8. The whole development is a matter of 10-12 weeks and we get a new version in every three months.

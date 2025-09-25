@@ -1,0 +1,22 @@
+Linked Lists
+===================
+
+Linked list is the simplest and most common data structure in the Linux Kernel.
+
+Linked list allows to have variable number of elements called nodes of the list.
+
+Elements in Linked List are dynamically created at run time, and they do not necessarily occupy contiguous regions in memory.
+
+Therefore elements needs to be linked together. Each element in the list contains a pointer to the next element.
+
+As elements are added and removed from the list, the pointer to the next node is simply adjusted.
+
+Types
+==========
+
+1. Singly Linked Lists
+2. Doubly Linked Lists
+3. Circular Linked Lists
+
+---
+instead of referrig to this course, can we go through justhttps://demystifyingme.wordpress.com/2017/06/10/kernel-data-structures-linkedlist/ ?

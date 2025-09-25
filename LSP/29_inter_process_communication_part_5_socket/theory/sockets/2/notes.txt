@@ -1,0 +1,23 @@
+Listening connections
+======================
+
+listen allow to accept incoming connections
+
+#include <sys/socket.h>
+int listen (int sockfd, int backlog);
+
+Returns: 0 on success, -1 on error
+
+	sockfd references the socket we want to affect
+
+	backlog specifies the maximum number of pending connections that the socket will keep
+
+	The backlog argument provides a hint to the implementation which the implementation shall use to limit the number of outstanding connections in the socket's listen queue.
+
+Accepting connections
+========================
+
+#include <sys/socket.h>
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+Returns: file descriptor on success, -1 on error

@@ -1,0 +1,10 @@
+Creating FIFO's from Command line
+====================================
+
+Two commands are provided by Linux
+
+$ mknod filename p
+
+$ mkfifo filename
+
+ls -l -> you will see p which indicates pipe

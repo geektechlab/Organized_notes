@@ -1,0 +1,2 @@
+cat /proc/ioports does it list all the I/O Ports used by the processor?
+=======================================================================

@@ -1,0 +1,19 @@
+Accessing I/O Ports from User Space
+======================================
+
+PC-compatible systems have 64K I/O ports, all can be controlled from user space.
+
+Before you access any ports, you must give your program permission to do so.
+
+Permission for I/O ports on Linux is controlled by two functions
+
+	 ioperm()
+	 iopl()
+
+Header File: <sys/io.h>
+
+ioperm() controls access permissions to the permissions mentioned in the parameter
+
+iopl() changes the I/O privilege level of the calling process, thus allowing among other things, unrestricted access to all ports
+
+Note: Only the super-user can invoke both these functions.

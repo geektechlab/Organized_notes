@@ -1,0 +1,12 @@
+An open file is closed by calling the close function.
+
+#include <unistd.h>
+int close(int fd);
+
+Returns: 0 if OK, −1 on error
+
+When a process terminates, all of its open files are closed automatically by the kernel.
+
+-----
+if we use buffered I/O then data will get lost if close is not used after opening. Unbuffered I/ it may be okay
+-----

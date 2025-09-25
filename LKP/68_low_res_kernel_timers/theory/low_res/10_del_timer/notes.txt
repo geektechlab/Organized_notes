@@ -1,0 +1,11 @@
+-----------
+
+del_timer deactivates a timer
+
+int del_timer(struct timer_list *timer);
+
+The function returns whether it has deactivated a pending timer or not.
+
+del_timer() of an inactive timer returns 0
+
+del_timer() of an active timer returns 1

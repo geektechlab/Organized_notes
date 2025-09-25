@@ -1,0 +1,3 @@
+The kernel runs the timer handler when the current tick count is equal to or greater than the specified expiration
+
+Although the kernel guarantees to run no timer handler prior to the timer’s expiration, there may be a delay in running the timer

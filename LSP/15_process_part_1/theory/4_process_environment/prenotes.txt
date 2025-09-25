@@ -1,0 +1,40 @@
+Each program is also passed an environment list.
+
+Like the argument list, the environment list is an array of character pointers, with each pointer containing the address of a null-terminated C string.
+
+The address of the array of pointers is contained in the global variable environ
+
+extern char **environ;
+
+the strings in environ have the form "name=value".
+
+man 7 environ
+
+What are environmental Variables
+====================================
+
+Everyone knows what are variables, Data stored somewhere in memory when referenced by some indicator (variable name)
+
+Environment variables are none other than variables, It’s just that data stored in that variable is what describes environment behaviour. 
+
+Examples:
+
+$PATH: This ENV stores the path of all the directories which holds binary files you want to execute just by specifying the name of the file and not by relative or absolute path
+
+$USER: This ENV stores your username
+
+$HOME: This ENV stores the absolute path to your home directory
+
+printenv command list out all environmental variables
+
+---------
+how to set environemnt variables permanent:
+[ vi ~/.bashrc ]
+we can set those here
+
+or
+
+in the initrd script at
+[ cd /etc/init.d ]
+look at 43:00 in video
+---------

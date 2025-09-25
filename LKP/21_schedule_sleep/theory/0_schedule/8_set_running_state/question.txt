@@ -1,0 +1,11 @@
+The following is a snippet from kernel/kthread.c
+
+set_current_state(TASK_INTERRUPTIBLE);
+if (list_empty(&kthread_create_list))
+	schedule();
+__set_current_state(TASK_RUNNING);
+
+Here in this code, it is checking the condition only after setting the state to TASK_INTERRUPTIBLE
+
+Why do you think last line is needed?
+=================================================

@@ -1,0 +1,18 @@
+Linux Kernel
+================
+
+Linux Kernel is a result of collaborative development efforts from developers across the globe.
+
+Small incremental changes also known as patches add
+	a) new features
+	b) make enhancements
+	c) fix bugs
+
+How frequent are Linux Kernel Releases?
+========================================
+
+A new release of Linux kernel happens every 2 to 3 months.
+
+Releases are time based rather than feature based.
+
+That means releases are not held up for features.

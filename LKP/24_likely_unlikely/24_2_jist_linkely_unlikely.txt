@@ -1,0 +1,85 @@
+Theory0:
+Basics:
+Each instruction in C is translated into machine instruction. To complete each machine instruction, the processor goes through these (and more) stages:
+
+1. Fetch: Read the next instruction
+2. Decode: Determine the meaning of the instruction
+3. Execute: Perform the 'real work' of the instruction
+4. Store: Store results into memory
+
+Instruction1        Fetch   ->  Decode  ->  Execute ->  Store
+Instruction2                    Fetch   ->  Decode  ->  Execute ->  Store
+Instruction3                                Fetch   ->  Decode  ->  Execute  -> Store
+
+Each instruction in the above takes four clock cycles to complete execution.
+With pipeline, you will have the total execution of 1 clock cycle/instruction.
+
+Modern processors have pipelines with 10-31 stages.
+For optimum performance, it is very important to keep all the stages as busy as possible.
+
+Theory1:
+Branch Prediction:
+Branches are instructions that can change the flow of a program's execution.
+
+if (i < 0)
+ 	i = 0;
+else
+	i = 1;
+
+Branches (i.e., conditional jumps) present a difficulty for the processor pipeline. After fetching a branch instruction, the processor needs to fetch the next instruction. With 'if' we will be having two possibilities of the next instruction. Instead of stalling the pipeline until the branch instruction is fully executed, modern processors attempt to predict/guess the branch.
+
+Branch Predictor: Digital Circuit that tries to guess which way a branch will go before this is known definitively.
+
+Branch predictor plays a critical role in achieving high effective performance in many modern pipelined microprocessor architecture such as x86. If the guess/prediction found to be wrong, then the processor will simply discard the partially executed instructions that are in pipeline and starts over with the correct branch, incurring a delay.
+
+Command:
+$ perf stat <command>
+
+for example, [ perf stat ls ] it will show page fault, context switches, branch misses etc.
+
+Run on Direct Machine without any virtualization
+
+Theory2:
+likely/unlikely:
+The gcc has __builtin_expect function using which you can provide the compiler/CPU with branch prediction information.
+
+long __builtin_expect (long exp, long c)
+
+This construct tells the compiler that the expression 'exp' most likely will have the value 'c'
+
+Return value: return value of exp.
+
+How it optimizes?
+It optimizes things by ordering the generated assembly code correctly, to optimize the usage of the processor pipeline. Arranges the code so that the likeliest branch is executed without performing any jmp instruction. Kernel has two macros which internally uses builtin_expect to provide branch prediction information.
+
+#define likely(x)       __builtin_expect(!!(x), 1)
+#define unlikely(x)     __builtin_expect(!!(x), 0)
+
+----
+!! converts it to boolean. Just think
+----
+
+Header File: <linux/compiler.h>
+Examples:  if (likely(sem->count > 0))
+
+Theory3:
+gcc -c main.c -O3
+objdump -dr main.o
+
+Function call order in  memory is unchanged.
+
+gcc -c main_builtin.c -O3
+objdump -dr main_builtin.o
+
+After adding builtin_expect, printf is moved to end of the function and puts after. How should I use it ?
+You should use it only in cases when the likeliest branch is very very very likely, or when the unlikeliest branch is very very very unlikely.
+
+Theory4:
+CONFIG_PROFILE_ANNOTATED_BRANCHES:
+By enabling CONFIG_PROFILE_ANNOTATED_BRANCHES in the kernel build config file, all the likely() and unlikely() macros will be recorded to see how many times they were correct or not.
+
+$ cat /sys/kernel/debug/tracing/trace_stat/branch_annotated
+
+This will show what branches are correct or not.
+
+for higher performance, we use likely/unlikely. watch video [ 22 - 24 ]

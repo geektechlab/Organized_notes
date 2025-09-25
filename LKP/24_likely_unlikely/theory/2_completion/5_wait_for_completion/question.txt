@@ -1,0 +1,2 @@
+What happens when a call to complete happens before wait_for_completion
+==========================================================================

@@ -1,0 +1,3 @@
+wait_for_completion will places the task in 'TASK_UNINTERRUPTIBLE' state, if you want the process to be placed in 'TASK_INTERRUPTIBLE' state.
+
+int wait_for_completion_interruptible(struct completion *done)

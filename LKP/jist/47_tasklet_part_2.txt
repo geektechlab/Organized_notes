@@ -1,0 +1,98 @@
+Theory0:
+Are interrupts enabled when tasklet runs?
+----------------------------------------
+/* interrupts are enabled in tasklet similar to softirq */
+
+Theory1:
+/* tasklet runs in interrupt context same as softirq */
+
+Theory2:
+What happens if i call tasklet_schedule twice?
+------------------------------------------------
+
+After a tasklet is scheduled, it runs once at some time in the near future. If the same tasklet is scheduled again, before it has had a chance to run, it still runs only once
+
+Theory3:
+Tasklets are also guaranteed to run on the same CPU as the function that first schedules them.
+
+---
+the same CPU on which softirq, interrupt handler and tasklet is running.
+
+Theory4:
+Enabling/Disabling Tasklets
+------------------------------
+
+Disable tasklet
+	tasklet_disable()
+	tasklet_disable_nosync()
+
+Enable tasklet
+	tasklet_enable()
+
+tasklet_disable() will wait if the tasklet is currently running and return only after it has finished execution
+tasklet_disable_nosync() will not wait for the tasklet to complete prior to returning
+
+static inline void tasklet_disable_nosync(struct tasklet_struct *t)
+{
+        atomic_inc(&t->count);
+        smp_mb__after_atomic();
+}
+
+static inline void tasklet_disable(struct tasklet_struct *t)
+{
+        tasklet_disable_nosync(t);
+        tasklet_unlock_wait(t);
+        smp_mb();
+}
+
+static inline void tasklet_enable(struct tasklet_struct *t)
+{
+        smp_mb__before_atomic();
+        atomic_dec(&t->count);
+}
+
+Theory5:
+tasklet_kill
+----------------
+
+void tasklet_kill(struct tasklet_struct *t);
+
+The function removes a tasklet from the pending queue.
+
+void tasklet_kill(struct tasklet_struct *t)
+{
+        if (in_interrupt())
+                pr_notice("Attempt to kill tasklet from interrupt\n");
+
+        while (test_and_set_bit(TASKLET_STATE_SCHED, &t->state)) {
+                do {
+                        yield();
+                } while (test_bit(TASKLET_STATE_SCHED, &t->state));
+        }
+        tasklet_unlock_wait(t);
+        clear_bit(TASKLET_STATE_SCHED, &t->state);
+}
+
+This function must not be used from interrupt context because it sleeps
+
+If the tasklet specified is already scheduled by the time this call is invoked, then this function waits until its execution completes
+
+Theory6:
+tasklet_hi_schedule
+------------------------
+
+In addition to normal tasklets, the kernel uses a second kind of tasklet of a higher priority.
+
+HI_SOFTIRQ is used as a softIRQ instead of TASKLET_SOFTIRQ
+
+tasklet_hi_schedule() should be used if the tasklet should  run more urgently than networking, SCSI, timers 
+
+Theory7:
+Softirqs vs tasklets
+----------------------
+                Softirqs                    Tasklets
+        
+Allocation:     Allocated at compile time   Can be dynamically registered
+
+Reentrancy:     Yes, same softirqs can run  No, Same tasklet will not be scheduled
+                on different processors     on different processors

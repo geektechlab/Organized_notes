@@ -1,0 +1,4 @@
+When you change the library, there is no need of rebuilding the application
+-----------
+using symbolic links it maintains versions of libraries and avoids recompilation of entire image
+-----------

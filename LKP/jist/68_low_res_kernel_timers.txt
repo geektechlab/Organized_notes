@@ -1,0 +1,246 @@
+Theory0:
+Kernel Timers
+--------------------
+
+Used to schedule execution of a function at a particular time in the near future
+
+Usages
+-----------
+
+	1. Implementations of timeouts (schedule_timeout)
+	2. Wait timeouts in TCP Implementation
+
+A timer is easy to use.
+
+	1. Perform initialization
+	2. Specify an expiration time
+	3. A function to execute upon said expiration
+	4. Activate the timer
+
+The given function runs after the timer expires
+
+Note: Timers are not cyclic. The timer is destroyed after it expires
+
+Types of Timers
+-----------------
+
+1. Low Resolution Timer
+2. High Resolution Timer
+
+Theory1:
+Initialization
+--------------------
+
+Static:
+----------
+
+DEFINE_TIMER()
+
+#define DEFINE_TIMER(_name, _function)                          \
+        struct timer_list _name =                               \
+                __TIMER_INITIALIZER(_function, 0)
+
+Dynamic:
+-----------
+
+void timer_setup( struct timer_list *timer, \ 
+           void (*function)(unsigned long), \ 
+           unsigned int flags); 
+
+Theory2:
+Setting up expiration time
+---------------------------
+
+When the timer is initialized, we need to set its expiration before the callback gets fired
+
+int mod_timer( struct timer_list *timer, unsigned long expires); 
+
+The expires field represents the jiffies value when the timer is expected to run;
+
+The kernel runs the timer handler when the current tick count is equal to or greater than the specified expiration
+
+Although the kernel guarantees to run no timer handler prior to the timer’s expiration, there may be a delay in running the timer
+
+Theory3:
+Conversions from jiffies to seconds/nanoseconds
+-----------------------------------------------
+
+struct timeval {
+	time_t tv_sec; /* seconds */
+	suseconds_t tv_usec; /* microseconds */
+};
+
+struct timespec {
+	time_t tv_sec; /* seconds */
+	long tv_nsec; /* nanoseconds */
+};
+
+The timeval_to_jiffies and jiffies_to_timeval functions are used to convert between this representation and a jiffies value
+
+Header File: <timer.h>
+
+Theory4:
+Guess in which context timer handler runs?
+------------------------------------------
+
+it runs in interrupt context, not in process context.
+
+Theory5:
+Timer Implementation
+----------------------
+
+The kernel executes timers in bottom-half context, as softirqs, after the timer interrupt completes
+
+The timer interrupt handler runs update_process_times(), which calls run_local_timers():
+
+void run_local_timers(void)
+{
+	.....
+	raise_softirq(TIMER_SOFTIRQ); /* raise the timer softirq */
+}
+
+The TIMER_SOFTIRQ softirq is handled by run_timer_softirq().This function runs all the expired timers (if any) on the current processor
+
+Theory6:
+Are interrupts disabled while running timer handler?
+
+soft irqs runs with interrupts enabled, so interrupts are enabled while running timer handler. /* soft irq context, not in hard irq */
+
+Theory7:
+Does kernel checks all the timer entries in linked list on each raise softirq?
+------------------------------------------------------------------------------
+
+The kernel partitions timers into five groups based on their expiration value.
+
+Timers move down through the groups as their expiration time draws closer.
+
+The partitioning ensures that, in most executions of the timer softirq, the kernel has to do little work to
+find the expired timers.
+
+Theory8:
+-----------
+
+del_timer deactivates a timer
+
+int del_timer(struct timer_list *timer);
+
+The function returns whether it has deactivated a pending timer or not.
+
+del_timer() of an inactive timer returns 0
+
+del_timer() of an active timer returns 1
+
+Theory9:
+del_timer_sync
+-------------
+
+int del_timer_sync(struct timer_list *timer)
+
+deactivate a timer and wait for the handler to finish
+This function only differs from del_timer() on SMP
+
+The function returns whether it has deactivated a pending timer or not.
+
+Differences between del_timer and del_timer_sync
+------------------------------------------------
+
+guarantees that when it returns, the timer function is not running on any CPU
+
+del_timer_sync is used to avoid race conditions on SMP systems as timers run asynchronously with respect to the currently executing code, several potential race conditions exist
+
+Theory10:
+timer_pending
+--------------
+
+timer_pending will tell whether a given timer is currently pending or not.
+
+return value: 1 if the timer is pending, 0 if not
+
+Theory11:
+Periodic timers
+------------------
+
+You can make the timer periodic by calling mod_timer in the timer handler
+
+Theory12:
+How can i synchronize between process context and timer handler?
+=================================================================
+
+You need to use spin_lock API
+
+Theory13:
+Timer Flags
+---------------
+
+TIMER_DEFERRABLE
+------------------
+	A deferrable timer will work normally when the system is busy but will not cause a CPU to come out of idle just to service it
+
+	the timer will be serviced when the CPU eventually wakes up with a subsequent non-deferrable timer
+
+Theory14:
+TIMER_IRQSAFE 
+--------------
+
+An irqsafe timer is executed with IRQ disabled
+
+----
+with this, it will run with IRQ disabled
+
+Theory15:
+schedule_timeout
+------------------
+
+long schedule_timeout (signed long timeout);
+
+Make the current task sleep until timeout jiffies have elapsed.
+
+Implementation
+---------------
+
+It internally uses kernel timers
+
+File: kernel/time/timer.c
+
+Theory16:
+Problems with low resolution timers
+-------------------------------------
+
+1. Low resolution timers  in Linux are only supported at a resolution of 1 jiffy
+	The length of a jiffy is dependent on the value of HZ in the Linux kernel
+
+2. Multimedia applications
+	timer resolution of several milliseconds is not good enough
+	need very precise timekeeping, for instance, to avoid frame skips in videos, or jumps during audio playback
+
+Theory17:
+Implementation of low resolution timers
+---------------------------------------
+
+Timers are organized on lists, and the following data structure represents a timer on a list:
+
+Data Structure
+------------------
+struct timer_list;
+
+Header File: <linux/timer.h>
+
+Implementation: kernel/timer.c
+
+struct timer_list {
+        /*
+         * All fields that change during normal runtime grouped to the
+         * same cacheline
+         */
+        struct hlist_node       entry;
+        unsigned long           expires;
+        void                    (*function)(struct timer_list *);
+        u32                     flags;
+};
+
+function saves a pointer to the callback function invoked upon time-out
+expires specifies the time, in jiffies, at which the timer expires.
+
+Use cases in Linux Kernel
+--------------------------
+Timers are used to detect when a device or a network peer has failed to respond within the expected time; when, as usual, the expected response does happen, the timer is canceled

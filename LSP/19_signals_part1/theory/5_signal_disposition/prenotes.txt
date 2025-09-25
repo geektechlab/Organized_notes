@@ -1,0 +1,21 @@
+What is a process's signal disposition?
+===========================================
+
+For each process, each signal has a disposition which means what action will occur when a signal is delivered to the process.
+
+For example, the default disposition SIGINT is to terminate it.
+
+The signal disposition can be changed by calling signal() or sigaction()
+
+The default disposition for signals can be to
+	ignore the signal
+	stop the process,
+	continue a stopped process
+	terminate the process
+	or terminate the process and also dump a 'core' file
+
+Note a core file is a representation of the processes' memory state that can be inspected using a debugger.
+
+---
+more details are avilable at [ man 7 signal ]
+---

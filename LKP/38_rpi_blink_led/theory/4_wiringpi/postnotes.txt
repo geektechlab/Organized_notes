@@ -1,0 +1,12 @@
+How to verify?
+===============
+
+gpio command
+
+$ sudo apt install wiringpi
+
+gpio can be used to manipulate the GPIO pins – set outputs and read inputs.
+
+$ gpio -h
+
+$ gpio readall

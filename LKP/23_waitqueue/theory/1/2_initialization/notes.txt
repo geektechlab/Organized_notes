@@ -1,0 +1,51 @@
+Initialization of wait queue entry
+==================================
+
+Static:
+-------------
+DEFINE_WAIT(wait);
+
+	Declares a new wait_queue_entry variable and initialize its with the descriptor of the process
+	currently executing and function is assigned to autoremove_wake_function()
+
+#define DEFINE_WAIT(name) DEFINE_WAIT_FUNC(name, autoremove_wake_function)
+
+#define DEFINE_WAIT_FUNC(name, function)                                        \
+        struct wait_queue_entry name = {                                        \
+                .private        = current,                                      \
+                .func           = function,                                     \
+                .entry          = LIST_HEAD_INIT((name).entry),                 \
+        }
+
+Dynamic:
+---------------
+
+void init_waitqueue_entry(struct wait_queue_entry *wq_entry, struct task_struct *p);
+
+static inline void init_waitqueue_entry(struct wait_queue_entry *wq_entry, struct task_struct *p)
+{
+        wq_entry->flags         = 0;
+        wq_entry->private       = p;
+        wq_entry->func          = default_wake_function;
+}
+
+int wake_up_process(struct task_struct *p)
+{
+        return try_to_wake_up(p, TASK_NORMAL, 0);
+}
+
+int default_wake_function(wait_queue_entry_t *curr, unsigned mode, int wake_flags,
+                          void *key)
+{
+        return try_to_wake_up(curr->private, mode, wake_flags);
+}
+
+int autoremove_wake_function(struct wait_queue_entry *wq_entry, unsigned mode, int sync, void *key)
+{
+        int ret = default_wake_function(wq_entry, mode, sync, key);
+
+        if (ret)
+                list_del_init(&wq_entry->entry);
+
+        return ret;
+}

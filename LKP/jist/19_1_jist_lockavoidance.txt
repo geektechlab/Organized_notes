@@ -1,0 +1,119 @@
+Theory0:
+Problem:
+Readers-writer lock is a special lock mechanism which allows concurrent access for read-only operations. An exclusive lock is needed for writing or modifying data. A writer process can't acquire a lock as long as at least one reader process which acquired a lock holds it. This may lead to a problem called writer starvation, where writer process may sometimes need to wait long time for the lock.
+
+Much effort has been put in developing synchronization primitives that avoid locks. Lock free and wait free synchronization plays a major role in RTOS, where time guarantees must be given. Two new synchronization mechanisms added in 2.6 Kernel to totally remove locking on the reader side:
+	1. Sequence Lock
+	2. Read Copy Update (RCU)
+
+Theory1:
+seqlocks/sequence locks:
+Added in Linux 2.6
+
+Objective: Provide Fast and lock-free access to shared resources.
+Differences between reader-writer locks and sequence locks:
+	--> Writer is given a higher priority when compared to reader
+	--> Writer is allowed to modify the shared data, even when there are readers in critical section
+
+How readers handle the data corruption when writer updates it during read ?
+	Readers are in charge to check if they read valid data.
+	If a write access took place while the data was read, the data is invalid and has to be read again.
+	Identification of write accesses is realized with a counter.
+
+What happens when a writer is already in critical section and another writer arrives?
+	A writer uses a spinlock for mutual exclusion and hence will not interfere the other writer.
+
+When to use?
+	A small amount of data is to be protected
+	Your data has a lot of readers/frequently accessed
+	Your data has a few writers
+	It is important that writers not be starved for access
+
+Theory2:
+How it works?
+It uses Sequence Counter (Integer) & Spin lock
+
+Data structure: seqlock_t
+Header File: linux/seqlock.h
+typedef struct seqcount {
+        unsigned sequence;
+} seqcount_t;
+typedef struct {
+        struct seqcount seqcount;
+        spinlock_t lock;
+} seqlock_t;
+	seqcount -> sequence counter
+	lock     -> lock to atomic update in case of writers
+
+Initialization:
+        Static:         DEFINE_SEQLOCK(x)
+        Dynamic:        seqlock_init(x)
+
+spinlock is used only in write operation
+
+Theory3:
+Write operation: Writers must take out exclusive access before making changes to the protected data.
+
+write_seqlock(&the_lock);
+/* Make changes here */
+write_sequnlock(&the_lock);
+
+write_seqlock() locks the spinlock and increments the sequence number.
+write_sequnlock() increments the sequence number again, then releases the spinlock.
+
+Theory4:
+Read Operation: No locking is required when you are using trying to read. Each reader must read the sequence number twice:
+	before reading the data
+	after reading the data
+
+And verify whether they both are same or not. When there was no writer during the read operation?
+	value of the sequence counter will be same.
+
+When there was writer during the read operation?
+	value of the sequence counter will not be same
+	The important point here is that while the writer is operating, the sequence number would be odd.
+
+unsigned int seq;
+do {
+	seq = read_seqbegin(&the_lock);
+	/* Make a copy of the data of interest */
+} while read_seqretry(&the_lock, seq);
+
+read_seqbegin   -->     Returns the current sequence number.
+read_seqretry	-->	Returns 1 if the value of seq local variable is odd.
+
+Theory5:
+Is Kernel Preemption Disabled?
+        Readers: No
+        Writers: Yes because it acquires a spinlock
+
+spinlock disables kernel preemption
+
+Theory6:
+Limitations: Seqlocks cannot be used for pointers, it can only be used for normal data like integers, booleans. Because, there can be pointer which can be already freed, dereferencing such pointer will cause oops. Also, writer might be freeing without informing to reader.
+
+Theory7:
+Who uses seqlocks in Linux Kernel?
+        Jiffies: Variable that stores a Linux machine's uptime.
+        kernel/time.c, kernel/time/tick-common.c
+
+u64 get_jiffies_64(void)
+{
+	unsigned int seq;
+	u64 ret;
+
+	do {
+		seq = read_seqbegin(&jiffies_lock);
+		ret = jiffies_64;
+	} while (read_seqretry(&jiffies_lock, seq));
+	return ret;
+}
+EXPORT_SYMBOL(get_jiffies_64);
+
+Theory8:
+Seqlocks have other variants to use in interrupts.
+
+write_seqlock_irq(seqlock_t *sl);
+write_sequnlock_irq(seqlock_t *sl);
+write_seqlock_irqsave(seqlock_t *sl);
+write_sequnlock_irqrestore(seqlock_t *sl, unsigned long flags);

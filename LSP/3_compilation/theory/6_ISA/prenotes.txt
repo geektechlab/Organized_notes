@@ -1,0 +1,12 @@
+Accessing a register's content via inline assembly
+==================================================
+
+x86_64 has several registers; let's just go with the ordinary RCX register for this example.
+
+the x86 ABI calling convention states that the return value of a function will be the value placed in the accumulator, that is, RAX for the x86_64.
+
+Using this knowledge, we write a function that uses inline assembly to place the content of the register we want into RAX.
+
+This ensures that this is what it will return to the caller!
+
+

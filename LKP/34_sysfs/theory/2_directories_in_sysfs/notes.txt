@@ -1,0 +1,34 @@
+sysfs
+=========
+
+The root of the sysfs contains at least 10 directories
+
+block
+----------
+
+	Contains one directory for each of the registered block devices on the system
+	Each of those directories, in turn, contains any partitions on the block device
+
+	Connect a USB drive and you should see, directory should be created in /sys/block
+	Disconnect USB drive, and directory should be removed.
+
+bus
+----------
+
+	provides a view of the system buses.
+	Inside each of these directories are two subdirectories
+
+	a) devices:
+		Correspond to devices discovered on this bus
+
+	b) drivers:
+		Device drivers loaded for this bus		
+	
+	Connect a USB drive, and you should see directory in /sys/bus/usb/devices
+	Disconnect USB drive, and directory should be removed
+
+class
+---------
+
+	contains a view of the devices on the system organized by high-level function
+	Examples: input, network, backlight, sound etc

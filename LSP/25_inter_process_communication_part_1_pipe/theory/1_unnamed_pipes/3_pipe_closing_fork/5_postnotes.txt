@@ -1,0 +1,5 @@
+The mistake in above code is that there is still a reader for the pipe! The child still has the pipe's first file descriptor open 
+
+When forking, It is common practice to close the unnecessary (unused) end of each pipe in the child and parent process. 
+
+For example the parent might close the reading end and the child might close the writing end (and vice versa if you have two pipes)

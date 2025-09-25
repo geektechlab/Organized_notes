@@ -1,0 +1,206 @@
+Theory0:
+Data Structures
+-----------------
+
+hrtimers live on a time-sorted linked list, with the next timer to expire being at the head of the list. 
+
+A separate red/black tree is also used to enable the insertion and removal of timer events without scanning through the list
+
+Header File: <linux/hrtimer.h> 
+
+Data Structures: struct hrtimer
+
+Implementation: kernel/time/hrtimer.c
+
+Documentation: Documentation/timers/hrtimer.txt
+
+struct hrtimer {
+        struct timerqueue_node          node;
+        ktime_t                         _softexpires;
+        enum hrtimer_restart            (*function)(struct hrtimer *);
+        struct hrtimer_clock_base       *base;
+        u8                              state;
+        u8                              is_rel;
+        u8                              is_soft;
+};
+
+node is used to keep the timer on red-black tree
+base points to the timer base
+softexpires is expiration time
+function is callback function
+
+Theory1:
+clocks
+------------
+
+Every hrtimer is bound to a specific clock.
+
+The system currently supports two clocks:
+
+1. CLOCK_MONOTONIC:
+	a clock which is guaranteed always to move forward in time
+	it starts at zero when the system boots and increases monotonically from there
+
+2. CLOCK_REALTIME:
+	matches the current real-world time
+
+The difference between the two clocks can be seen when the system time is adjusted
+	 as a result of administrator action
+	 tweaking by the network time protocol code
+	  suspending and resuming the system.
+
+In any of these situations, 
+	CLOCK_MONOTONIC will tick forward as if nothing had happened
+	CLOCK_REALTIME may see discontinuous changes.
+
+Which clock to be used?
+--------------------------
+
+Depends mainly on whether the timer needs to be tied to time as the rest of the world sees it or not
+
+Theory2:
+Initialization
+------------------
+
+void hrtimer_init(struct hrtimer *timer, clockid_t clock_id,
+                  enum hrtimer_mode mode);
+
+timer:      the timer to be initialized
+clock_id:   the clock to be used. Every hrtimer is bound to a specific clock
+mode:       The modes which are relevant for intitialization
+
+clock_id
+-----------
+
+#define CLOCK_REALTIME                  0
+#define CLOCK_MONOTONIC                 1
+#define CLOCK_PROCESS_CPUTIME_ID        2
+#define CLOCK_THREAD_CPUTIME_ID         3
+#define CLOCK_MONOTONIC_RAW             4
+#define CLOCK_REALTIME_COARSE           5
+#define CLOCK_MONOTONIC_COARSE          6
+#define CLOCK_BOOTTIME                  7
+#define CLOCK_REALTIME_ALARM            8
+#define CLOCK_BOOTTIME_ALARM            9
+
+mode
+-----------
+
+HRTIMER_MODE_ABS             - Time value is absolute
+HRTIMER_MODE_REL             - Time value is relative to now
+HRTIMER_MODE_PINNED          - Timer is bound to CPU (is only considered
+                               when starting the timer)
+HRTIMER_MODE_SOFT            - Timer callback function will be executed in
+                               soft irq context
+
+Theory3:
+Setting a timer
+----------------
+
+static inline void hrtimer_start(struct hrtimer *timer, ktime_t tim,
+                                 const enum hrtimer_mode mode);
+
+timer:      the timer to be added
+tim:        expiry time
+mode:       timer mode: absolute (HRTIMER_MODE_ABS) or
+                        relative (HRTIMER_MODE_REL)
+
+$ sudo cat /proc/timer_list | grep my_hrtimer_function -C 3
+
+Theory4:
+hrtimer_cancel
+---------------
+
+cancel a timer
+
+int hrtimer_cancel(struct hrtimer *timer);
+
+Returns:
+
+        0 when the timer was not active
+        1 when the timer was active
+
+Theory5:
+Return value of callback function
+----------------------------------
+
+HRTIMER_NORESTART	-  for a one-shot timer which should not be started again
+HRTIMER_RESTART		-  for a recurring timer
+
+In the restart case, the callback must set a new expiration time before returning.
+
+Usually, restarting timers are used by kernel subsystems which need a callback at a regular interval.
+
+The hrtimer code provides a function for advancing the expiration time to the next such interval:
+
+unsigned long hrtimer_forward(struct hrtimer *timer, ktime_t now, ktime_t interval);
+
+timer:      hrtimer to forward
+now:        forward past this time
+interval:   the interval to forward
+
+Returns the number of overruns.
+
+Theory6:
+hrtimer_forward_now
+---------------------
+
+Forward the timer expiry so it will expire after the current time of the hrtimer clock base. Returns the number of overruns
+
+static inline u64 hrtimer_forward_now(struct hrtimer *timer,
+                                      ktime_t interval);
+
+Theory7:
+/*
+ * POSIX magic: Relative CLOCK_REALTIME timers are not affected by
+ * clock modifications, so they needs to become CLOCK_MONOTONIC to
+ * ensure POSIX compliance.
+ */
+if (clock_id == CLOCK_REALTIME && mode & HRTIMER_MODE_REL)
+	clock_id = CLOCK_MONOTONIC;
+
+Theory8:
+hrtimer_callback_running
+------------------------
+
+static inline int hrtimer_callback_running(struct hrtimer *timer);
+
+Helper function to check, whether the timer is running the callback function
+
+Return: 1 if the callback is running
+	0 if the callback is not running
+
+Theory9:
+hrtimer_restart
+------------------
+
+A canceled timer can be restarted by passing it to hrtimer_restart()
+
+void hrtimer_restart(struct hrtimer *timer);
+
+Theory10:
+hrtimer_get_remaining
+----------------------
+
+ktime_t hrtimer_get_remaining(const struct hrtimer *timer);
+
+returns the amount of time left before a timer expires
+
+Theory11:
+hrtimer_interrupt
+-----------------
+
+When the clock event device responsible for high-resolution timers raises an interrupt, hrtimer_interrupt is called as event handler
+
+Theory12:
+How can i wait for few usecs in linux kernel?
+----------------------------------------------
+
+Backed by busy-wait loop: udelay(unsigned long usecs)
+
+Backed by hrtimers: usleep_range(unsigned long min, unsigned long max)
+
+Why is there no usleep / What is a good range?
+-----------------------------------------------
+
+Since usleep_range is built on top of hrtimers, the wakeup will be very precise, thus a simple usleep function would likely introduce a large number of undesired interrupts.

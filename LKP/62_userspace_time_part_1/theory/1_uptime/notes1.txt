@@ -1,0 +1,24 @@
+/proc/uptime
+================
+
+$ cat /proc/uptime 
+10354.21 61534.94
+
+10354.21 	-->	Uptime in seconds
+61534.94	-->	Total time spent by all processors in idle process
+
+/proc/loadavg
+==============
+
+$ cat /proc/loadavg 
+0.07 0.02 0.00 1/672 9133
+
+The first three fields in this file are load average figures giving the number of jobs in the run queue (state R) or waiting for disk I/O (state D) averaged over 1, 5, and 15 minutes.
+
+They are the same as the load average numbers given by uptime(1) and other programs.
+
+The fourth field consists of two numbers separated by a slash (/)
+The first of these is the number of currently executing kernel scheduling entities (processes, threads)
+The value after the slash is the number of kernel scheduling entities that currently exist on the system
+
+The fifth field is the PID of the process that was most recently created on the system.

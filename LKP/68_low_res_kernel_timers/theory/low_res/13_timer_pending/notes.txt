@@ -1,0 +1,6 @@
+timer_pending
+--------------
+
+timer_pending will tell whether a given timer is currently pending or not.
+
+return value: 1 if the timer is pending, 0 if not

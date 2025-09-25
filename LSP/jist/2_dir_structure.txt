@@ -1,0 +1,176 @@
+Theory0:
+$ tree -L 1 /
+The above command will show only the 1st level of the directory tree starting at root (/).
+
+Theory1:
+In Linux however, the root of the filesystem doesn’t correspond with a physical device or location, it’s a logical location of simply “/”. 
+
+ / (Root) : Primary hierarchy root and root directory of the entire file system hierarchy.
+	Every single file and directory starts from the root directory
+
+/boot : 
+	Contains files required for starting your system
+	Boot loader files, e.g., kernels, initrd.
+	Eg. config-* - contains kernel configuration settings
+					e.g. if we want to know if HID is enable, we can run [ cat /boot/config-`uname -r`-generic | grep HIDRAW
+		initrd.img-* - initrd - initial ram disk is loaded by the kernel at boot time, it loads temporary file system into RAM at the time of booting, before actually mounting actual file system
+		vmlinuz-* - Vmlinuz stands for virtual memory Linux kernel zipped. 
+					vmlinuz is a compressed Linux Kernel image which is used at the time of booting Linux operating system
+					vmlinuz used by Intel. Arm uses uimage if we use u-boot. x86, grub uses vmlinuz. When grub starts, it uncompresses this image and starts loading.
+		System.map-* - the System.map file is a symbol table used by the kernel.
+					A symbol table is a look-up between symbol names and their addresses in memory.
+					A symbol name may be the name of a variable or the name of a function.
+					It is useful when kernel panics it will print various address, then we can use directly this system.map file to convert those addresses into function or variable names.
+		grub/grub.conf - This file is used for boot loader grub to load grub related configuration. If we want to modify any configuration in grub bootloader, we use this.
+
+/bin folder:
+--> bin stands for binary which means an executable file
+--> This folder contains commands or scripts or executable which can be executed to accomplish a task. 
+--> There are several other directories on that also contain the string 'bin' in their names
+	/bin	
+	/sbin	
+	/usr/bin	
+	/usr/sbin	
+	/usr/local/bin	
+	/usr/local/sbin
+
+/bin:
+	--> The /bin directory contains binaries for use by all users.
+	--> /bin contains executables which are required by the system for emergency repairs, booting, and single user mode
+	-->	This folder contains basic commands such as cat, chmod, chgrp, chown, date, dir, dd, df, ln, mv, echo
+
+/sbin:
+	--> stands for system binaries or super user binaries
+	--> It contains commands that need to be available at the very beginning of the OS initialization and at the shutdown end too.
+	--> This folder contains commands which are required for changing system properties or system level settings such as disk management, network management etc
+	--> Many of the system binaries require root privilege to perform certain tasks.
+	--> e.g. fsck, root, init, ifconfig
+
+/usr is generally for user / administrator added binaries
+sudo apt-get install gimp
+we can chech by [ which gimp ] and it will show in /usr/bin or /usr/sbin
+
+/usr/bin:
+	--> This folder is similar to /bin.
+	--> Most programs executed by normal users which are not needed for booting or for repairing the system
+	--> commands which are not installed locally should be placed in this directory
+	--> Eg. vi, atq, bc, awk, cal, cmp, dig, diff, du, env, find, free, ftp, gcc, groups, id, info iostat, last, lsof, md5sum, nmap, rar, seq, tail, top
+
+/usr/sbin:
+	--> contains non-vital system utilities that are used after booting (i.e., starting the system) by the system administrator
+	-->Eg.  adduser, chroot, groupadd, grub related commands, tcpdump
+	--> /usr/sbin also contains some daemons, which are programs that run silently in the background
+	--> Eg. bluetoothd, dropbear
+
+/usr/local is a place where files built by the system administrator are placed , typically by running following sequence on the source code
+	1. ./configure
+	2. make
+	3. make install
+Example: hello package
+
+/usr/local/bin:
+	Binaries for programs local to the site.
+
+/usr/local/sbin:
+	Locally installed programs for system administration
+
+/dev
+	dev -- device
+		Linux/Unix treat everything as files.
+		it treats hardware devices too as files. All hardware files are present in /dev(Device ) folder.
+		Essential device files, e.g., /dev/null.
+		Many of these are generated at boot time or even on the fly
+	For example if you plug in a new webcam or a USB Pendrive into your machine, a new device entry will be automatically created here. In Linux, most devices are either character devices or block devices. Character devices can be thought of as those that transfer data in characters or bytes. character devices transfer data in bytes/characters. eg. serial port/printer port.
+	For example:
+		/dev/lp0 represents the first printer port
+		/dev/ttyS0 represents the first serial port
+	Block devices are those that transmit data in multiple blocks at a time. Any device transferring data in block is block devices. e.g. hard disk, SCSI, pen drives etc.
+		/dev/hd* represents hard disk drives.
+		/dev/sd* represents SCSI devices
+
+if [ ls -l ] gives b inside /dev directory for any device then block, if gives c then character device.
+
+	There are some other very interesting device files in /dev. The device files null, zero, random and urandom are not associated with any physical devices. /dev/zero: Used by developers to create a file with no meaningful data but a particular size.
+	e.g. [ sudo dd if=/dev/zero of=/tmp/zero.txt bs=1024 count=1 ] will create file of size 1kB
+	e.g. [ sudo dd if=/dev/zero of=/tmp/zero.txt bs=1024 count=1024 ] will create file of size 1MB
+	we can verify file size using [ ls -lh ] and content using [ od ] command.
+
+	/dev/null: Used by developers for redirecting unwanted output/error etc to this file. Useful for creating files with zero size. it is a kind of black hole.
+
+	/dev/null
+	Read : Returns End of file (read returns 0)
+	Write: Data written is discarded
+
+	/dev/zero:
+	Read: Returns endless bytes of zeroes (\0 characters)
+	Write: Data written is discarded
+
+	dd if=/dev/zero of=/tmp/zero.txt bs=4096 count=1000
+	dd if=/dev/null of=/tmp/null.txt bs=4096 count=1000
+
+	Notice the byte count. Use cases of /dev/zero and /dev/null:
+	1. Suppressing stdout : $ cat file > /dev/null or $ cat file > /dev/zero
+	2. Deleting the contents of the file : $ cat /dev/null > /tmp/file
+	3. Destroying existing data on the file system partition : $ dd if=/dev/zero of=/dev/<destination partition>
+	4. Creating a 1 MB file: $ dd if=/dev/zero of=/tmp/file count=1024 bs=1024
+
+/etc:
+	Contains system-wide configuration files. Contains configuration files required by all programs. This also contains startup and shutdown shell scripts used to start/stop individual programs.
+
+	Example: /etc/resolv.conf, /etc/logrotate.conf. [ cat /etc/passwd ]
+	/etc/hostname -- Contains the hostname of your machine
+	/etc/modules -- List of modules to be loaded at startup.
+	/etc/hosts -- The hosts file is used to map hostname to IP Address
+	/etc/fstab -- this file automatically mounts filesystems that are spread across multiple drives or separate partitions.
+				This file is checked when the system boots and filesystems are mounted. During boot, kernel reads this file and mounts all filesystem listed here.
+				e.g. [ cat /etc/fstab ] and the verify same UUID using [ blkid /dev/<filesystem> ]
+	/etc/passwd - user details
+
+/home:
+	Home directories for all users to store their personal files. For example, if your user name is bob, you have a home folder located at /home/bob. Each user only has write access to their own home folder and must obtain elevated permissions (become the root user) to modify other files on the system. [ echo $HOME ] gives path of home folder for a user. If we become root by su or sudo -s command the  above command will display root home folder.
+
+/root: Home directory of root user
+
+/lib: Libraries essential for the binaries in /bin/ and /sbin/. /lib/modules -- All loadable kernel modules are stored in this directory.
+
+/lib<qual> (lib32, lib64 etc): 32bit, 64 bit libs of the same name. A 64-bit system may have compatibility for 32-bit binary.
+
+/media: media directory is where external storage will be automatically mounted when you plug it in and try to access it. For example, when you insert a CD into your Linux system, a directory will automatically be created inside the /media directory. 
+
+/mnt: A directory for temporarily mounted filesystems. For example, if youre mounting a Windows partition to perform some file recovery operations, you might mount it at /mnt/windows.
+	Eg. iso files
+	mount -t iso9660 -o loop path/to/image.iso /mnt/
+
+/tmp: Temporary files. Often not preserved between system reboots, and may be severely size restricted. Directory that contains temporary files created by system and users. Files under this directory are deleted when system is rebooted. /tmp is one of the few directories hanging off / that you can actually interact with without becoming superuser
+
+/run: /run is another new directory. System processes use it to store temporary data for their own nefarious reasons. Mostly contains pid related information.
+
+/srv: The /srv directory contains data for servers ( such as Apache, FTP, web server etc. ). If you are running a web server from your Linux box, your HTML files for your sites would go into /srv/http (or /srv/www). If you were running an FTP server, your files would go into /srv/ftp.
+
+var: /var contains variable data files. This includes spool directories and files, administrative and logging data, and transient and temporary files. /var/log contains log files for differenctt applications. dmesg is also located here. /var/mail contains users emails. /var/run  holds a lot status and parameter information of actively running process daemons.
+
+opt: third party installers
+
+lost+found: fsck command is used to recover these files. Any file to be recovered is kept in this folder
+
+Proc:
+these are most used in device drivers. these are virtual file systems. It means that files are not present in hard disk or in any media storage. these are stored in RAM and whenever we start system, files will be created in RAM. e.g. if we do [ ls -l proc/cmdline ], size will show as 0. but [ cat proc/cmdline ] will give print the content. Since it has content, it should have some size. But since it is not stored in hard dsik/storage/memory, ls shows 0 size.
+
+difference between virtual file and actual file:
+virtual file has 0 size
+actual file has some size
+
+proc: It contains special files that represent system and process information. quite a lot of system utilities are simply calls to files in this directory.
+	'lsmod' is the same as 'cat /proc/modules'. We can verify it by [ strace lsmod | grep modules ]
+	'lspci' is a synonym for 'cat /proc/pci'. We can verify it by [ strace lspci ] tahat it uses sys filesystem.
+	/proc/meminfo contains a bunch of information about your system's memory
+	/proc/uptime uptime information (in seconds).
+	/proc/partitions detailed info about partitions available to the system.
+	/proc/cmdline kernel command line information.
+
+The /proc filesystem maps mostly to the process table. People found this very useful, and started adding other things to it as well - cpuinfo, memory statistics, device information, but it also raised the issue that /proc was SUPPOSED to be for the process table. So they added another instance, and named it sys aimed to hold system information.
+
+sys:
+	sysfs is used by programs such as udev to access device and device driver information. To get the a network card's MAC address. cat /sys/class/net/eth0/address
+
+All process related informations are present in proc filesystem. We can verify it by [ ls /proc ]. Whereas, all hardware related informations are present in sys filesystem. We can verify it by [ ls /sys ]. Whenever we create a new module, new folder will get created in /sys/module directory. Whenever we add a new device, new folder will get created in /sys/dev or /sys/bus directory.

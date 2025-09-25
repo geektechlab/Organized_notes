@@ -1,0 +1,6 @@
+Communicating via stream sockets
+================================
+
+Once a connection between two peer socket is established, communication happens via read/write on the corresponding file descriptors
+
+

@@ -1,0 +1,5 @@
+The actual filesystem entry is created at bind time
+	If the file already exists, bind will fail
+	It’s up to you to remove stale sockets as needed
+
+$ ls /tmp -l

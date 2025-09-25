@@ -1,0 +1,10 @@
+ktime_t conversion functions
+----------------------------------
+
+ktime_t timeval_to_ktime(struct timeval tval);
+
+/* convert a timeval to ktime_t format: */
+static inline ktime_t timeval_to_ktime(struct timeval tv)
+{
+        return ktime_set(tv.tv_sec, tv.tv_usec * NSEC_PER_USEC);
+}

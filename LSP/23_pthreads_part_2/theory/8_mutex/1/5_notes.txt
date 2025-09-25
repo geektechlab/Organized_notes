@@ -1,0 +1,16 @@
+Deadlock
+================
+
+A thread will deadlock itself if it tries to lock the same mutex twice
+
+When we use more than one mutex in our programs, a deadlock can occur if we allow one thread to hold a mutex and block while trying to lock a second mutex at the same time that another thread holding the second mutex tries to lock the first mutex.  Neither thread can proceed, because each needs a resource that is held by the other, so we have a deadlock.
+
+Deadlocks can be avoided by carefully controlling the order in which mutexes are locked
+
+For example, assume that you have two mutexes, A and B, that you need to lock at the same time
+
+If all threads always lock mutex A before mutex B, no deadlock can occur from the use of the two mutexes
+
+Similarly, if all threads always lock mutex B before mutex A, no deadlock will occur
+
+You’ll have the potential for a deadlock only when one thread attempts to lock the mutexes in the opposite order from another thread.

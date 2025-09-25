@@ -1,0 +1,24 @@
+I/O Ports
+============
+
+Two I/O Ports: 0x60, 0x64
+Like many IO ports, reads and writes may access different internal registers
+
+Registers
+============
+
+Three registers:
+
+1. Data Byte(0x60):  used for reading data that was received from PS2, Or writing data to a PS/2 device
+2. Command Byte: When CPU writes to port 0x64
+3. Status Byte: When CPU reads from port 0x64
+
+ ---------------------------------
+ |IO Port| Access Type| Purpose  |
+ |-------------------------------
+ | 0x60  | Read/Write | Data Port|
+  -------------------------------
+ | 0x64  | Read       | Status   |
+ ---------------------------------
+ | 0x64  | Write      | Command  |
+ --------------------------------- 

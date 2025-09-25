@@ -1,0 +1,2 @@
+Why is the threaded handler not being executed even after thread is created?
+=============================================================================

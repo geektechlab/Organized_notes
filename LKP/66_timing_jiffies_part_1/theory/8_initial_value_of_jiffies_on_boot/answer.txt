@@ -1,0 +1,18 @@
+What is the initial value of jiffies on boot?
+=================================================
+
+At boot time jiffies is not initialized to zero, it is initialized to INITIAL_JIFFIES constant.
+
+Header File: <linux/jiffies.h>
+
+  /*
+   * Have the 32 bit jiffies value wrap 5 minutes after boot
+   * so jiffies wrap bugs show up earlier.
+   */
+   #define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300*HZ))   
+
+some bugs where found that occurred when the jiffies counter overflowed (wrapped back to zero)
+
+By initializing jiffies so the counter overflows after 5 mins, anybody testing a patch that creates a new jiffy-overflow-related bug  will see the problem during normal testing - and fix it
+
+since it uses negative value while jiffies will be read as unsigned integer, it will be read as "very big" positive number. Thus, it will reach the upper limit of integer very quickly

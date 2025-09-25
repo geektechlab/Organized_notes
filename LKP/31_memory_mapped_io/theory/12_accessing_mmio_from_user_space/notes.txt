@@ -1,0 +1,19 @@
+Accessing mmio from user space
+==============================
+
+/dev/mem is a character device file that is an image of the main memory of the computer. ( main memory is not just RAM but includes all other devices also )
+
+Byte addresses in /dev/mem are interpreted as physical memory addresses.
+
+man 4 mem for more information
+
+Implemented by drivers/char/mem.c
+
+Accessing /dev/mem from command line
+======================================
+
+$ hexdump -C /dev/mem
+
+$ cat /dev/mem | strings
+
+$ cat /dev/mem | strings -n 20

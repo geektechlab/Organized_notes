@@ -1,0 +1,17 @@
+list_for_each_entry_reverse
+============================
+
+The macro list_for_each_entry_reverse() works just like list_for_each_entry() except that it moves through the list in reverse.
+
+If you know the item you are searching for is likely behind the node you are starting your search from, you can use this macro.
+
+/**
+ * list_for_each_entry_reverse - iterate backwards over list of given type.
+ * @pos:        the type * to use as a loop cursor.
+ * @head:       the head for your list.
+ * @member:     the name of the list_head within the struct.
+ */
+#define list_for_each_entry_reverse(pos, head, member)                  \
+        for (pos = list_last_entry(head, typeof(*pos), member);         \
+             &pos->member != (head);                                    \
+             pos = list_prev_entry(pos, member))

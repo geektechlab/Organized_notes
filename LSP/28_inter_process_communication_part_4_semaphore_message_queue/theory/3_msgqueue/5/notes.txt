@@ -1,0 +1,2 @@
+
+If more than one process is waiting to receive a message when a message arrives at an empty queue, then the process with the highest priority that has been waiting the longest is selected to receive the message.

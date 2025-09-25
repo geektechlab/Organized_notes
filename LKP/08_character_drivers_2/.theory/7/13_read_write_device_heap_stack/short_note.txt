@@ -1,0 +1,7 @@
+same as previous but with use of stack section variable in kernel module in stack which gets user space pointer to memory. 
+
+here it may not work becuase stack content gets copied from user space but it points to user space pointer but directly accessing will violate security policy. ( indiactions: dmesg may get freezed )
+
+To make it work, TBD
+
+check what type of device it is ? charactor or block ?

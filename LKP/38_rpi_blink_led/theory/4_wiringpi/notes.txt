@@ -1,0 +1,15 @@
+GPIO Registers on Raspberry Pi3
+================================
+
+GPFSELx (GPIO Function Select Register 0 - 5): 0x3f20 0000 - 0x3f20 0014
+Reserved: 0x3f20 0018
+GPSETx (GPIO Pin Output Set 0 - 1): 0x3f20 001C - 0x3f20 0020
+Reserved: 0x3f20 0024
+GPCLRx (GPIO Pin Output Clear 0 - 1): 0x3f20 0028 - 0x3f20 002C
+
+GPFSEL: function select registers (3 bits per pin); 
+	set it to 0 for input, 
+	1 for output; 
+	6 more alternate functions available
+GPSET: set the corresponding pin
+GPCLR: clear the corresponding pin

@@ -1,0 +1,26 @@
+gettimeofday()
+===============
+
+gettimeofday() returns the current wall clock time and timezone. 
+
+Header File: #include <sys/time.h>
+
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+
+The tv argument is a struct timeval and gives the number of seconds and microseconds since the Epoch
+
+struct timeval {
+	time_t      tv_sec;     /* seconds */
+	suseconds_t tv_usec;    /* microseconds */
+};
+
+The tz argument is a struct timezone.
+
+struct timezone {
+	int tz_minuteswest;     /* minutes west of Greenwich */
+	int tz_dsttime;         /* type of DST correction */
+};
+
+From man gettimeofday
+
+	The use of the timezone structure is obsolete; the tz argument should normally  be  specified  as  NULL.

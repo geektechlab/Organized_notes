@@ -1,0 +1,147 @@
+Theory0:
+Message Queue
+===================
+
+--------
+in pipe and queue, there is no boundary on message and no way to distinguish. But, here we can do it.
+--------
+
+$ man 7 mq_overview
+
+POSIX message queues allow processes to exchange data in the form of messages
+
+General usage for message queues is as follows:
+
+	1. Get a message queue descriptor with a call to the mq_open function.
+
+	2. Send and receive messages with calls to the mq_send and mq_receive functions.
+
+	3. Close the message queue with a call to the mq_close function.
+
+	4. Remove the message queue with a call to the mq_unlink function.
+
+Theory1:
+Opening a Message Queue
+=========================
+
+To set up a message queue, 
+	first create a new message queue or
+	open an existing queue
+using the mq_open function.
+
+If a message queue of the specified name does not already exist, a new message queue is allocated and initialized
+
+If one already exists, the mq_open function checks permissions.
+
+#include <mqueue.h>
+mqd_t mq_open(const char *name, int oflag);
+mqd_t mq_open(const char *name, int oflag, mode_t mode,
+                     struct mq_attr *attr);
+
+ Link with -lrt
+
+Closing a Message Queue
+=========================
+
+int mq_close(mqd_t mqdes);
+	
+Deleting a Message Queue
+============================
+
+int mq_unlink(const char *name);
+
+On Linux, message queues are created in a virtual filesystem.
+$ ls /dev/mqueue
+$ cat /dev/mqueue/my_queue
+
+Theory2:
+Using Message Queue Attributes
+==============================
+
+Use the mq_getattr function to determine the message queue attributes of an existing message queue.
+
+int mq_getattr(mqd_t mqdes, struct mq_attr *attr);
+
+ struct mq_attr {
+               long mq_flags;       /* Flags: 0 or O_NONBLOCK */
+               long mq_maxmsg;      /* Max. # of messages on queue */
+               long mq_msgsize;     /* Max. message size (bytes) */
+               long mq_curmsgs;     /* # of messages currently in queue */
+           };
+
+mq_setattr function to reset the flags. 
+
+The mq_maxmsg and mq_msgsize attributes cannot be modified after the initial queue creation
+
+Theory3:
+Sending  Message Queues
+=======================================
+
+Once a message queue is open, you can send messages to another process using the mq_send function.
+
+int mq_send(mqd_t mqdes, const char *msg_ptr,
+                     size_t msg_len, unsigned int msg_prio);
+
+The mq_send function takes four parameters, including: 
+	the message queue descriptor, 
+	a pointer to a message buffer, 
+	the size of the buffer, and 
+	the message priority
+
+
+The read/write permissions are checked along with the length of the message, the status of the message queue, and the message flag.
+
+If all checks are successful, the message is added to the message queue.
+
+If the queue is already full, the sending process can block until space in the queue becomes available
+
+it can return immediately, if we set the O_NONBLOCK flag when it called the mq_open function.
+
+Theory4:
+Receiving Messages
+=====================
+
+Once a message has been placed on a queue, you can retrieve the message with a call to the mq_receive function. 
+
+ssize_t mq_receive(mqd_t mqdes, char *msg_ptr,
+                          size_t msg_len, unsigned int *msg_prio);
+
+
+The mq_receive function includes four parameters:
+	the message queue descriptor,
+	a pointer to a buffer to hold the incoming message,
+	the size of the buffer,
+	and the priority of the message received (the priority is returned by the function)
+
+ The size of the buffer must be at least the size of the message queue's size attribute
+
+When a process uses the mq_receive function to read a message from a queue, the queue may be empty. 
+
+The receiving process can block until a message arrives in the queue, or it can return immediately, according to the state of the O_NONBLOCK flag established with a preceding call to the mq_open function.
+
+Theory5:
+If more than one process is waiting to receive a message when a message arrives at an empty queue, then the process with the highest priority that has been waiting the longest is selected to receive the message.
+
+Theory6:
+Asynchronous Notification of Messages
+=====================================
+
+A process that wants to read a message from a message queue has three options:
+
+	Set the queue to blocking mode, and wait for a message to be received by calling mq_receive
+
+	Set the queue to non-blocking mode, and call mq_receive multiple times until a message is received
+
+	Set the queue to non-blocking mode, and call mq_notify specifying a signal to be sent when the queue goes from empty to non-empty
+
+The last option is a good choice for a realtime application.
+
+int mq_notify(mqd_t mqdes, const struct sigevent *sevp);
+
+man 7 sigevent for structure
+
+The mq_notify function is used to register a request for asynchronous notification by a signal when a message becomes available on a previously empty queue.
+
+The process can then do useful work until a message arrives, at which time a signal is sent according to the signal information specified in the notification argument of the mq_notify function.
+
+After notification, the process can call mq_receive to receive the message.

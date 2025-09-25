@@ -1,0 +1,18 @@
+CONFIG_NO_HZ_IDLE=y
+-------------------
+
+Primary purpose of clock interrupt is to force a busy CPU to shift its attention among multiple duties
+
+If a CPU is idle, there is little point in sending it a scheduling-clock interrupt
+
+The CONFIG_NO_HZ_IDLE=y Kconfig option causes the kernel to avoid sending scheduling-clock interrupts to idle CPUs
+
+Advantage:
+--------------
+	A battery-powered device running a CONFIG_HZ_PERIODIC=y kernel would drain its battery very quickly, easily 2-3 times as fast as would the same device running a CONFIG_NO_HZ_IDLE=y kernel.
+
+Problems with this approach:
+----------------------------
+
+1. It increases the number of instructions executed on the path to and from the idle loop.
+2. On many architectures, dyntick-idle mode also increases the 	number of expensive clock-reprogramming operations.

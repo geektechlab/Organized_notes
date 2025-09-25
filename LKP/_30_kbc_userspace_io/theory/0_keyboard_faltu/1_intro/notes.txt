@@ -1,0 +1,25 @@
+PC keyboard subsystems consist of two parts:
+1. The keyboard with its cable
+2. A keyboard interface that links the keyboard to a host computer
+
+Keyboard
+==========
+
+Keyboards consist of a large matrix of keys, all of which are monitored by an on-board processor
+
+The processor:
+	1. Monitor which key(s) are being pressed/released and send the appropriate data to the host
+	2.  takes care of all the debouncing
+
+Keyboard Controller
+===================
+
+Your motherboard contains a "keyboard controller" that is in charge of decoding all of the data received from the keyboard and informing your software of what's going on.
+
+All communication between the host and the keyboard happens through keyboard controller
+
+An Intel 8042/compatible microcontroller is used as the PC's keyboard controller.
+
+In modern PCs, the KBC is integrated in the motherboard chipset
+
+$ dmesg | grep 8042

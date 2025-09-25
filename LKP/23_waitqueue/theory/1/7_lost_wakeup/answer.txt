@@ -1,0 +1,19 @@
+What will happen if a wake_up comes just before prepare_to_wait() and after the while condition? 
+
+The wakeup will be lost.
+
+prepare_to_wait() must be called before the condition is checked.
+
+----
+DEFINE_WAIT(wait); // defining wait queue entry
+add_wait_queue(queue, &wait); // adding wait queue entry
+while (!condition) { // checking condition if list is empty or not, if list is not empty, come inside
+    prepare_to_wait(&queue, &wait, TASK_INTERRUPTIBLE); // set state to interruptible
+    if (signal_pending(current)) //
+        /* handle signal */
+    schedule();
+}
+finish_wait(&queue, &wait);
+
+at line no.11 signal may get lost if process is preempted
+( video : 35:00 - 40:00 )

@@ -1,0 +1,9 @@
+Setting the gpio pin direction
+==============================
+
+	int gpio_direction_input(unsigned gpio);
+	int gpio_direction_output(unsigned gpio, int value);
+	
+The return value is zero for success, else a negative errno
+
+For output GPIOs, the value provided becomes the initial output value

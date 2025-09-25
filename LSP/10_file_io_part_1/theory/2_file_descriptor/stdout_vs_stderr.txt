@@ -1,0 +1,32 @@
+stdout vs stderr
+======================
+
+stdout is fully buffered and stderr is not buffered. 
+
+This means when we write to stdout, it goes to a buffer and when we command it to display on the console, it displays it. 
+
+For example, whenever we write system call encounters '\n' character it flushes the buffer on the console, the other way is to call 'fflush(stdout)'.
+
+Whereas with stderr, it will be directly flushed to console, there is no buffer in between.
+
+stdout should be used for regular messages and stderr should be used for error(diagnostic) messages.
+
+When you redirect the output of command using redirection operator, it only redirects stdout messages
+
+command > logfile
+
+It is similar to
+
+command 1> logfile
+
+If you want to redirect stderr messages to logfile. Note: There should not be any space before redirection operator
+
+command 2> logfile
+
+If you want to redirect both stdout and stderr to different files
+
+command 1> outfile 2> errfile
+
+To redirect both stdout and stderr to a single file
+
+command > outfile 2>&1

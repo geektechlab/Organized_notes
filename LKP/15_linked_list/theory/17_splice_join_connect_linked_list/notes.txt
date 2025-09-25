@@ -1,0 +1,14 @@
+Splicing/Joining/connecting Linked lists
+=========================================
+
+To splice two unconnected lists together.
+
+list_splice(struct list_head *list, struct list_head *head);
+
+This function splices together two lists by inserting the list pointed to by 'list' to the given list after the element 'head'.
+
+To splice two unconnected lists together and reinitialize the old list.
+
+list_splice_init(struct list_head *list, struct list_head);
+
+This function works the same as list_splice(), except that the emptied list pointed to by 'list' is reinitialized

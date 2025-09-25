@@ -1,0 +1,12 @@
+timespec output
+-------------------
+
+void ktime_get_ts64(struct timespec64 *);
+
+void ktime_get_boottime_ts64(struct timespec64 *);
+
+void ktime_get_real_ts64(struct timespec64 *);
+
+returns the time in a ‘struct timespec64’, split into seconds and nanoseconds.
+
+This can avoid an extra division when printing the time, or when passing it into an external interface that expects a ‘timespec’ or ‘timeval’ structure

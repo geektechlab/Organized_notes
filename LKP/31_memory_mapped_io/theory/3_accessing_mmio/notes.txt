@@ -1,0 +1,26 @@
+Can we access(read/write) MMIO memory directly?
+==================================================
+
+No, we can't . Kernel is running in virtual address space.
+
+Like user space, the kernel accesses memory through page tables
+
+So, when kernel code needs to access memory-mapped I/O devices, it must first set up an appropriate kernel page-table mapping.
+
+void *ioremap(unsigned long phys_addr, unsigned long size);
+void iounmap(void * addr);
+
+A successful call to ioremap() returns a kernel virtual address corresponding to start of the requested physical address range.
+
+Return address of ioremap is not normally meant to be dereferenced directly, though, for a number of (often architecture-specific) reasons.
+
+Functions to read and write data using memory mapped by ioremap()
+=================================================================
+
+unsigned int ioread8(void *addr);
+unsigned int ioread16(void *addr);
+unsigned int ioread32(void *addr);
+
+void iowrite8(u8 value, void *addr);
+void iowrite16(u16 value, void *addr);
+void iowrite32(u32 value, void *addr);

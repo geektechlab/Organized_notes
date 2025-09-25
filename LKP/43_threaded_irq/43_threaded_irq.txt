@@ -1,0 +1,124 @@
+Theory0:
+Top Half and Bottom Half
+================================
+
+Two important goals of interrupt handler are:
+
+Execution Time
+-----------------
+
+	Handler of an interrupt must execute quickly
+
+		long running handlers can slow down the system and may also lead to losing interrupts
+
+		The faster the handler returns, the lower the interrupt latencies in the kernel, which is especially important for real-time systems
+
+Execution Context
+------------------
+
+	Interrupt handlers are executed in hard-interrupt context – CPU-local interrupts remain disabled
+
+		locking is undesirable and sleeping must be avoided
+		large amount of work cannot be performed in interrupt handler
+
+Both limitations lead to the fact that most interrupt handlers execute only a small amount of code and defer the rest of the work to a later point in time
+
+Handling of interrupts is divided into two parts:
+
+1. Top Half (Hard IRQ)
+	Acknowledge the interrupt
+	Copy the necessary stuff from the device
+	schedule the bottom half
+
+2. Bottom Half (Soft IRQ)
+	Remaining pending work
+
+Theory1:
+Top and bottom halves with an example
+---------------------------------------
+
+Network Card on reception of packet from the network, issues an interrupt, kernel responds it by executing the handler
+
+Top Half(Interrupt Handler): 
+	Acknowledges the interrupt, 
+	copies the new networking packets into main memory,
+	pushes it up to the protocol layer
+	readies the network card for more packets.
+	schedule the bottom half
+
+Bottom Half: 
+	Rest of the processing and handling of the packets
+
+Various Mechanisms available for Bottom Half
+---------------------------------------------
+
+1. Soft IRQ
+2. Tasklets
+3. Workqueue
+
+Theory2:
+Threaded IRQs
+----------------------
+
+An alternative to using formal bottom-half mechanisms is threaded interrupt handlers.
+
+Threaded interrupt handlers seeks to reduce the time spent with interrupts disabled to bare minimum, pushing the rest of the processing out into kernel threads.
+
+With threaded IRQs, the way you register an interrupt handler is a bit simplified.
+
+You do not even have to schedule the bottom half yourself. The core does that for us.
+
+The bottom half is then executed in a dedicated kernel thread. 
+
+int request_threaded_irq (unsigned int irq,
+		irq_handler_t handler,
+		irq_handler_t thread_fn,
+		unsigned long irqflags,
+		const char * devname,
+		void * dev_id);
+
+Difference between request_irq and request_threaded_irq
+======================================================
+
+irq_handler_t thread_fn
+
+request_threaded_irq() breaks handler code in two parts, 
+	handler and 
+	thread function
+
+Now main functionality of handler is to intimate hardware that it has received the interrupt and wake up thread function
+
+As soon as handler finishes, processor is in process context. 
+
+kernel/irq/manage.c --- setup_irq_thread
+
+priority of the thread is set to MAX_USER_RT_PRIO/2 which is higher than regular processes
+
+Theory3:
+Why is the threaded handler not being executed even after thread is created?
+=============================================================================
+
+When the hard-IRQ handler (handler function) function returns IRQ_WAKE_THREAD, 
+
+the kthread associated with this bottom half will be scheduled, invoking the thread_fn
+
+The thread_fn function must return IRQ_HANDLED when complete.
+
+After being executed, the kthread will not be rescheduled again until the IRQ is triggered again and the hard-IRQ returns IRQ_WAKE_THREAD
+
+Theory4:
+IRQF_ONESHOT
+=============
+
+The interrupt is not reenabled after the IRQ handler finishes
+
+This flag is required for threaded interrupts which need to keep the interrupt line disabled until the threaded handler has run
+
+Specifying this flag is mandatory if the primary handler is set to NULL.
+
+The default primary handler does nothing more than to return IRQ WAKE THREAD to wake up a kernel thread to execute the thread fn IRQ handler.
+
+kernel/irq/manage.c 	-->	irq_default_primary_handler
+
+Theory5:
+ret_from_fork - a newly-created thread of execution is first switched to, it starts out executing at this function

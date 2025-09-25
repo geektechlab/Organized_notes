@@ -1,0 +1,3 @@
+Are interrupts disabled while running timer handler?
+
+soft irqs runs with interrupts enabled, so interrupts are enabled while running timer handler.

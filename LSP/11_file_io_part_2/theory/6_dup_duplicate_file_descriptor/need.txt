@@ -1,0 +1,12 @@
+why would I need to duplicate a file descriptor?
+=================================================
+
+The dup system call duplicates an existing file descriptor, returning a new one that refers to the same underlying I/O object.
+
+Dup allows shells to implement commands like this:
+
+ls existing-file non-existing-file > tmp1  2>&1
+
+The 2>&1 tells the shell to give the command a file descriptor 2 that is a duplicate of descriptor 1. (i.e stderr & stdout point to same fd).
+
+Now the error message for calling ls on non-existing file and the correct output of ls on existing file show up in tmp1 file.

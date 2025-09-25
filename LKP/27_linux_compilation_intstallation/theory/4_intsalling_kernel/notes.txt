@@ -1,0 +1,35 @@
+Installing the new kernel
+==========================
+
+Once the kernel compilation is complete, install the new kernel with:
+
+$ sudo make modules_install
+
+This will install all the modules that you have built and place them in the proper location in the filesystemfor the new kernel to properly find.
+
+Modules are placed in the /lib/modules/kernel_version directory.
+
+kernel_version is the kernel version of the new kernel you have just built.
+
+After the modules have been successfully installed, the main kernel image must be installed.
+
+$ sudo make install
+
+The above command will perform the below steps:
+===============================================
+
+1. Kernel build system will verify that the kernel has been successfully built properly
+
+2. Kernel build system will install the static kernel into the /boot directory and name it based on the kernel version
+
+3. Any needed initial ramdisks images will be automatically created, using the modules that have been just installed during the modules_install phase
+
+4. The bootloader program will be properly notified that a new kernel is present, and it will be added to the appropriate menu so the user can select it next time the machine is booted. ( for example, GRUB is updated ).
+
+5. After this is finished, the kernel is successfully installed, and you can safely reboot and try out your new kernel image.
+
+IMP Note: Installation does not overwrite older kernel images.
+
+----
+
+Very IMP: watch linux boot process at ( video 47 - 50 )

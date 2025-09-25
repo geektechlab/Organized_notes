@@ -1,0 +1,10 @@
+Advantages of Completions over Semaphores
+=========================================
+
+	1. the semaphores are optimized (on purpose) for the non-contention case. Means initially it will not be in locked state. It will be in unlocked state initially. completion usage has the opposite default case
+
+	2. Multiple threads can wait for a completion, and they can be released with one call
+	   It's more complex to have a semaphore wake up an unknown number of threads. 
+
+	3. Semaphores usage is for mutual exclusion
+           Completion usages is typically for synchronization

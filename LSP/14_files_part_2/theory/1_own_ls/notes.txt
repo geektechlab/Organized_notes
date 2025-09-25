@@ -1,0 +1,7 @@
+The dirent structure defined in the file <dirent.h> 
+
+  struct dirent {
+        ino_t d_ino;                  /* i-node number */
+        char  d_name[NAME_MAX + 1];   /* null-terminated filename */
+      }
+

@@ -1,0 +1,5 @@
+For generating 32 bit applcation on 64 bit machine
+Need to install when compiling for 32 bit in 64 bit machine
+$ sudo apt-get install g++-multilib
+
+gcc userapp.c -o userapp -m32

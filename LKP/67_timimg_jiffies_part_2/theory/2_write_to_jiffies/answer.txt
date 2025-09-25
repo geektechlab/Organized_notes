@@ -1,0 +1,4 @@
+Can i write to jiffies?
+-------------------------
+yes, but
+The jiffies value is used internally by the scheduler, so bad things can happen modifying it

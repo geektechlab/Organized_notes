@@ -1,0 +1,5 @@
+What is quiescent state
+============================
+
+----
+threads are not in a read side critical section

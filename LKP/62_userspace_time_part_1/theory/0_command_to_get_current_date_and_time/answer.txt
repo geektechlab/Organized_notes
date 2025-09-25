@@ -1,0 +1,4 @@
+Command to get the current date/time in Linux?
+=================================================
+
+Command: date

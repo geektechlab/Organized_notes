@@ -1,0 +1,14 @@
+when we execute the binary without linked with electric fence, it didn’t shown any error,
+
+$ gcc 1.c -o 1 
+$ ./1
+
+Now, lets link electric fence,
+
+$ gcc 1.c -o 1 -lefence
+$ ./1
+
+$ gcc 1.c -o 1 -lefence -g
+$ gdb ./1
+$ gdb > r
+

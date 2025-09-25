@@ -1,0 +1,7 @@
+The returned address is inside the heap region
+
+the returned address does not start exactly at the beginning of the region
+
+ malloc is a "regular" function (as opposed to a system call), so it must call some kind of syscall in order to manipulate the heap.
+
+Let's use strace to find out.

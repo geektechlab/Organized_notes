@@ -1,0 +1,31 @@
+File Descriptors
+====================
+
+A process may have several open files which it may be reading from and writing to.
+
+Each process has its own array to keep track of
+	The file opened.
+	The files status (whether open for reading or writing: the file status flags )
+	The current offset within the file
+
+When a file is opened or created by a process the kernel assigns a position in the above array called the file descriptor.
+
+To the kernel, all open files are referred to by file descriptors.
+
+A file descriptor is a non-negative integer.
+
+When we open an existing file or create a new file, the kernel returns a file descriptor to the process
+
+When we want to read or write a file, we identify the file with the file descriptor that was returned by open or creat as an argument to either read or write.
+
+By convention, UNIX System shells associate 
+	file descriptor 0 with the standard input of a process, 
+	file descriptor 1 with the standard output, and 
+	file descriptor 2 with the standard error.
+
+Although their values are standardized by POSIX.1
+
+the magic numbers 0, 1, and 2 should be replaced in POSIX-compliant applications with the symbolic constants
+STDIN_FILENO, STDOUT_FILENO, and STDERR_FILENO to improve readability. We should use symbolic constants only.
+
+These constants are defined in the <unistd.h> header.

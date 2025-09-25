@@ -1,0 +1,86 @@
+Theory0:
+System Management BIOS(SMBIOS):
+System Management BIOS is a standard developed by DMTF (Distributed Management Task Force). The purpose of this standard is to allow the operating system to retrieve information about the PC. The specification addresses how motherboard and system vendors present management information about their products in a standard format by extending the BIOS interface on Intel Architecture systems.
+
+https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.2.0.pdf
+
+It provides information such as:
+a) Make, Model
+b) Serial Number
+c) BIOS Version
+d) Processor
+e) Memory Configuration
+f) .....
+
+Theory1:
+Locating SMBIOS Entry Point Table: On boot, the SMBIOS will put a table somewhere in memory. The SMBIOS Entry Point Table is located somewhere between the addresses 0xF0000 and 0xFFFFF, and must be on a 16-byte boundary. To find the specific location of the start of the table it is necessary to search that region of memory for the string "_SM_".
+
+Theory2:
+Parsing the Entry Point Table: The entry point table has the following structure for SMBIOS 2 and below (the structure is different for SMBIOS 3):
+
+struct SMBIOSEntryPoint {
+ 	char EntryPointString[4];    //This is _SM_
+ 	uchar Checksum;              //This value summed with all the values of the table, should be 0 (overflow)
+ 	uchar Length;                //Length of the Entry Point Table. Since version 2.1 of SMBIOS, this is 0x1F
+ 	uchar MajorVersion;          //Major Version of SMBIOS
+ 	uchar MinorVersion;          //Minor Version of SMBIOS
+ 	ushort MaxStructureSize;     //Maximum size of a SMBIOS Structure (we will se later)
+ 	uchar EntryPointRevision;    //...
+ 	char FormattedArea[5];       //...
+ 	char EntryPointString2[5];   //This is _DMI_
+ 	uchar Checksum2;             //Checksum for values from EntryPointString2 to the end of table
+ 	ushort TableLength;          //Length of the Table containing all the structures
+ 	uint TableAddress;	     //Address of the Table
+ 	ushort NumberOfStructures;   //Number of structures in the table
+ 	uchar BCDRevision;           //Unused
+ };
+
+TableAddress contains the address of the table that contains all the structures with information about the PC. All of the structures are located from [TableAddress] to [TableAddress + TableLength]. The structures are located directly adjacent to each other in memory, with a new structure beginning as soon as another one ends. Each structure is composed of a header, a structure specific table, and a string table. The format of the header is as follows.
+
+ struct SMBIOSHeader {
+ 	uchar Type;
+ 	uchar Length;
+ 	ushort Handle;
+ };
+
+Located at TableAddress is a SMBIOS header. The value of Type indicates what element the structure contains information about. Length indicates the size of header + data table. The strings are not included in the length. Immediately after the end of the header is the data. At the end of the data table (Address + Length), the strings section starts. Each string is NULL terminated and is limited to 64 characters. Strings are referenced within tables by using an index into the string table. The first string begins immediately after the data, and the second string begins immediately after that, etc. The string section itself is terminated by two consecutive zero bytes. The next table begins immediately after the end of the string section.
+
+Code	Description
+0	BIOS Information
+1	System Information
+2	Mainboard Information
+3	Enclosure/Chasis Information
+4	Processor Information
+7	Cache Information
+9	System Slots Information
+16	Physical Memory Array
+17	Memory Device Information
+19	Memory Array Mapped Address
+20	Memory Device Mapped Address (optional as of SMBIOS 2.5)
+32	System Boot Information
+
+Theory3:
+dmidecode: dmidecode  is  a  tool for dumping a computer's SMBIOS/DMI table contents in a human-readable format
+
+$dmidecode
+When you run dmidecode, it will try to locate the DMI table. It will first try to read the DMI table from sysfs, if failed try to read from memory directly /dev/mem. If dmidecode  succeeds  in locating a valid DMI table, it will then parse this table and display it.
+
+Some of the options:
+1. -s, --string KEYWORD
+	dmidecode -s bios-version
+	dmidecode -s bios-vendor	
+	dmidecode -s system-manufacturer
+	dmidecode -s system-serial-number
+
+2. dmidecode --no-sysfs
+	Do not attempt to read DMI data from sysfs files
+
+Theory4:
+biosdecode: biosdecode parses the BIOS memory and prints information about all structures (or entry points) it knows of. Currently known entry point types are:
+
+	SMBIOS/DMI
+	SYSID
+	PNP
+	ACPI
+	BIOS32
+	...

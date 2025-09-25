@@ -1,0 +1,4 @@
+Problems with int $0x80
+------------------------
+
+As, it uses software interrupt, this is slow. Because it has to find ISR and execute it and return back. It will involve lot of switching.

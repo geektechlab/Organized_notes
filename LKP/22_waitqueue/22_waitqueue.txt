@@ -1,0 +1,88 @@
+Theory0:
+How are semaphores implemented? Look at kernel/locking/semaphore.c
+struct semaphore {
+        raw_spinlock_t          lock;
+        unsigned int            count;
+        struct list_head        wait_list;
+};
+
+Theory1:
+Issue using schedule/wake_up_process:
+	1. Need to write code carefully to avoid lost-wakeup problem
+	2. Waker process needs to know the task_struct of the sleeping process. 
+	   This can become tedious when there are more than one process involved in sleeping.
+
+Wait queues:
+Wait queues are a higher-level mechanism which handles
+	1. putting processes to sleep and 
+	2. waking them up.
+
+Wait queues are used to enable processes to wait for a particular event to occur without the need for constant polling. A wait queue is a simple list of processes waiting for an event to occur. Processes sleep during wait time and are woken up automatically by the kernel when the event takes place.
+
+Header File: <linux/wait.h>
+
+Data Structure: wait_queue_head_t
+struct wait_queue_head {
+        spinlock_t              lock;
+        struct list_head        head;
+};
+
+typedef struct wait_queue_head wait_queue_head_t;
+lock -->	used to protect its own resources from being accessed by multiple processes at the same time
+head -->	List of wait_queue_entry
+
+Types of sleeping processes:
+	1. Exclusive Process: Processes are selectively woken up by the kernel when the event happens
+	2. Non Exclusive Process: All the processes present in the wait queue are woken up by the kernel on event.
+
+Theory2:
+Static:
+DECLARE_WAIT_QUEUE_HEAD(name);
+#define __WAIT_QUEUE_HEAD_INITIALIZER(name) {                                   \
+        .lock           = __SPIN_LOCK_UNLOCKED(name.lock),                      \
+        .head           = { &(name).head, &(name).head } }
+#define DECLARE_WAIT_QUEUE_HEAD(name) \
+        struct wait_queue_head name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
+
+Dynamic:
+wait_queue_head_t my_queue;
+init_waitqueue_head(&my_queue);
+
+Theory3:
+API's:
+wait_event(queue, condition);
+
+queue -->	wait queue head to use.
+condition --> arbitrary boolean expression that is evaluated by the macro before and after sleeping; 
+
+The process goes to sleep only if the condition evaluates to false. Care is taken to avoid the lost wake-up problem. Some other thread of execution (a different process, or an interrupt handler, perhaps) has to perform the wakeup for you, since your process is, of course, asleep.
+
+void wake_up(wait_queue_head_t *queue);
+Note: until condition evaluates to a true value, the process continues to sleep.
+
+Theory4:
+wait_event_interruptible(queue, condition)
+
+It can be interrupted by signals. This version returns an integer value that you should check; a nonzero value means your sleep was interrupted by some sort of signal, and your driver should probably return -ERESTARTSYS.
+
+void wake_up_interruptible(wait_queue_head_t *queue);
+
+Theory5:
+wait_event_timeout(queue, condition, timeout)
+	The process is put to sleep (TASK_UNINTERRUPTIBLE) until the condition evaluates to true. 
+	The condition is checked each time the waitqueue is woken up.
+
+Return Value:
+	0 if the condition evaluated to false after the timeout elapsed
+	1 if the condition evaluated to true after the timeout elapsed
+	remaining jiffies (at least 1) if the condition evaluated to true before the timeout elapsed.
+
+Theory6:
+wait_event_interruptible_timeout(queue, condition, timeout)
+	process is put to sleep (TASK_INTERRUPTIBLE) until the condition evaluates to true or a signal is received. The condition is checked each time the waitqueue wq is woken up.
+
+Return value:
+	0 if the condition evaluated to false after the timeout elapsed
+	1 if the condition evaluated to true after the timeout elapsed
+	the remaining jiffies (at least 1) if the condition evaluated to true before the timeout elapsed, 
+	or -ERESTARTSYS if it was interrupted by a signal.

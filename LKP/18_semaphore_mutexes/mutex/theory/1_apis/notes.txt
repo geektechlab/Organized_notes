@@ -1,0 +1,38 @@
+Documentation
+====================
+
+Documentation/locking/mutex-design.txt
+
+Implementation
+================
+
+kernel/locking/mutex.c
+
+Header File:  <linux/mutex.h>
+
+Data structure: struct mutex
+
+struct mutex {
+        atomic_long_t           owner;
+        spinlock_t              wait_lock;
+        struct list_head        wait_list;
+};
+
+	owner -> used for both holding lock state, and reference to owner(task_struct) who has acquired it
+
+	wait_lock -> used for atomic updating wait_list
+
+Initialization:
+-------------
+
+Static:
+
+	DEFINE_MUTEX(name)
+
+Dynamic:
+
+	mutex_init(mutex)
+
+void mutex_lock(struct mutex *lock);
+
+void mutex_unlock(struct mutex *lock);

@@ -1,0 +1,30 @@
+Implementation of low resolution timers
+---------------------------------------
+
+Timers are organized on lists, and the following data structure represents a timer on a list:
+
+Data Structure
+------------------
+struct timer_list;
+
+Header File: <linux/timer.h>
+
+Implementation: kernel/timer.c
+
+struct timer_list {
+        /*
+         * All fields that change during normal runtime grouped to the
+         * same cacheline
+         */
+        struct hlist_node       entry;
+        unsigned long           expires;
+        void                    (*function)(struct timer_list *);
+        u32                     flags;
+};
+
+function saves a pointer to the callback function invoked upon time-out
+expires specifies the time, in jiffies, at which the timer expires.
+
+Use cases in Linux Kernel
+--------------------------
+Timers are used to detect when a device or a network peer has failed to respond within the expected time; when, as usual, the expected response does happen, the timer is canceled

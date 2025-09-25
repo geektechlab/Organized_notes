@@ -1,0 +1,8 @@
+CLOCK_MONOTONIC_RAW
+====================
+
+Similar to CLOCK_MONOTONIC, but provides access to a raw hardware-based time that is not  subject to NTP adjustments
+
+CLOCK_MONOTONIC_RAW would be relevant mainly to cases where more accurate time is wanted over very short intervals
+
+CLOCK_MONOTONIC would be preferable for longer-term timers measured in minutes, hours or days

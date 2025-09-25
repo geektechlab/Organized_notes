@@ -1,0 +1,3 @@
+shows how structure is read/written to device and opening and closing of device.
+
+check what type of device it is ? charactor or block ?

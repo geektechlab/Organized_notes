@@ -1,0 +1,7 @@
+$ ./fcntl_getfl 0 < /dev/tty
+read only
+$ ./fcntl_getfl 1 > temp.foo
+$ cat temp.foo
+write only
+$ ./fcntl_getfl 2 >>temp.foo
+write only, append

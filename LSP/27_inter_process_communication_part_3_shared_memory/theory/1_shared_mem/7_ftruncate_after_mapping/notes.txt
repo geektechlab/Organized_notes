@@ -1,0 +1,4 @@
+Can I ftruncate a shared memory object after it has ben mmap'ed?
+=================================================================
+
+You can truncate the underlying file anytime

@@ -1,0 +1,23 @@
+Linux Kernel Releases
+--------------------------
+
+Linux Kernel Release Dates by version number along with changes are present in
+
+https://kernelnewbies.org/LinuxVersions
+
+Linux Versioning
+=================
+
+Mainline Kernels: x.y
+
+Stable Kernels: x.y.z
+
+Which Kernel to use (According to priority)
+===========================================
+
+Supported kernel from your favorite Linux distribution
+Latest stable release
+Latest LTS release
+Older LTS release that is still being maintained
+
+http://kroah.com/log/blog/2018/08/24/what-stable-kernel-should-i-use/

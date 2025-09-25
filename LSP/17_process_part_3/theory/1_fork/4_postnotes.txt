@@ -1,0 +1,4 @@
+System administrators don't like fork-bombs and may set upper limits on the number of processes each user can have or may revoke login rights because it creates a disturbance in the force for other users' programs
+
+You can also limit the number of child processes created by using setrlimit().
+

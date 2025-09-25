@@ -1,0 +1,14 @@
+Creating New Attributes
+=========================
+
+int sysfs_create_file(struct kobject *kobj, const struct attribute *attr);
+
+This function associates the attribute structure pointed at by attr with the kobject pointed at by kobj.
+
+Before it is invoked, the given attribute should be filled out.
+
+Return Value: 
+	Success - 0
+	Failure - Negative error code
+
+void sysfs_remove_file(struct kobject *kobj, const struct attribute *attr);

@@ -1,0 +1,20 @@
+Problem with select
+======================
+
+What happens when i have file descriptors:1005, 1006 which i want to verify whether they are ready to read from.
+
+I will call select with nfds of 1007 and the appropriate value of readfds.
+
+Kernel gets a request from a user space program to monitor some file descriptors for reading.
+It knows that the file descriptors are smaller than 1007, but that's all it knows.
+
+To figure out which file descriptors the program is interested, the kernel needs to check all 1007 file descriptors, safely one by one.
+
+Checking 1007 file descriptors when the program really only cares about two is quite inefficient.
+
+What happens when the file descriptors were 10010 and 100019.
+
+select() performs very poorly once the file descriptors get large.
+
+----
+maximum limit of file descriptor is [ uname -r ].

@@ -1,0 +1,46 @@
+In many situations, wait_event() does not provide enough flexibility.
+
+Alternative is to do full manual sleep.
+
+wait_queue_entry_t
+===================
+
+Wait queue = Wait Queue Head + Wait Queue Elements
+
+A wait queue is a doubly linked list of wait_queue_entry_t structures.
+
+Each element in the wait queue list represents a sleeping process, which is waiting for some event to occur;
+
+struct wait_queue_entry {
+        unsigned int            flags;
+        void                    *private;
+        wait_queue_func_t       func;
+        struct list_head        entry;
+};
+
+typedef struct wait_queue_entry wait_queue_entry_t;
+
+flags = 1 -> Exclusive process
+
+flags = 0 -> Non Exclusive process
+
+private -> used to store task_struct
+
+func -> Function which will wake up the sleeping process
+
+entry -> used for linked list 
+
+    ---------------
+    |    lock     |    --------------------------------------------------------------   
+    |             |    |                                                            |
+    ---------------    |                                                            |
+    |             |<----            -----------                     ----------      |
+    |    head     |<--------------->|entry    |<------------------->|entry   |<------
+    ---------------                 |---------|                     |--------|
+                                    |func     |                     |func    |
+    wait_queue_head_t               |---------|                     |--------|
+                                    |private  |                     |private |
+                                    |---------|                     |--------|
+                                    |flags    |                     |flags   |
+                                    -----------                     ---------
+                                    wait_queue_entry_t      wait_queue_entry_t

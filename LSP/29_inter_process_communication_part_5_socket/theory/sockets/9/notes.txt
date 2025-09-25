@@ -1,0 +1,31 @@
+netstat
+==============
+
+Netstat is a command line utility that can be used to list out all the network (socket) connections on a system.
+
+It lists out all the 
+	tcp, 
+	udp  and 
+	the unix socket connections.
+
+1. List out all connections: 
+$netstat -a
+
+The above command shows all connections from different protocols like tcp, udp and unix sockets. 
+
+2. List only TCP or UDP or UNIX connections
+$ netstat -at
+$ netstat -au
+$ netstat -ax
+
+3.  Get process name/pid and user id
+
+$ netstat -apx
+
+
+
+
+
+
+
+

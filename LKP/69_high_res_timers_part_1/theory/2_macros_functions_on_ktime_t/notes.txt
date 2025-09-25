@@ -1,0 +1,21 @@
+Macros/functions on ktime_t
+------------------------------
+
+A whole set of functions and macros has been provided for working with ktime_t values
+
+There are two ways of initializing them
+
+1. DEFINE_KTIME(name);   /* Initialize to zero */ (not present)
+
+2. ktime_t kt;
+   kt = ktime_set(long secs, long nanosecs);
+
+static inline ktime_t ktime_set(const s64 secs, const unsigned long nsecs)
+{
+        if (unlikely(secs >= KTIME_SEC_MAX))
+                return KTIME_MAX;
+
+        return secs * NSEC_PER_SEC + (s64)nsecs;
+}
+
+Return the ktime_t representation of the value

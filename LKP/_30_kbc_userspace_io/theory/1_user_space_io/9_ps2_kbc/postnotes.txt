@@ -1,0 +1,3 @@
+Keyboard controller has a pin which goes to the reset pin of CPU
+
+Command byte 0xFE means "pulse the reset line down for 6 milliseconds"

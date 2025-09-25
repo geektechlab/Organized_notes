@@ -1,0 +1,38 @@
+Extracting Information from .o and executable binary files
+==============================================================
+
+gcc produces executable files in the ELF file format. 
+
+you can use readelf and objdump to read parts of an elf file
+
+$ readelf -h hello.o
+	Type: Relocatable file
+
+$ readelf -h exec 
+	Type: Executable
+
+-h will print ELF Header
+
+$ readelf --symbols hello.o
+will show us symbols in the object file
+
+----------------
+objdump can also be used
+----------------
+
+In the ELF [ readelf --symbols hello.o ],
+i variable is said LOCAL
+	That is because we declared it static and as such it has been flagged as being local to this object file.
+
+global is GLOBAL
+	meaning that it is visible outside this file
+
+Similarly the main() function is externally visible
+
+function is UND (undefined)
+	This means that it has been left for the linker to find the address of the function
+
+----------------
+[ objdump -D hello.o ] dissassembles the file
+[ objdump --section-headers hello.ko ] gives different section related info such as .text .bss .rodata .data etc.
+----------------

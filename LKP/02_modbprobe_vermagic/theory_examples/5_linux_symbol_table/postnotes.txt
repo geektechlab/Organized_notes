@@ -1,0 +1,6 @@
+To verify if the print_jiffies symbol has added to the symbol table.
+
+only this will contain symbols of print_jiffies
+cat /proc/kallsyms | grep print_jiffies
+
+System.map-<linux_version> will not contain

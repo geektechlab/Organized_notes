@@ -1,0 +1,20 @@
+Message Queue
+===================
+
+--------
+in pipe and queue, there is no boundary on message and no way to distinguish. But, here we can do it.
+--------
+
+$ man 7 mq_overview
+
+POSIX message queues allow processes to exchange data in the form of messages
+
+General usage for message queues is as follows:
+
+	1. Get a message queue descriptor with a call to the mq_open function.
+
+	2. Send and receive messages with calls to the mq_send and mq_receive functions.
+
+	3. Close the message queue with a call to the mq_close function.
+
+	4. Remove the message queue with a call to the mq_unlink function.

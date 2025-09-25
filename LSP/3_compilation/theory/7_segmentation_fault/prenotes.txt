@@ -1,0 +1,6 @@
+Accessing a control register's content via inline assembly
+=============================================================
+
+In x86_64 processor, there happen to be six control registers, named CR0 through CR4, and CR8.
+
+CR0—contains system control flags that control operating mode and states of the processor.

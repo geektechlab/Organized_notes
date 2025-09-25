@@ -1,0 +1,16 @@
+Named Pipes vs Sockets
+==========================
+
+Duplex
+	Stream sockets provide bi-directional communication while named pipes are uni-directional.
+
+Distinct clients
+	Clients using sockets each have an independent connection to the server.  
+	With named pipes, many clients may write to the pipe, but the server cannot distinguish the clients from each other-- the server has only one descriptor to read from the named pipe.
+	Since pipes have these limitations, UNIX domain sockets should be used if there are multiple clients that need to be distinguishable or which write long messages to the server.
+
+Method of Creating and opening
+	Sockets are created using socket and assigned their identity via bind. 
+	Named pipes are created using mkfifo.
+	To connect to a UNIX domain socket the normal socket/connect calls are used, but a named pipe is written using regular file open and write
+	That makes them easier to use from a shell script for example.

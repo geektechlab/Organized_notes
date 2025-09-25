@@ -1,0 +1,8 @@
+Delete a node and reinitialize
+===============================
+
+To delete a node from a linked list and reinitialize it, the kernel provides list_del_init():
+
+list_del_init(struct list_head *entry);
+
+Use this function, when you want to reuse the data structure itself.

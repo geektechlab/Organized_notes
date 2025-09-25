@@ -1,0 +1,20 @@
+Creating a directory in debugfs
+===================================
+
+Header File: <linux/debugfs.h>
+
+struct dentry *debugfs_create_dir(const char *name, struct dentry *parent);
+
+If parent is NULL, the directory will be created in the debugfs root.
+
+Return Value
+------------
+
+	Success - struct dentry * which can be used to create files in the directory
+	Failure - ERR_PTR(-ERROR)
+		  ERR_PTR(-ENODEV) is returned, when kernel has been built without debugfs
+		
+To remove directory
+=======================
+
+void debugfs_remove(struct dentry *dentry);

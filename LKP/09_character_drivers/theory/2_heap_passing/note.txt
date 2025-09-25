@@ -1,0 +1,1 @@
+how heap passing happens ? if direct memeory operatiopns happens, then it should not be. Does it copy contents and then pass those as buffers ?

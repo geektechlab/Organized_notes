@@ -1,0 +1,31 @@
+dev
+-----------------
+
+	Contains two sub directories
+		block
+		char
+	Inside each of the sub directories are symbolic links of the form major-id:minor-id
+
+	Load a character driver and see the behavior is /sys/dev/char
+
+	try adding and removing char driver and check that entry is coming and getting deleted after unloading
+
+devices
+---------------
+
+	Contains information about all devices represented in the device model
+	Most of the data present in other directories is symlink to this directory.
+
+firmware
+--------------
+
+	contains interfaces for viewing and manipulating firmware-specific objects and attributes
+	Eg. ACPI, EDD, EFI
+	If you booted with UEFI enabled, you will be seeing a /sys/firmware/efi folder
+
+	check by running ls into it. We will see efi, dmi, acpi etc.
+
+fs
+------------
+
+	contains a view of registered filesystems.

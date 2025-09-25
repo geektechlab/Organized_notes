@@ -1,0 +1,6 @@
+cat /proc/ioports does it list all the I/O Ports used by the processor?
+=======================================================================
+
+It's the list of I/O ports regions that have been claimed by kernel drivers using the request_region().
+
+It's not the complete list of I/O Ports or devices available, only the one which are claimed by various drivers

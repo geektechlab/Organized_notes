@@ -1,0 +1,27 @@
+Attributes
+===========
+
+Attributes are a way to specify behavior that is different from the default.
+
+When a thread is created with pthread_create() an attribute object can be specified. 
+
+Note: however that the default atributes are usually sufficient for most applications.
+
+Important Note: Attributes are specified only at thread creation time; they cannot be altered while the thread is being used.
+
+Thus three functions are usually called in tandem
+
+Thread attibute intialisation -- pthread_attr_init() create a default pthread_attr_t tattr
+Thread attribute value change (unless defaults appropriate) -- a variety of pthread_attr_*() functions are available to set individual attribute values for the pthread_attr_t tattr structure. (see below).
+Thread creation -- a call to pthread_create() with approriate attribute values set in a pthread_attr_t tattr structure.
+
+Attributes include:
+=====================
+Detached or joinable state
+Scheduling inheritance
+Scheduling policy
+Scheduling parameters
+Scheduling contention scope
+Stack size
+Stack address
+Stack guard (overflow) size

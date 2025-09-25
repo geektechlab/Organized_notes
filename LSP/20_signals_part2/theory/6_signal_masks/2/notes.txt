@@ -1,0 +1,28 @@
+Can multiple signals be queued?
+=================================
+
+No - however it is possible to have signals that are in a pending state.
+
+If a signal is pending, it means it has not yet been delivered to the process.
+
+The most common reason for a signal to be pending is that the process (or thread) has currently blocked that particular signal.
+
+If a particular signal, e.g. SIGINT, is pending then it is not possible to queue up the same signal again.
+
+It is possible to have more than one signal of a different type in a pending state. For example SIGINT and SIGTERM signals may be pending (i.e. not yet delivered to the target process)
+
+What happens during fork?
+=========================
+
+The child process inherits a copy of the parent process's signal disposition and a copy of the parent's signal mask.
+
+For example if SIGINT is blocked in the parent it will be blocked in the child too. For example if the parent installed a handler (call-back function) for SIG-INT then the child will also perform the same behavior.
+
+Pending signals however are not inherited by the child.
+
+What happens during exec?
+=============================
+
+Both the signal mask and the signal disposition carries over to the exec-ed program. 
+
+Pending signals are preserved as well. Signal handlers are reset, because the original handler code has disappeared along with the old process.

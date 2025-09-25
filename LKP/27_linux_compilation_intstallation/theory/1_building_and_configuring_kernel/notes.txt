@@ -1,0 +1,30 @@
+Building Kernel
+=========================
+
+The process of building a kernel has two parts
+
+	1. Configuring the kernel options
+	2. Building the source with those options
+
+Configuring Kernel
+====================
+
+The kernel configuration is kept in a file called .config in the top directory of the kernel source tree.
+
+After downloading the sources, there will be no .config file, it needs to be created.
+
+It can be created from
+	1. Scratch
+	2. Default configuration from a running kernel version ( it is present in /boot/config-`uname -r` )
+
+Copying the configuration file of your distribution is the safest approach for the very first kernel install on any system.
+
+Run the following command to generate a kernel configuration file based on the current configuration
+
+$ make oldconfig
+
+----
+[ make oldconfig V=1 ]
+----
+
+The above command reads the existing .config file and prompts the user for options in the current kernel source that are not found in this file.

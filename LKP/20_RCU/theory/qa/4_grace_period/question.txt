@@ -1,0 +1,5 @@
+What is grace period?
+========================
+
+----
+from start of synchronize RCU to end of synchronize RCU

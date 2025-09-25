@@ -1,0 +1,8 @@
+Moving Linked List Nodes
+=============================
+
+To move a node from one list to another
+
+list_move(struct list_head *list, struct list_head *head);
+
+This function removes the list entry from its linked list and adds it to the give list after the head element.

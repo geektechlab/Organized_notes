@@ -1,0 +1,19 @@
+How do i specify a non blocking I/O in linux through my user application
+=========================================================================
+
+Explicitly nonblocking I/O is indicated by the O_NONBLOCK flag in filp->f_flags.
+
+Header File in user space : <fcntl.h>
+
+Read:
+===========
+        No data is available, return -EAGAIN
+        Data available, it is returned even if available data < requested data
+
+Write:
+===========
+        No space is available in write buffer, return -EAGAIN
+        Space available, it is written even if available space < requested write data
+
+
+

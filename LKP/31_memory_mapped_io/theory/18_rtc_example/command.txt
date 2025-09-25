@@ -1,0 +1,1 @@
+make ARCH=arm CROSS_COMPILE=arm-buildroot-linux-uclibcgnueabi- -C /home/linuxtrainer/buildroot_training/buildroot-2019.05/output/build/linux-4.19.16 M=${PWD} modules

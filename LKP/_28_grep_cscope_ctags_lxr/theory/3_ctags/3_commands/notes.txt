@@ -1,0 +1,28 @@
+commands
+===============
+
+:help tag  --> Help for tags
+
+:ts <tag> Search for a particular tag
+
+Example: 
+$vim
+$:ts start_kernel
+
+$vim
+$:ts mutex_lock
+
+$vim
+$:ts schedule
+
+If there are multiple definitions/uses for a particular tag, the tn and tp commands can be used to scroll through them
+
+:tn 		Go to the next definition for the last tag
+:tp 		Go to the previous definition for the last tag
+
+History
+============
+
+To display the list of tags that we have traversed in past give the following command.
+
+:tags

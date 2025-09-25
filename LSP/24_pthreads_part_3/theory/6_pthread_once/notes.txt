@@ -1,0 +1,18 @@
+When you create many threads that cooperate to accomplish a single task, you must sometimes perform a single operation up front so that all of these threads can proceed.
+
+For instance, you may need to open a file or initialize a mutex.
+
+Up to now, we've had our boss thread handle these chores, but that's not always feasible.
+
+The pthread_once mechanism is the tool of choice for these situations. 
+
+It, like mutexes and condition variables, is a synchronization tool, but its specialty is handling synchronization among threads at initialization time. 
+
+If the pthread_once function didn't exist, we'd have to initialize all data, mutexes, and condition variables before we could create any thread that uses them.
+
+pthread_once (once_control, init_routine)
+
+pthread_once executes the init_routine exactly once in a process. The first call to this routine by any thread in the process executes the given init_routine, without parameters. Any subsequent call will have no effect.
+
+The once_control parameter is a synchronization control structure that requires initialization prior to calling pthread_once. For example:
+pthread_once_t once_control = PTHREAD_ONCE_INIT;

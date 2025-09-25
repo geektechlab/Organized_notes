@@ -1,0 +1,7 @@
+How to debug?
+------------
+ use gdb
+
+$ p $eax
+
+$ info registers

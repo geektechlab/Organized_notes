@@ -1,0 +1,10 @@
+GPIO Registers on Raspberry Pi3
+================================
+
+$ sudo cat /proc/iomem | grep gpio
+
+Look into Chapter 6 of  SoC documentation
+
+On the Pi2/Pi3, memory mapped I/O starts at 0x3f000000
+
+The GPIO base is at 0x3f200000 (the documentation confusingly lists it as 0x7e200000, just replace the leading 0x7e with 0x3f)

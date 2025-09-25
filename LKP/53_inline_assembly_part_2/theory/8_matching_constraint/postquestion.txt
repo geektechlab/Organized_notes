@@ -1,0 +1,2 @@
+why do matching constraints exist when you can just use "+r"(var) for a read/write operand, instead of the more complicated matching-constraint syntax?"
+=================================================================================================================

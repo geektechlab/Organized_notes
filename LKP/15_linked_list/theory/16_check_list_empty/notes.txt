@@ -1,0 +1,6 @@
+Check whether a list is empty or not
+====================================
+
+list_empty(struct list_head *head);
+
+This returns nonzero if the given list is empty; otherwise it returns zero

@@ -1,0 +1,24 @@
+Building Only a Portion of the Kernel
+=====================================
+
+Kernel build system allows you to easily build a portion of the kernel
+
+For example, if you want to build the files in drivers/pci
+
+$ make drivers/pci
+
+The above command will not build the modules in that directory. To build modules
+
+$ make M=drivers/pci
+
+Finally execute 
+
+$ make
+
+to have the build system check all changed object files and do the final kernel image link properly.
+
+To build only a particular module
+
+$ make drivers/usb/serial/usb-serial.ko
+
+The build system will build all needed files for the usb-serial.ko kernel module, and do the final link to create the module.

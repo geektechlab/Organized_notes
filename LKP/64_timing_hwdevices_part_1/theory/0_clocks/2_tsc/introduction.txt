@@ -1,0 +1,14 @@
+Time Stamp Counter (TSC)
+---------------------------
+
+The time stamp counter (TSC) is a hardware feature found on a number of contemporary processors. 
+
+The TSC is a special register which is simply incremented every clock cycle. 
+
+Eg. If clock is 2GHz, the counter will increment twice per nanosecond
+
+Since the clock is the fundamental unit of time as seen by the processor, the TSC provides the highest-resolution timing information available for that processor.
+
+It can thus be used for a number of applications, such as measuring the exact time cost of specific instructions or operations.
+
+$ dmesg | grep tsc

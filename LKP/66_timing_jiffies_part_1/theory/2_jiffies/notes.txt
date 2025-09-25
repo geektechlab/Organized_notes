@@ -1,0 +1,10 @@
+jiffies
+------------
+
+Kernel maintains a global variable called "jiffies" which holds the number of ticks/timer interrupts from system boot.
+
+Every time a timer interrupt occurs, the value of an internal kernel counter is incremented.
+
+Header File: <linux/jiffies.h>
+
+extern unsigned long volatile jiffies;

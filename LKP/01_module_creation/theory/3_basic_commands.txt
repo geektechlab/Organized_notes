@@ -1,0 +1,6 @@
+Basic Commands
+==================
+
+1. List Modules: (lsmod) lsmod gets its information by reading the file /sys/modules. ( we can check it by "strace lsmod" ) ( also we can check by "ls /sys/modules" )
+
+2. Module Information: (modinfo) : prints the information of the module. ( it provides various info such as word magic value and then you have what all parameters which are which can be passed to this module so while loading the module )

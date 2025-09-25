@@ -1,0 +1,4 @@
+The st_size member of the stat structure contains the size of the file in bytes
+This field is meaningful only for regular files, directories, and symbolic links.
+
+For a symbolic link, the file size is the number of bytes in the filename

@@ -1,0 +1,13 @@
+How many threads can you create?
+===================================
+
+With regard to threads (and processes), there are two (direct) limits that impact the number of threads that can exist at any given point in time:
+
+	Per process resource limits: $ ulimit -u
+
+	$prlimit --nproc
+
+	System-wide limits: The Linux OS maintains a system-wide (not per-process) limit on the total number of threads that can be alive at any given point in time. This value is exposed to the user space via the proc filesystem:
+	$ cat /proc/sys/kernel/threads-max
+
+So, the thing to understand is that if either of the preceding two limits are breached, pthread_create(3) (and similarly, the fork(2)) will fail (typically setting errno to the value EAGAIN try again; the OS saying, in effect, "I cannot do this for you right now, please try again later").

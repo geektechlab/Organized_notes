@@ -1,0 +1,145 @@
+Theory0:
+Early PC's: Peripheral devices in the early PCs used fixed i/o-ports and fixed memory-addresses
+
+Video memory address-range: 0xA0000-0xBFFFF 
+Programmable timer i/o-ports:  0x40-0x43
+Keyboard and mouse i/o-ports:  0x60-0x64
+Real-Time Clock’s i/o-ports:	0x70-0x71
+Hard Disk controller’s i/o-ports:  0x01F0-01F7
+Graphics controller’s i/o-ports:  0x03C0-0x3CF
+Serial-port controller’s i/o-ports: 0x03F8-0x03FF
+Parallel-port controller’s i/o-ports: 0x0378-0x037A 
+
+Intel introduced a new bus standard PCI (Peripheral Component InterConnect) in the early 1990'S. To avoid contention among equipment vendors for fixed I/O Addresses (0x0000 - 0xFFFF), one of the goals of PCI wasto create a flexible scheme for allocating addresses that future peripherals could use.
+
+Theory1:
+Address Space: A PCI device can have up to three address spaces:
+	a) Configuration Space: i/o-ports 0x0CF8-0x0CFF dedicated to accessing PCI Configuration Space (Required)
+	b) I/O Space (Optional)
+	c) Memory Space (Optional)
+
+Note: Every PCI device must implement the PCI configuration register dictated by the PCI specification. Otherwise, the device will not be regarded as valid PCI device. Each PCI device is identified by a
+	a) Bus Number
+	b) Device Number
+	c) Function Number
+
+The PCI Specification permits a single system to host up to 256 buses. Each bus hosts up to 32 Devices. Each Device can have multi functionality. There are 8 possible funtions per device.
+
+Theory2:
+PCI Configuration Space: Each PCI Device has a set of registers referred to as configuration space. Size of the Configuration space is 256 bytes.
+
+First 64 bytes (0x00 - 0x3f) are standardized.
+Next 192 bytes (0x40 - 0xff) are vendor specific.
+
+Registers 0x00, 0x01 are defined by PCI spec as vendor ID (16-Bit)
+Registers 0x02, 0x03 are defined by PCI spec as product ID (16-Bit)
+
+Vendor ID identifies the manufacturer of the device.
+	Allocated by the PCI SIG to ensure each is unique 
+
+Device ID identifies the particular device, set by the vendor 
+
+Theory3:
+How do you access all registers present in the Configuration Space? Accessing these registers is like accessing RTC(CMOS) Memory.
+
+PCI Index Port  0xCF8h
+PCI Data Port   0xCFCh
+
+PCI Index Port (0xCF8)
+============================
+    31                                   0
+    ---------------------------------------------------------------------------
+    | |Reserved |Bus Number |Device Number|Function Number|Register Number|0|0|
+    ---------------------------------------------------------------------------
+                          B      D         F                Offset
+
+Bit 31 when set, all reads and writes to CONFIG_DATA are PCI Configuration transactions
+Bits 30:24 are read-only and must return 0 when read
+Bits 23:16 select a specific Bus in the system (up to 256 buses)
+Bits 15:11 specify a Device on the given Bus (up to 32 devices)
+Bits 10:8 Specify the function of a device (up to 8 devices)
+Bits 7:0 Select an offset within the Configuration Space (256 bytes)
+
+Addresses are often given in B/D/F, Offset notation (also written as B:D:F, Offset) 
+
+PCI Data Port (0xCFCh):
+Read and Write to 0xCFCh with Bit 31 enabled in 0xCF8 results in PCI configuration transaction. If the Bit 31 is not enabled, according to PCI Spec, transaction is forwarded out as Port I/O.
+
+Theory4:
+How do you find out Bus, Device and Function of a PCI Device?
+
+$ lspci
+Each line starts with the PCI bus address formatted as bus:slot.function
+
+If you want to display the PCI vendor code, and the device code only as the numbers, use -n option
+$ lspci -n
+
+If you want to display both the description and the number
+$ lspci -nn
+
+Display the name of kernel driver
+$ lspci -k
+
+Display Configuration Space
+$ lspci -x
+
+Display information about a single device
+$ lspci -s 03:00:00
+
+Verbose Output
+$ lspci -v
+
+For more information
+$ man lspci
+
+Theory5:
+What happens if we try to read a PCI device(B/D/F) which doesn't exist? When a configuration access attempts to select a device that does not exist, the host bridge will complete the access without error, dropping all data on writes and returning all ones on reads.
+
+Theory6:
+Base Address Registers (BAR): Base Address Registers holds the memory addresses used by the device. PCI Configuration Registers provides space for up to 6 BARs. Each BAR is 32-bits wide to support 32-bit address space locations. Concatenating two 32-bit BARs provides 64-bit addressing capability. Each region consists of either memory or I/O locations.
+
+To identify whether address is memory mapped or I/O Mapped
+
+Check the value of lowest bit
+Lowest Bit = 0  --> Memory Map
+Lowest Bit = 1  --> I/O Map
+
+Memory Space BAR:
+        31 - 4                              3      2-1    0
+    ---------------------------------------------------------------
+    |16-BYTE  Aligned Base Address | Prefetchable |Type   |Always 0|
+    ----------------------------------------------------------------
+
+Type Field: 0x00    BAR is 32-bit wide and can be mapped into 32-bit address space
+Type Field: 0x02    BAR is 64-bit wide and can be mapped into 64-bit address space
+
+Prefetchable: region does not have read side effects and it is allowed for the CPU to cache loads from that memory region.
+
+IO Space BAR:
+        31-2                             1     0
+    ------------------------------------------------------
+    |4 BYTE Aligned Base Address | Reserved |  Always 1  |
+    ------------------------------------------------------
+
+Theory7:
+Get the Base Address of BAR: When you want to retrieve the actual base address of a BAR, be sure to mask the lower bits
+
+For 32-Bit Memory Space BARs, you calculate (BAR[x] & 0xFFFFFFF0)
+For 64-Bit Memory Space BARs, you calculate ((BAR[x] & 0xFFFFFFF0) + ((BAR[x+1] & 0xFFFFFFFF) << 32))
+For I/O Space BARs, you calculate (BAR[x] & 0xFFFFFFFC)
+
+Theory8:
+How do you determine the amount of address space needed by a PCI device? A Base Address is half the information that’s needed. We need to get the size of the device.
+
+1. you must save the original value of the BAR
+2. write a value of all 1's to the register
+3. then read it back
+4. restore the original value.
+
+The amount of memory can then be determined by masking the information bits, performing a bitwise NOT ('~' in C), and incrementing the value by 1
+
+Theory9:
+PCI Express: The PCI Express bus extends the Configuration Space from 256 bytes to 4096 bytes. This extended configuration space *cannot* be accessed using the legacy PCI method (through ports 0xCF8 and 0xCFC). The enhanced configuration mechanism makes use of memory mapped address space range/s to access PCI configuration space. On x86 and x64 platforms, the address of each memory area is determined by the ACPI 'MCFG' table
+
+[ ls /sys/firmware/acpi/tables/ ]
+[ hexdump -C /sys/firmware/acpi/tables/MCFG ]

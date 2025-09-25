@@ -1,0 +1,3 @@
+The printf line is executed only once however notice that the printed contents is not flushed to standard out 
+
+The output text is therefore still in process memory waiting to be sent. When fork() is executed the entire process memory is duplicated including the buffer. Thus the child process starts with a non-empty output buffer which will be flushed when the program exits.

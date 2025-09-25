@@ -1,0 +1,478 @@
+Theory0:
+The dirent structure defined in the file <dirent.h> 
+
+  struct dirent {
+        ino_t d_ino;                  /* i-node number */
+        char  d_name[NAME_MAX + 1];   /* null-terminated filename */
+      }
+
+Theory1:
+When you log into your UNIX system, you provide a username and a password at the login prompt.
+
+The login(1) program looks up that username in a database and obtains your registered password.
+
+It encrypts the password you supply at login and compares it to the one that is registered.
+
+If they are equal, the login(1) program lets you pass in peace.
+
+Once you are logged in, however, you become just a number to the UNIX kernel. 
+
+This user ID number simplifies user and security management for the kernel.
+
+In addition to logging in with a user ID, you log in with a group ID.
+
+How to find out User ID Number of your user?
+===============================================
+
+To find out what user ID number you are, the id(1) command can be used:
+
+$ id
+uid=1000(panther2) gid=1000(panther2) groups=1000(panther2),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),108(lpadmin),124(sambashare)
+
+The id(1) command indicates that the user panther2 is user ID number 100 and is a member of group number 1000.
+
+The user and group names are shown in brackets. These were obtained by looking up the user ID and group ID numbers in the password and group file databases, respectively.
+
+----
+above informations are stored in inode and can be checked using [ stat <fielname> ]
+----
+
+Creating and deleting users
+===============================
+
+Linux is a multi-user system which means that more than one person can interact with the same system at the same time. 
+
+User creation is handled with the useradd command.
+
+Syntax:
+
+useradd [OPTIONS] USERNAME
+
+$ sudo useradd -m user1
+
+$ sudo useradd -m user2
+
+-m option  creates a home directory
+
+To add a password to user
+
+$ sudo passwd user1
+
+To delete the user account
+
+$ sudo userdel -r user1
+
+-r option - delete the user’s home directory and mail spool
+
+----
+entries for all users and passwords are stored in [ cat /etc/passwd ]
+----
+[ su <username> ] switches to user because su=switch user
+----
+[ su ] becomes root user
+----
+
+Theory2:
+Groups
+=================
+
+Groups are collections of zero or more users. 
+
+A user belongs to a default group, and can also be a member of any of the other groups
+
+The groups command prints the name of groups a user is part of
+
+syntax:
+
+groups [OPTION]... [USERNAME]...
+
+$ groups user1
+
+In case there's no username, the tool displays group memberships for the current user.
+
+To view all the groups and members
+
+$ cat /etc/group
+
+	group_name : password : group-id : list-of-members
+
+	The first field is the group's name. 
+
+	The second field is the group's (encrypted) password (can be empty)
+
+	The third field is the group identification or GID.
+
+	The fourth field is the list of members
+
+groupadd
+============
+
+groupadd command is used to create a new user group.
+
+Syntax:
+
+groupadd [option] group_name 
+
+sudo groupadd programmers
+
+Every new group created is registered in the file “/etc/group“.
+
+$ tail -n 5 /etc/group
+
+Add a user to a group
+======================
+
+To add a new user into the group, the group is mentioned using -g option in the command useradd.
+
+$ sudo useradd -g programmers new_user 
+
+To add an existing user to a group, use the usermod command
+
+$ sudo usermod -a -G programmers user1
+
+-a, --append                  append the user to the supplemental GROUPS
+                                mentioned by the -G option without removing
+                                him/her from other groups
+
+-G, --groups GROUPS           new list of supplementary GROUPS
+
+Remove a user from group
+========================
+
+deluser program removes a user from a group
+
+$ deluser USER GROUP
+
+Remove a group
+=================
+
+You can permanently remove a group with the groupdel command.
+
+Usage: groupdel [options] GROUP
+
+For example, you have a directory that needs to be accessed with 
+	owner can have read/write permissions
+	only read permissions for another group.
+
+You need to create two users with usernames:
+
+	user1
+
+	user2
+
+You need to create group:
+
+	readers
+
+user2 needs to be a member of the group readers
+
+The group readers needs to only have read permission to the directory /DATA
+
+the user needs to have both read and write permission to the /DATA directory
+
+Step1: Create the users
+=======================
+
+$ sudo useradd -m user1
+
+$ sudo useradd -m user2
+
+$ sudo passwd user1 
+
+$ sudo passwd user2
+
+Step2: Creating Group
+=======================
+
+$ sudo groupadd readers
+
+Step3: Add users to groups
+==========================
+
+$ sudo usermod -a -G readers user2
+
+Step4: Directory
+=================
+
+$ mkdir data
+
+$ sudo chown -R :readers data
+
+$ sudo chmod -R g+r data
+
+$ sudo chmod -R o-xw data
+
+Theory3:
+File Permissions
+====================
+
+All files and directories in Linux have a standard set of access permissions.
+
+These access permissions control who can access what files, and provides a fundamental level of security to the files and directories in a system.
+
+Linux divides authorization into 2 levels.
+
+	Ownership
+	Permission
+
+
+Ownership of Linux files
+===========================
+
+Every file and directory on your Unix/Linux system is assigned 3 types of owner,
+
+User:
+===========
+
+	The username of the person who owns the file/directory.
+
+	By default, the user who creates the file/directory will become its owner.
+
+Group:
+============
+
+	A user- group can contain multiple users. All users belonging to a group will have the same access permissions to the file. 
+
+Other:
+=============
+
+	Any other user who has access to a file. 
+
+	 This person has neither created the file, nor he belongs to a usergroup who could own the file. 
+
+	Practically, it means everybody else. 
+
+Permissions
+=================
+
+Every file and directory in your UNIX/Linux system has following 3 permissions defined for all the 3 owners 
+
+	Read:
+		For a file, the read permission means the file can be opened and read.
+
+		For a directory, the read permission means the user can list the contents of the directory.
+
+
+	Write:
+
+		For a file, write permission means the user can modify the file, and write new data to the file.
+
+		For a directory, the write permission means the user is allowed to modify the content of the directory. The user can add, remove or rename files belongs to the particular directory.
+
+
+	Execute:
+
+		For a file, execute permission means the user can execute the file as a program or a shell script
+
+		For a directory, the execute permission allows the user to access files in the directory and enter it, with the cd command but you are not allowed to list the content.
+
+
+Viewing Permissions
+====================
+
+You can view the permission of the current directory by typing the following command
+
+$ ls -l
+
+Identifying Permissions
+========================
+
+r = read permission
+w = write permission
+x = execute permission
+- = no permission
+
+Linux has given values for the above permissions for the ease of use as below.
+
+r = 4
+w = 2
+x = 1
+
+File Permissions
+=========================
+
+The chmod command is used to alter the permissions of a file.
+
+There are 2 ways to use the chmod command:
+
+
+Method #1: Relative method
+=============================
+
+Using characters to add (+), remove (-) or set (=)
+
+Permissions for user(u), same group members(g), other group members(o), or all (i.e. ugo).
+
+(e.g. chmod g+rw filename, chmod go=rx filename, chmod u+x,g=x filename )
+
+Method #2: Absolute method
+==========================
+
+Using octal numbers as a shortcut to represent permissions set for user, group and others.
+
+(eg. chmod 755 filename, chmod 644 filename )
+
+The Absolute chmod command is a convenient “short-cut” to changing file and directory access permissions provided that you are comfortable converting octal and binary numbers.
+
+File ownership
+===============
+
+Every file is owned by a specific user (or UID) and a specific group (or GID). 
+
+The chown command can be used to change just the user, or the user and group of a file. 
+
+The basic format for the chown command is as follows:
+
+# chown user:group filename
+
+Here is an example of changing the owner of file test to user and its group to user.
+
+# chown user:user test
+
+A period (.) can be used in place of the colon (:) separator character.
+
+Also, either the user or group name can be omitted.
+
+Theory4:
+The chmod, fchmod, and fchmodat functions allow us to change the file access permissions for an existing file
+
+#include <sys/stat.h>
+int chmod(const char *pathname, mode_t mode);
+int fchmod(int fd, mode_t mode);
+int fchmodat(int fd, const char *pathname, mode_t mode, int flag);
+
+The chmod function operates on the specified file,
+
+whereas the fchmod function operates on a file that has already been opened
+
+The fchmodat function behaves like chmod when the pathname argument is absolute or when the fd argument has the value AT_FDCWD and the pathname argument is relative
+
+Otherwise, fchmodat evaluates the pathname relative to the open directory referenced by the fd argument
+
+The flag argument can be used to change the behavior of fchmodat—when the AT_SYMLINK_NOFOLLOW flag is set, fchmodat doesn’t follow symbolic links.
+
+To change the permission bits of a file, the effective user ID of the process must be equal to the owner ID of the file, or the process must have superuser permissions
+
+The mode is specified as the bitwise OR of the constants
+
+mode Description
+S_ISUID set-user-ID on execution
+S_ISGID set-group-ID on execution
+S_ISVTX saved-text (sticky bit)
+S_IRWXU read, write, and execute by user (owner)
+S_IRUSR read by user (owner)
+S_IWUSR write by user (owner)
+S_IXUSR execute by user (owner)
+S_IRWXG read, write, and execute by group
+S_IRGRP read by group
+S_IWGRP write by group
+S_IXGRP execute by group
+S_IRWXO read, write, and execute by other (world)
+S_IROTH read by other (world)
+S_IWOTH write by other (world)
+S_IXOTH execute by other (world)
+
+Theory5:
+The st_size member of the stat structure contains the size of the file in bytes
+This field is meaningful only for regular files, directories, and symbolic links.
+
+For a symbolic link, the file size is the number of bytes in the filename
+
+Theory6:
+As we described earlier, when we open a file, the kernel performs its access tests based on the effective user and group IDs.
+
+Sometimes, however, a process wants to test accessibility based on the real user and group IDs.
+
+This is useful when a process is running as someone else, using either the set-user-ID or the set-group-ID feature
+
+The access and faccessat functions base their tests on the real user and group IDs.
+
+#include <unistd.h>
+int access(const char *pathname, int mode);
+int faccessat(int fd, const char *pathname, int mode, int flag);
+
+mode Description
+R_OK test for read permission
+W_OK test for write permission
+X_OK test for execute permission
+
+The mode is either the value F_OK to test if a file exists
+
+The faccessat function behaves like access when the pathname argument is absolute or when the fd argument has the value AT_FDCWD and the pathname argument is relative
+
+Otherwise, faccessat evaluates the pathname relative to the open directory referenced by the fd argument.
+
+The flag argument can be used to change the behavior of faccessat . If the AT_EACCESS flag is set, the access checks are made using the effective user and group IDs of the calling process instead of the real user and group IDs
+
+$ ls -l a.out
+-rwxrwxr-x 1 sar 15945 Nov 30 12:10 a.out
+$ ./a.out a.out
+read access OK
+open for reading OK
+$ ls -l /etc/shadow
+-r-------- 1 root 1315 Jul 17 2002 /etc/shadow
+$ ./a.out /etc/shadow
+access error for /etc/shadow: Permission denied
+open error for /etc/shadow: Permission denied
+$ su become superuser
+Password: enter superuser password
+# chown root a.out change file’s user ID to root
+# chmod u+s a.out and turn on set-user-ID bit
+# ls -l a.out check owner and SUID bit
+-rwsrwxr-x 1 root 15945 Nov 30 12:10 a.out
+# exit go back to normal user
+$ ./a.out /etc/shadow
+access error for /etc/shadow: Permission denied
+open for reading OK
+
+File Access Permissions
+=============================
+
+The st_mode value also encodes the access permission bits for the file.
+
+There are nine permission bits for each file, divided into three categories.
+
+st_mode mask Meaning
+====================
+S_IRUSR user-read
+S_IWUSR user-write
+S_IXUSR user-execute
+S_IRGRP group-read
+S_IWGRP group-write
+S_IXGRP group-execute
+S_IROTH other-read
+S_IWOTH other-write
+S_IXOTH other-execute
+
+The term user in the first three rows refers to the owner of the file
+
+Theory7:
+Each file on the system has a set of permissions that determine which users can access the files and what type of access they have.
+
+When you create a file/directory in Linux, it gets the default permissions set by the system administrator.
+
+For example, when I created a file in Linux, I got permissions: '0664'
+
+When creating a directory, the permissions in my system are: '0775'
+
+File creation mask determines default permissions. If no mask were used the permissions would be:
+
+666 for files
+777 for directories
+
+File creation mask is set by system administrators. To set this mask or know the current mask, 'umask' command is used.
+
+Running 'umask' without any arguments will show the current mask.
+
+To set filemask: 'umask <octal value of permissions> or 'umask -S <symbolic notation>'
+
+The permissions of file will be : Base Permission (0666) - umask value(0002) in my case = (0664)
+
+The permissions of directory will be : Base Permission (0777) - umask value(0002) in my case = (0775)
+
+The umask function sets the file mode creation mask for the process and returns the previous value
+
+#include <sys/stat.h>
+mode_t umask(mode_t cmask);
+
+The cmask argument is formed as the bitwise OR of any of the nine constants: S_IRUSR, S_IWUSR, and so on.

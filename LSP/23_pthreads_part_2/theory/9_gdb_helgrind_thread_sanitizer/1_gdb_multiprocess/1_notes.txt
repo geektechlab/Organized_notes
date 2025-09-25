@@ -1,0 +1,22 @@
+Debugging programs with multiple processes
+=============================================
+On Linux, if you want to debug both the parent and child processes, use the command set detach-on-fork.
+
+Syntax: set detach-on-fork mode
+
+Tells gdb whether to detach one of the processes after a fork, or retain debugger control over them both.
+
+on
+	The child process (or parent process, depending on the value of follow-fork-mode) will be detached and allowed to run independently. This is the default.
+
+off
+	Both processes will be held under the control of GDB. One process (child or parent, depending on the value of follow-fork-mode) is debugged as usual, while the other is held suspended.
+
+show detach-on-fork
+	Show whether detach-on-fork mode is on/off.
+
+If you choose to set ‘detach-on-fork’ mode off, then GDB will retain control of all forked processes 
+
+You can list the forked processes under the control of GDB by using the info inferiors command, and switch from one fork to another by using the inferior command
+
+To quit debugging one of the forked processes, you can either detach from it by using the detach inferiors command (allowing it to run independently)

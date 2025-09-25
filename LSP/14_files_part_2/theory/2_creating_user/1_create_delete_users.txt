@@ -1,0 +1,34 @@
+Creating and deleting users
+===============================
+
+Linux is a multi-user system which means that more than one person can interact with the same system at the same time. 
+
+User creation is handled with the useradd command.
+
+Syntax:
+
+useradd [OPTIONS] USERNAME
+
+$ sudo useradd -m user1
+
+$ sudo useradd -m user2
+
+-m option  creates a home directory
+
+To add a password to user
+
+$ sudo passwd user1
+
+To delete the user account
+
+$ sudo userdel -r user1
+
+-r option - delete the user’s home directory and mail spool
+
+----
+entries for all users and passwords are stored in [ cat /etc/passwd ]
+----
+[ su <username> ] switches to user because su=switch user
+----
+[ su ] becomes root user
+----

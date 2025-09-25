@@ -1,0 +1,14 @@
+PCI Express 
+============
+
+The PCI Express bus extends the Configuration Space from 256 bytes to 4096 bytes.
+
+This extended configuration space *cannot* be accessed using the legacy PCI method (through ports 0xCF8 and 0xCFC)
+
+The enhanced configuration mechanism makes use of memory mapped address space range/s to access PCI configuration space.
+
+On x86 and x64 platforms, the address of each memory area is determined by the ACPI 'MCFG' table
+
+----
+[ ls /sys/firmware/acpi/tables/ ]
+[ hexdump -C /sys/firmware/acpi/tables/MCFG ]

@@ -1,0 +1,76 @@
+Groups
+=================
+
+Groups are collections of zero or more users. 
+
+A user belongs to a default group, and can also be a member of any of the other groups
+
+The groups command prints the name of groups a user is part of
+
+syntax:
+
+groups [OPTION]... [USERNAME]...
+
+$ groups user1
+
+In case there's no username, the tool displays group memberships for the current user.
+
+To view all the groups and members
+
+$ cat /etc/group
+
+	group_name : password : group-id : list-of-members
+
+	The first field is the group's name. 
+
+	The second field is the group's (encrypted) password (can be empty)
+
+	The third field is the group identification or GID.
+
+	The fourth field is the list of members
+
+groupadd
+============
+
+groupadd command is used to create a new user group.
+
+Syntax:
+
+groupadd [option] group_name 
+
+sudo groupadd programmers
+
+Every new group created is registered in the file “/etc/group“.
+
+$ tail -n 5 /etc/group
+
+Add a user to a group
+======================
+
+To add a new user into the group, the group is mentioned using -g option in the command useradd.
+
+$ sudo useradd -g programmers new_user 
+
+To add an existing user to a group, use the usermod command
+
+$ sudo usermod -a -G programmers user1
+
+-a, --append                  append the user to the supplemental GROUPS
+                                mentioned by the -G option without removing
+                                him/her from other groups
+
+-G, --groups GROUPS           new list of supplementary GROUPS
+
+Remove a user from group
+========================
+
+deluser program removes a user from a group
+
+$ deluser USER GROUP
+
+Remove a group
+=================
+
+You can permanently remove a group with the groupdel command.
+
+Usage: groupdel [options] GROUP

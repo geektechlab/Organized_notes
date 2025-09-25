@@ -1,0 +1,7 @@
+1. Fire up a shell
+2. In the window, or more precisely, at the shell prompt, type this: 
+$ exec ps
+
+Yes, the terminal window process is the predecessor here; upon an exec it's overwritten by the successor process ps, which does its work and exits (you probably did not see the output as it disappeared too quickly).
+
+ps is the successor process, and, of course, we cannot return to the predecessor (the Terminal window)—ps has literally replaced its VAS. Thus, the Terminal window effectively disappears.

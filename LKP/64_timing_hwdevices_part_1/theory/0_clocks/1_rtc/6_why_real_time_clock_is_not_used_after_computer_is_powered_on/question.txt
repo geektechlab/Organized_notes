@@ -1,0 +1,2 @@
+Why Real Time clock is not used after computer is powered on?
+---------------------------------------------------------------

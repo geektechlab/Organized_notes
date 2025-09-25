@@ -1,0 +1,19 @@
+Using Message Queue Attributes
+==============================
+
+Use the mq_getattr function to determine the message queue attributes of an existing message queue.
+
+int mq_getattr(mqd_t mqdes, struct mq_attr *attr);
+
+ struct mq_attr {
+               long mq_flags;       /* Flags: 0 or O_NONBLOCK */
+               long mq_maxmsg;      /* Max. # of messages on queue */
+               long mq_msgsize;     /* Max. message size (bytes) */
+               long mq_curmsgs;     /* # of messages currently in queue */
+           };
+
+mq_setattr function to reset the flags. 
+
+ The mq_maxmsg and mq_msgsize attributes cannot be modified after the initial queue creation
+
+

@@ -1,0 +1,51 @@
+For example, you have a directory that needs to be accessed with 
+	owner can have read/write permissions
+	only read permissions for another group.
+
+You need to create two users with usernames:
+
+	user1
+
+	user2
+
+You need to create group:
+
+	readers
+
+user2 needs to be a member of the group readers
+
+The group readers needs to only have read permission to the directory /DATA
+
+the user needs to have both read and write permission to the /DATA directory
+
+Step1: Create the users
+=======================
+
+$ sudo useradd -m user1
+
+$ sudo useradd -m user2
+
+$ sudo passwd user1 
+
+$ sudo passwd user2
+
+Step2: Creating Group
+=======================
+
+$ sudo groupadd readers
+
+Step3: Add users to groups
+==========================
+
+$ sudo usermod -a -G readers user2
+
+Step4: Directory
+=================
+
+$ mkdir data
+
+$ sudo chown -R :readers data
+
+$ sudo chmod -R g+r data
+
+$ sudo chmod -R o-xw data

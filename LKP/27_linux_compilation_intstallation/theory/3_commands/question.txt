@@ -1,0 +1,2 @@
+What are the codes such as CC, LD and CC[M] output when compiling the Linux kernel?
+=====================================================================================

@@ -1,0 +1,25 @@
+The most basic way of 
+	1. finding declaration
+	2. definition of
+Function/Data Structure is through grep command
+
+Example to find out definition of 'wake_up_interruptible'.
+
+$ grep -nr 'wake_up_interruptible' linux-x.x.x
+
+n --> To add a line number
+r --> To do a recursive search
+
+You can use --include to search for particular file format (.h, .c. .S)
+
+$ grep -nr --include="*.h" 'wake_up_interruptible' linux-x.x.x 
+
+The above command searches only in .h files
+
+To search in .h, .c
+
+$ grep -nr --include="*.[ch]" 'wake_up_interruptible' linux-x.x.x
+
+To search in .h, .c, .S
+
+$ grep -nr --include="*.[chS]" 'wake_up_interruptible' linux-x.x.x

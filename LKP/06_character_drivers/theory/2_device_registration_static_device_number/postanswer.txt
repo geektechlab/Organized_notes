@@ -1,0 +1,2 @@
+CHRDEV_MAJOR_MAX as an artificial limit (chosen to be 511)
+file: linux/fs.h

@@ -1,0 +1,34 @@
+Issue using schedule/wake_up_process
+====================================
+	1. Need to write code carefully to avoid lost-wakeup problem
+
+	2. Waker process needs to know the task_struct of the sleeping process. 
+	   This can become tedious when there are more than one process involved in sleeping.
+
+Wait queues
+=============
+
+Wait queues are a higher-level mechanism which handles
+	1. putting processes to sleep and 
+	2. waking them up.
+
+Wait queues are used to enable processes to wait for a particular event to occur without the need for constant polling.
+
+A wait queue is a simple list of processes waiting for an event to occur.
+
+Processes sleep during wait time and are woken up automatically by the kernel when the event takes place.
+
+Header File: <linux/wait.h>
+
+Data Structure: wait_queue_head_t
+
+struct wait_queue_head {
+        spinlock_t              lock;
+        struct list_head        head;
+};
+
+typedef struct wait_queue_head wait_queue_head_t;
+
+lock -->	used to protect its own resources from being accessed by multiple processes at the same time
+
+head -->	List of wait_queue_entry

@@ -1,0 +1,12 @@
+$ !<command> will execute the previous command with all the arguments
+
+$ !vi #will open the last vi command executed
+
+$ sudo !! will execute the previous command with sudo permissions
+
+$ dmesg -c
+dmesg: klogctl failed: Operation not permitted
+
+$ sudo !!
+sudo dmesg -c
+[sudo] password for 

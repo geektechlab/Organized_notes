@@ -1,0 +1,7 @@
+$ cat /proc/driver/rtc
+
+$ watch -n 0.1 -d 'cat /proc/interrupts | grep rtc0'
+
+read will block until there is no interrupt.
+
+whenever the interrupt is received the read call would return

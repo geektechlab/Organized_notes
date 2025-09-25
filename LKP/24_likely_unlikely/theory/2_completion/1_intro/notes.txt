@@ -1,0 +1,50 @@
+Completions
+==================
+    Completions is a code synchronization mechanism which is preferable to any misuse of locks/semaphores and busy loops.
+
+When to use them:
+====================
+
+    If you have one or more threads that must wait for some kernel activity to have reached a point or state.
+    Completions can provide a race-free solution to this problem.
+
+Completions are built on top of the waitqueue and wakeup infrastructure of the Linux scheduler
+
+The event the threads on the waitqueue are waiting for is reduced to a simple flag in 'struct completion', appropriately called "done"
+
+Implementation: kernel/sched/completion.c
+
+Without completions
+====================
+
+int condition = 0;
+DECLARE_WAIT_QUEUE_HEAD(queue);
+
+Thread 1;                                       Thread 2
+============                                    =============
+.....                                           ......
+wait_event_interruptible(queue, condition);     condition = 1;
+....                                            wake_up_interruptible(queue);
+....                                            ......
+
+With Completions
+=================
+DECLARE_COMPLETION(my_comp);
+
+Thread 1;                       Thread 2
+============                        =============
+.....                           ......
+wait_for_completion(&my_comp);              complete(&my_comp);
+
+Can't i use this semaphore for this purpose or
+
+What is the difference between semaphore and completion?
+=========================================================
+
+    Yes, you can use semaphore for the above scenario.
+
+    You have a semaphore initially in the locked state.
+
+    Waiting process will call down() and gets blocked.
+
+    The one who is waking up will call up().

@@ -1,0 +1,290 @@
+Theory0:
+Sockets
+==============
+
+Sockets provide point-to-point, two-way communication between two processes (Unix domain sockets/IPC Sockets)
+
+Sockets can also be used to communicate between processes on different systems.(Network Sockets)
+
+Sockets are used in a Client-Server model
+
+Client - Server Setup:
+=========================
+
+Sockets are used as follows:
+
+	each application: create a socket
+	server: bind its socket to a well-known address
+	client: locate server socket (via its well-known address) and “initiate communication” with the server
+
+Socket Creation
+=====================
+Sockets are created using the socket syscall which returns a file descriptor to be used for further operations on the underlying socket
+
+#include <sys/socket.h>
+
+int socket(int domain, int type, int protocol);
+
+Returns: file descriptor on success, -1 on error
+Each triple hdomain, type, protocol identifies a different “species” of sockets
+
+--------
+	domain differentiates if we are using IPC or network socket. If we use AF_UNIX, then it means IPC else network socket.
+--------
+
+	domain: AF_UNIX, AF_INET, AF_INET6
+
+	type: SOCK_STREAM, SOCK_DGRAM
+-----
+SOCK_STREAM: TCP protocol, reliable communication
+SOCK_DGRAM: UDP protocol, less reliable communication
+-----
+
+	protocol: always 0 for our purposes
+
+
+The file descriptor returned upon success is used to further reference the socket, for both communication and setup purposes.
+----
+we can't use normal file as socket, check in code how socket is being created.
+----
+
+Binding sockets to a well-known address
+=======================================
+
+To allow connections from other, we need to bind sockets to well-known addresses using bind
+
+#include <sys/socket.h>
+int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+Returns: 0 on success, -1 on error
+
+	sockfd references the socket we want to bind
+
+	addrlen/addr are, respectively, the length and the structure containing the well-known address we want to bind the socket to
+	The actual type of the addr structure depends on the socket domain.
+
+The address format varies with the domain:
+
+	UNIX domain uses pathnames
+	Internet domains use IP addresses
+
+bind is a generic system call that can bind sockets in any domain
+
+struct sockaddr {
+	sa_family_t sa_family ; /* address family ( AF_ * ) */
+	char sa_data[14]; /* socket address ( size varies with the socket domain ) */
+}
+
+	each socket domain has its own variant of sockaddr
+	you will fill the domain-specific struct
+	and cast it to struct sockaddr before passing it to bind
+	bind will use sa_family to determine how to use sa_data
+
+In the UNIX domain, addresses are pathnames. The corresponding C structure is sockaddr_un
+
+struct sockaddr_un {
+	sa_family_t sun_family ; /* = AF_UNIX */
+	char sun_path[108] ; /* socket pathname ,NULL−terminated */
+}
+
+When you bind a unique name to a UNIX domain socket by using the bind function, a file is created on the file system for the socket.
+
+$ man -s 7 unix
+
+----
+[ls -l] in file if start from s, it means it is socket.
+----
+
+Theory1:
+The actual filesystem entry is created at bind time
+	If the file already exists, bind will fail
+	It’s up to you to remove stale sockets as needed
+
+$ ls /tmp -l
+
+Theory2:
+$ nc -U /var/run/socket
+
+-----
+[nc] sends connection request
+-----
+
+Theory3:
+Listening connections
+======================
+
+listen allow to accept incoming connections
+
+#include <sys/socket.h>
+int listen (int sockfd, int backlog);
+
+Returns: 0 on success, -1 on error
+
+	sockfd references the socket we want to affect
+
+	backlog specifies the maximum number of pending connections that the socket will keep
+
+	The backlog argument provides a hint to the implementation which the implementation shall use to limit the number of outstanding connections in the socket's listen queue.
+
+Accepting connections
+========================
+
+#include <sys/socket.h>
+int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+
+Returns: file descriptor on success, -1 on error
+
+Theory4:
+        server          client
+-----------------------------------------
+socket()
+bind()
+listen()
+                        socket()
+accept()                connect()
+send() & recv()         send() & recv()
+close()                 close()
+
+Connecting
+=================
+
+#include <sys/socket.h>
+int connect(int sockfd, struct sockaddr *addr, socklen_t addrlen);
+
+Returns: 0 on success, -1 on error
+
+	sockfd is your own socket, to be used as your endpoint of the connection
+	addr/addrlen specify the well-known address of the peer you want to connect to, and are given in the same format of bind parameters
+
+Theory5:
+Communicating via stream sockets
+================================
+
+Once a connection between two peer socket is established, communication happens via read/write on the corresponding file descriptors
+
+Theory6:
+Named Pipes vs Sockets
+==========================
+
+Duplex
+	Stream sockets provide bi-directional communication while named pipes are uni-directional.
+
+Distinct clients
+	Clients using sockets each have an independent connection to the server.  
+	With named pipes, many clients may write to the pipe, but the server cannot distinguish the clients from each other-- the server has only one descriptor to read from the named pipe.
+	Since pipes have these limitations, UNIX domain sockets should be used if there are multiple clients that need to be distinguishable or which write long messages to the server.
+
+Method of Creating and opening
+	Sockets are created using socket and assigned their identity via bind. 
+	Named pipes are created using mkfifo.
+	To connect to a UNIX domain socket the normal socket/connect calls are used, but a named pipe is written using regular file open and write
+	That makes them easier to use from a shell script for example.
+
+Theory7:
+Sockets are fairly configurable
+
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int getsockopt(int s, int level, int optname, void *optval,
+               socklen_t *optlen);
+int setsockopt(int s, int level, int optname, const void *optval,
+               socklen_t optlen);
+
+When getsockopt is invoked with the SO_PEERCRED option, it accepts the struct ucred structure as further parameter 
+This structure has three elements: pid, uid and gid. 
+
+After calling getsockopt with a pointer to this structure, these fields will contain the process, user and group ids of the party on the other end of the socket connection
+
+What makes this call so important is that provides a clean and reliable way of establishing the identity of another process.
+
+Theory8:
+socketpair()
+===================
+For bidirectional communication you need to call bind(), listen() and so many.
+
+there's a beauty of a system call known as socketpair() this is nice enough to return to you a pair of already connected sockets! 
+
+The pair of sockets is unnamed; that is, they are not bound to a file path.
+
+No extra work is needed on your part; you can immediately use these socket descriptors for interprocess communication.
+
+If you want two separate programs to communicate (eg. you have an executable called client, and one called server), you can't use this mechanism.
+
+Theory9:
+netstat
+==============
+
+Netstat is a command line utility that can be used to list out all the network (socket) connections on a system.
+
+It lists out all the 
+	tcp, 
+	udp  and 
+	the unix socket connections.
+
+1. List out all connections: 
+$netstat -a
+
+The above command shows all connections from different protocols like tcp, udp and unix sockets. 
+
+2. List only TCP or UDP or UNIX connections
+$ netstat -at
+$ netstat -au
+$ netstat -ax
+
+3.  Get process name/pid and user id
+
+$ netstat -apx
+
+Theory10:
+Ioctls
+The following ioctl(2) calls return information in value.  The correct syntax is:
+
+int value;
+error = ioctl(unix_socket, ioctl_type, &value);
+
+ioctl_type can be: SIOCINQ
+
+For  SOCK_STREAM socket the function returns the amount of queued unread data in the receive buffer
+
+Theory11:
+Linux Abstract Socket Namespace
+====================================
+
+Linux has a special feature: if the pathname for a UNIX domain socket begins with a null byte \0, its name is not mapped into the filesystem
+
+Thus it won’t collide with other names in the filesystem
+
+Also, when a server closes its UNIX domain listening socket in the abstract namespace, its file is deleted
+
+with regular UNIX domain sockets, the file persists after the server closes it.
+
+Theory12:
+Autobind
+=============
+
+Autobind feature If a bind(2) call specifies addrlen as sizeof(sa_family_t),or the SO_PASSCRED socket option was specified for a socket that was not explicitly bound to an address,then the socket is autobound to an abstract address. 
+
+The address consists of a null byte followed by 5 bytes in the character set [0-9a-f].
+
+Theory13:
+SOCK_STREAM vs SOCK_DGRAM
+==========================
+
+In case if AF_INET, SOCK_STREAM uses TCP (reliable) and SOCK_DGRAM used udp (unreliable)
+
+Unix sockets are always reliable
+
+The difference between SOCK_STREAM and SOCK_DGRAM is in the semantics of consuming data out of the socket
+
+Stream socket allows for reading arbitrary number of bytes, but still preserving byte sequence. 
+
+ In other words, a sender might write 4K of data to the socket, and the receiver can consume that data byte by byte. 
+
+The other way around is true too - sender can write several small messages to the socket that the receiver can consume in one read. Stream socket does not preserve message boundaries.
+
+Datagram socket, on the other hand, does preserve these boundaries - one write by the sender always corresponds to one read by the receiver(even if receiver's buffer given to read(2) or recv(2) is smaller then that message).
+
+So if your application protocol has small messages with known upper bound on message size you are better off with SOCK_DGRAM since that's easier to manage.
+
+If your protocol calls for arbitrary long message payloads, or is just an unstructured stream (like raw audio or something), then pick SOCK_STREAM and do the required buffering.

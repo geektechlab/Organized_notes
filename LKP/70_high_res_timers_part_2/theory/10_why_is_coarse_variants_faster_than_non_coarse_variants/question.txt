@@ -1,0 +1,2 @@
+Why is coarse variants faster than non-coarse variants
+--------------------------------------------------------

@@ -1,0 +1,43 @@
+Theory0:
+Can i use the function pointer returned by the kallsyms_lookup_name() to call the function?
+------------------------------------------------------------------------------------------
+
+Yes
+
+Theory1:
+Can we access non exported symbols using this logic?
+---------------------------------------------------
+
+For example print_cpu_info()
+
+----
+yes, we can access those
+
+Theory2:
+Can i update the symbol address
+--------------------------------
+
+Just like read, you can also write to a symbol's address.
+
+Note: Be careful, some addresses are in rodata section or text section, which cannot be written
+
+If you try to write to a readonly address, you will probably get a kernel oops
+
+Theory3:
+In Intel x86 CPUs, the Control Register CR0 has a special bit (called Write Protect bit), to control whether the CPU can write to read-only pages while running in privilege level 0
+
+syscall table is inside a page that is read-only, and by default the "Write Protect" bit is set, you are prevented from writing to it.
+
+In order to update the syscall correctly you will need to disable write protection by setting the "Write Protect" bit of the CR0 register to 0 before overwriting the table entry, and re-enable it after you're done
+
+Theory4:
+How do i access the parameters passed to system call
+----------------------------------------------------
+pt_regs
+
+Theory5:
+/* here, we disable write protected bit and then update system call table to point to my_open function */
+/* while returning, we set back to original */
+/* this works */
+
+/* here we are accessing first argument which has user space pointer and then using strncpy_from_user() we access filename. Then we print filename */

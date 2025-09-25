@@ -1,0 +1,3 @@
+Run it on qemu x86 platform
+
+$ qemu-system-i386 -M pc -kernel output/images/bzImage -drive file=output/images/rootfs.ext2,if=virtio,format=raw -append "root=/dev/vda console=ttyS0" -net nic,model=virtio -net user -nographic

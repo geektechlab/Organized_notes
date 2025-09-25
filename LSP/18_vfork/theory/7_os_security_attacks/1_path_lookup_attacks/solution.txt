@@ -1,0 +1,7 @@
+How do we fix this? There are two solutions:
+
+1. Always use full paths. Don't specify a command to run by its name, instead describe exactly which program is to be executed.
+
+2. Fix the path before executing using setenv()
+
+You can actually control the current PATH setting during execution. To do this you can set the environment variables using setenv() and getenv()

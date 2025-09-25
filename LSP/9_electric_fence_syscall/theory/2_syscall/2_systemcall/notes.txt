@@ -1,0 +1,5 @@
+echo $? to get the return value 
+
+----
+running  [ strace ./<executable> ] gives all syscalls used by executable.
+----

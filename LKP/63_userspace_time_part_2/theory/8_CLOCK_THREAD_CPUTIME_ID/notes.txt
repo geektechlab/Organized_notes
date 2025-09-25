@@ -1,0 +1,4 @@
+CLOCK_THREAD_CPUTIME_ID
+==========================
+
+Measures the amount of CPU time consumed by the thread.

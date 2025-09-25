@@ -1,0 +1,9 @@
+$ sudo insmod ./hello.ko major_number=126 && cat /proc/devices | less
+
+$ sudo insmod ./hello.ko major_number=128
+
+$ sudo insmod ./hello.ko major_number=126 device_name=usb
+
+$ sudo insmod ./hello.ko major_number=126 minor_number=0 count=1048576 device_name=usb
+
+$ sudo insmod ./hello.ko major_number=126 minor_number=10 count=1048576 device_name=usb

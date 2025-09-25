@@ -1,0 +1,23 @@
+Create shared object files
+==========================
+
+$ gcc *.c -c -fPIC
+
+Create Shared library
+========================
+
+$ gcc -shared -Wl,-soname,libarith.so.1 -o libarith.so.1.0 *.o
+
+the option -Wl,-soname specify the soname of the resulting shared library
+
+-o option is to specify the output file name (the real name of the shared library)
+
+Note that you can build a shared library without the soname, but it makes version management of shared libraries impossible
+
+Installing a shared library
+============================
+
+$ ln -s libarith.so.1.0 libarith.so.1
+
+$ ln -s libarith.so.1 libarith.so
+

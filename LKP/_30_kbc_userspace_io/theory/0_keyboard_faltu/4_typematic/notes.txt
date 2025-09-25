@@ -1,0 +1,26 @@
+Typematic
+===================
+
+If you press a key, its make code is sent to the computer.
+
+If you release the key, its break code is sent to the computer.
+
+When you press and hold down a key, that key becomes typematic, which means the keyboard will keep sending that key's make code until the key is released or another key is pressed. 
+
+How to Observe/Verify
+=====================
+
+1. Open a text editor
+2. Hold down the "q" key.
+
+When you first press the key, the character "q" immediately appears on your screen
+After a short delay, another "q" will appear followed by a whole stream of "q"s until you release the "Q" key. 
+
+There are two important parameters here:
+1. Typematic Delay: short delay between the first and second "q"
+2. Typematic Rate:   how many characters per second will appear on your screen after the typematic delay
+
+You may change the typematic rate and delay using the "Set Typematic Rate/Delay" (0xF3) command. 
+
+The typematic delay can range from 0.25 seconds to 1.00 second
+The typematic rate can range from 2.0 cps (characters per second) to 30.0 cps

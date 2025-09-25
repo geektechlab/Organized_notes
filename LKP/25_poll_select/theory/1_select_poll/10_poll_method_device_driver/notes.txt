@@ -1,0 +1,5 @@
+Support for select/poll system call requires support from the device driver: poll method
+
+unsigned int (*poll) (struct file *, poll_table *);
+
+Header file for poll_table structure : <linux/poll.h>

@@ -1,0 +1,11 @@
+On X86 machine, we have a separate pin IO/M.
+
+This pin is used to distinguish between memory and I/O operations.
+
+High = I/O operation
+
+Low = Memory Operation.
+
+When you use IN/OUT Instructions, the IO/M pin is high, so the memory doesn't respond and I/O chip does.
+
+When you use LOAD/STORE Instructions, the IO/M pin is low, and the memory responds and I/O devices stay out of communication.

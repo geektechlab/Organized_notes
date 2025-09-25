@@ -1,0 +1,9 @@
+in_interrupt()
+====================
+
+Header File: <linux/preempt.h>
+
+To find out whether you are running in interrupt context or process context
+
+in_interrupt() returns non zero if the kernel is performing any type of interrupt handling.
+in_interrupt() returns zero if the kernel is in process context

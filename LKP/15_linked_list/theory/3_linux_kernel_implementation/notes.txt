@@ -1,0 +1,58 @@
+Linux Kernel Implementation of Linked Lists
+============================================
+
+struct student
+{
+	int roll_number;
+	char name[20];
+	int section;
+	int class;
+};
+
+To store the following structure in a linked list, you add a next and previous pointer.
+
+struct student
+{
+	int roll_number;
+	char name[20];
+	int section;
+	int class;
+	struct student *next;
+	struct student *prev;
+};
+
+Drawback of this approach
+==========================
+
+You need to write code to handle adding / removing / etc elements specifically for that data structure
+
+Linux Kernel Approach
+=====================
+
+The Linux kernel approach is different. Instead of turning the structure into a linked list. The Linux approach is to embed a linked list node in the structure.
+
+Header File: #include <linux/list.h>
+
+struct list_head
+{
+	struct list_head *next;
+	struct list_head *prev;
+};
+
+'next' pointer points to the next list node.
+'prev' pointer points to the previous list node.
+
+Updated structure
+==================
+
+struct student
+{
+	int roll_number;
+	char name[20];
+	int section;
+	int class;
+	struct list_head list;
+};
+
+'list.next' in above structure points to the next element
+'list.prev' points to the previous element

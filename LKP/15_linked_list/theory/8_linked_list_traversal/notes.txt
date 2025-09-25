@@ -1,0 +1,4 @@
+Traversing Linked Lists
+=========================
+
+Traversal of linked list is easy: one need to only follow the prev and next pointers.

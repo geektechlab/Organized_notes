@@ -1,0 +1,10 @@
+        server          client
+-----------------------------------------
+socket()
+bind()
+listen()
+                        socket()
+accept()                connect()
+send() & recv()         send() & recv()
+close()                 close()
+

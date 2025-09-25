@@ -1,0 +1,2 @@
+printf is buffered I/O.
+\n flushes the buffer or we can call fflush(<standard output macro>) to flush I/O.

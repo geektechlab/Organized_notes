@@ -1,0 +1,38 @@
+sysfs
+==========
+
+sysfs is a virtual file system.
+
+It provides information about
+	a) various kernel subsystems
+	b) hardware devices
+	c) and associated device drivers
+
+from the kernel's device model to user space through virtual files.
+
+CONFIG_SYSFS
+============
+By default syfs is compiled in the Linux Kernel
+
+It depends on CONFIG_SYSFS being enabled in the Linux kernel configuration.
+
+$ cat /boot/config-`uname -r` | grep CONFIG_SYSFS
+
+Mounting Sysfs
+==============
+
+$ mount | grep sysfs
+
+If sysfs is not already mounted, you can mount it with the below command,
+
+$ mount -t sysfs sysfs /sys 
+
+Source Code
+============
+
+Present in fs/sysfs directory
+
+Documentation
+================
+
+Documentation/filesystems/sysfs.txt

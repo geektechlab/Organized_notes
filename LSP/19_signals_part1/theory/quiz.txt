@@ -1,0 +1,81 @@
+1. Which signal is generated when we press control-C?
+	a) SIGINT
+b) SIGTERM
+c) SIGKILL
+d) SIGSEGV
+
+2. Which signal is generated when we press ctrl-Z?
+a) SIGKILL
+	b) SIGSTOP
+c) SIGABRT
+d) SIGINT
+
+3. Which signal is sent when the Child process terminates?
+a) SIGINIT
+b) SIGKILL
+c) SIGSTOP
+	d) SIGCHLD
+
+4.  Which of the following signal cannot be handled or ignored?
+a) SIGINT
+b) SIGCHLD
+	c) SIGKILL
+d) SIGALRM
+
+5.  Another signal that cannot be caught is:
+a) SIGPIPE
+b) SIGHUP
+	c) SIGSTOP
+d) SIGUSR1
+
+6. When real interval timer expires which signal is generated?
+a) SIGINT
+b) SIGCHLD
+c) SIGKILL
+d) SIGALRM
+
+7. Signals are handled using which system call?
+a) kill
+	b) signal
+c) both
+d) none
+
+8. Default action of SIGSEGV is
+a) Terminate
+	b) Core dump + Terminate
+c) Stop
+d) Cont
+
+9. The kill system call is used to
+a) Send shutdown messages to all by superuser
+	b) Send a signal to a process
+c) Kill processes
+d) Stop the processes
+
+10. What is the output of the below code?
+
+    void sig_handler ( int signum) {
+        printf(“Handled the signal\n”);
+    }
+ 
+    int main() {
+        int pid;
+        signal (SIGKILL, sig_handler);
+        pid = fork();
+        if (pid==0) {
+            kill(getppid(), SIGKILL);
+            exit(0);
+        } else {
+            sleep(20);
+        }
+        return 0;
+    }
+
+a) Error child cannot send a SIGKILL signal to parent
+b) Parent goes to the signal handler, prints handled the signal and goes back to sleep
+c) Parent goes to the signal handler, prints handled the signal and exits
+	d) Parent exits without going to the signal handler beacuse it can't be caught
+
+11. Question: why do we have both Ctrl-C and Ctrl-\?
+
+Ans: Ctrl-\ generates a core file, whereas Ctrl-C does not

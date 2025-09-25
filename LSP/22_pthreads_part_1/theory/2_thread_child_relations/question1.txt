@@ -1,0 +1,6 @@
+what are some ways of handling the return value?
+
+as return value can never be a stack variable, there are two ways of handling the return variable.
+    i) create a struct and pass it the pthread_create() function itself, which the thread function will fill it before exiting the  function.
+   ii) use a global variable to pass the return value.
+  iii) pass a specific location to the thread that is created detached, and let the main thread use the return value, when suits.
