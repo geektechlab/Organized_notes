@@ -17,19 +17,22 @@ public:
         cout << "Parameterized Constructor Called!" << endl;
     }
 
-    // 3. Copy Constructor
+    // 3. Copy constructors must take const & otherwise temporaries (rvalues) can’t bind
     Car(const Car &obj) {
         brand = obj.brand;
         cout << "Copy Constructor Called!" << endl;
     }
 
     // 4. Move Constructor (C++11)
+	//A move constructor (T(T&&) noexcept) steals resources from a temporary (rvalue) instead of copying, leaving the source valid but empty, and is faster than a copy constructor.
+	//& binds to lvalues (named objects), && binds to rvalues (temporaries for moving), and noexcept guarantees the function won’t throw, enabling safe, efficient moves.
     Car(Car &&obj) noexcept {
         brand = move(obj.brand);
         cout << "Move Constructor Called!" << endl;
     }
 
-    // Destructor
+    // Destructor can print values or object also and it destroy in sequence in which objects were declared
+	// it will destroy c4, c3, c2, c1 in sequence
     ~Car() {
         cout << "Destructor Called for " << brand << endl;
     }

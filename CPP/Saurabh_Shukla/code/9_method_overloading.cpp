@@ -48,10 +48,10 @@ int main() {
     Base* obj = new Derived(); 
 
     cout << "\nCalling show() function:" << endl;
-    obj->show();  // Calls Base::show() because it's NOT virtual
+    obj->show();  // Calls Base::show() because it's NOT virtual ( maybe because base* refers to memeory layout of class like pointer in c refers to ptr memory layout type instead of variable it points to ?
 
     cout << "\nCalling display() function:" << endl;
-    obj->display();  // Calls Derived::display() due to method overriding
+    obj->display();  // Calls Derived::display() due to method overriding, does vptr play a role here ? how does it work internally ?
 
     // Deleting the dynamically allocated object
     delete obj; 

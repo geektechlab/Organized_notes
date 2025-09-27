@@ -8,6 +8,7 @@ private:
     fstream file;      // File handling
 
 public:
+	// constr string& is similar to const string* in C but it just ensures that it can't take nullptr and can't be rebinded
     ResourceHandler(const string& filename) {
         // Allocate memory
         data = new int[10];

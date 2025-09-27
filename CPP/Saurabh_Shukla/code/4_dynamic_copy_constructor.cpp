@@ -16,11 +16,13 @@ namespace MyNamespace {
         // Copy Constructor (Deep Copy)
         String(const String& other) {
             std::cout << "Copy Constructor Called\n";
+			// in C++, str holds string size and it doesn't decay like C
             str = new char[strlen(other.str) + 1]; // Allocate new memory
             strcpy(str, other.str);  // Copy contents to avoid shallow copy issue
         }
 
         // Function to display the string
+		// The const after the method means this member function does not modify the object, so you can call it on const instances and the compiler enforces that it won’t change any member variables.
         void display() const {
             std::cout << "String: " << str << std::endl;
         }

@@ -8,6 +8,7 @@ private:
 
 public:
     // Constructor
+	// deepCopy(isDeepCopy) initializes the member variable deepCopy with the constructor parameter isDeepCopy. It happens before the constructor body runs. Equivalent to writing inside the body
     CopyExample(const char* s, bool isDeepCopy = true) : deepCopy(isDeepCopy) {
         str = new char[strlen(s) + 1];
         strcpy(str, s);
@@ -59,7 +60,7 @@ int main() {
     CopyExample obj3("World", false);  // Shallow Copy enabled
 
     std::cout << "\nCopying obj3 to obj4 (Shallow Copy)...\n";
-    CopyExample obj4 = obj3;  // Shallow Copy
+    CopyExample obj4 = obj3;  // Shallow Copy, check how copy constructor ensured shallow copy
 
     obj3.display();
     obj4.display();

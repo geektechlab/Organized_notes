@@ -46,6 +46,7 @@ public:
 };
 
 // Hybrid Inheritance with Virtual Base Class (Diamond Problem Solution)
+// don’t bring your own copy of Animal, share a single Animal with others.
 class Mammal : virtual public Animal {};
 class Reptile : virtual public Animal {};
 
@@ -105,7 +106,7 @@ int main() {
     c.meow();
 
     Platypus pl;
-    pl.eat(); // No ambiguity due to virtual base
+    pl.eat(); // No ambiguity due to virtual base, check comment above for diamond problem
     pl.special();
 
     DogWithTail dt;
