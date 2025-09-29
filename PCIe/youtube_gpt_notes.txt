@@ -1,0 +1,12 @@
+https://www.youtube.com/playlist?list=PLD3IcS39hRAj56m3WbqFmS-Ernyi6y5c5
+
+Understanding PCIe Gen7 NOP FLIT Payloads Advanced Debug Capabilities:
+	PCIe 6.0 doubles bandwidth to 64 GT/s per lane by adopting PAM4 signaling, which raises the bit error rate and makes forward error correction mandatory. To enable efficient FEC, the standard introduces FLIT mode, where traffic is segmented into fixed 256 byte flow control units instead of variable length TLPs. This reduces latency, removes 128b/130b encoding overhead, simplifies PHY and DLL design, and provides larger 14 bit tags.
+
+	NOP FLIT payloads were introduced as a dedicated physical layer debug channel. They are transmitted independently of higher layers, bypass retries and flow control, and if corrupted are simply discarded.
+
+Understanding Forward Error Correction in PCI Express
+	PCIe scaling from 16 GT/s (4.0) to 128 GT/s (7.0) pushed copper channels to their physical limits, making NRZ signaling insufficient beyond 5.0. PCIe 6.0 introduced PAM4, which doubles throughput without doubling frequency but reduces voltage margins, worsening raw BER from ~10^-12 to ~10^-6. At that error rate, relying only on CRC+Link Layer Retry (LLR) would cause constant retransmits, so PCIe 6.0 mandated lightweight, ultra-low-latency Forward Error Correction (FEC). FEC uses a three-way interleaved, single-symbol correcting code that completes in <2 ns, spreading burst errors across codewords to keep correction transparent to software and workloads.
+
+	From 6.0 onward, all traffic is carried in fixed 256-byte flow control units (FLITs: 242 B payload, 8 B CRC, 6 B FEC). FEC protects both data and CRC, CRC validates corrected data, and LLR (~100 ns) only triggers for rare uncorrected cases (~10^-6 per FLIT), bringing effective BER back down to ~10^-12. The overhead is ~2% vs. ~1.5% in 128b/130b, but fixed FLITs simplify flow control and buffer management. For system software, this means error handling is largely hidden in hardware, but drivers and firmware must be aware of FLIT mode, potential LLR retransmit delays, and error counters exposed by the link, since these directly affect latency-sensitive workloads and reliability guarantees at scale.
+
