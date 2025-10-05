@@ -1,0 +1,3 @@
+There are some tasks which require processing from CPU and GPU both. SVM addresses this. Two types:
+	- Coarse grained: CPU and GPU can work on shared memory but at a time they both can't work on same memory. Once processes a memory chunk, it will cache flush and other will cache invalidate and fetch latest data and processing will happpen. So explicit CMO is required and it is signalled from UMD. This is slow.
+	- Fine grained: CPU and GPU both can work on same memory at same time using HW coherency in place. KMD will expose this capability from HW to UMD and UMD will run smoothely without issuing explicit CMO operations and CPU and GPU will have transparent buffer view to each other.
