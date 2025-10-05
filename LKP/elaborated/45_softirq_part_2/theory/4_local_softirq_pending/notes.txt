@@ -1,4 +1,3 @@
-local_softirq_pending()
------------------------
-
-It is 32-bit mask of pending softirqs
+version https://git-lfs.github.com/spec/v1
+oid sha256:8ef00b92d6f1e3ae810f3fcfb0d2878344a04e0e97ec2b6410bb14b996745053
+size 91

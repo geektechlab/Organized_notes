@@ -1,1 +1,3 @@
-When the process terminates, the release function will be called even if we don't call close() from user space
+version https://git-lfs.github.com/spec/v1
+oid sha256:6bdec5ba2fd34156e401fb1de330123a49a11f283e6c3d184f01508e89216d09
+size 112

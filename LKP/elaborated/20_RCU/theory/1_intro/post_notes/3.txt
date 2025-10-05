@@ -1,11 +1,3 @@
-Request to delete node B when there is reader at B
-
-            Updater        Reader
-       HEAD   /              |
-        |    /               |
-        V   V                v
-    --------------          -----------------               -------------
-    |            |          |               |               |           |
-    |   A        |--------->|   B           |-------------->|    C      |
-    |            |          |               |               |           |
-    --------------          ------------------              -------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:390d3dc89ae29d51225866b5d1168a1f81529792ba49d6eaf12faa17677d8102
+size 560

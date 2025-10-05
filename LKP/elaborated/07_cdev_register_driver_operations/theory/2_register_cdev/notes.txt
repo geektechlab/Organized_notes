@@ -1,29 +1,3 @@
-struct cdev
-==================================
-
-In kernel, each character device is represented using this structure.
-
-Header File: linux/cdev.h
-
-struct cdev
-{
-		/* module */
-        struct kobject kobj;
-        struct module *owner;
-        const struct file_operations *ops;
-        struct list_head list;
-        dev_t dev;
-        unsigned int count;
-} __randomize_layout;
-
-
-Functions:
-=============
-
-void cdev_init(struct cdev *, const struct file_operations *); --> initialize a cdev structure
-
-struct cdev *cdev_alloc(void); --> Allocates and returns a cdev structure
-
-int cdev_add(struct cdev *, dev_t, unsigned int minor_count); --> add a char device to the system
-
-void cdev_del(struct cdev *dev); --> remove a cdev from the system
+version https://git-lfs.github.com/spec/v1
+oid sha256:12ec8de356740fe3b080d7c3939f94e6816741147ad5c894111281f153de0cad
+size 771

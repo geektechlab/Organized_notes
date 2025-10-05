@@ -1,1 +1,3 @@
-virt_to_phys: The returned physical address is the physical (CPU) mapping for the memory address given. It is only valid to use this function on addresses directly mapped or allocated via kmalloc. It means It is used by the kernel to translate kernel virtual address (not user virtual address) to physical address
+version https://git-lfs.github.com/spec/v1
+oid sha256:f6770edeb488a94607d9950ccb76de57f7bc51f5d474691a1ede6c8cb1427b8f
+size 315

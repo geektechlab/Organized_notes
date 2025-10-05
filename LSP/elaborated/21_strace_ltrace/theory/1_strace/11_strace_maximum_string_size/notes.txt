@@ -1,5 +1,3 @@
-strace -s 2000 -f ./program1
-
-the “-s” flag to strace telling it the maximum string size we want it to print. This is helpful for showing expanded function arguments. 
-
-Here we pass 2000, which is abitrarily “enough” to see everything we need to see in this program. The default is 32, which in my experience means we’ll almost definitely miss information we care about in the trace
+version https://git-lfs.github.com/spec/v1
+oid sha256:5b3ed6496d76ad67381e8ecf1ec80e967beaf036781fef8002df394cef6f35c9
+size 398

@@ -1,6 +1,3 @@
-How to find the version of a compiled kernel module?
-
----------
-modinfo can be used for this.
-[ modinfo <.ko file> ]
----------
+version https://git-lfs.github.com/spec/v1
+oid sha256:3fcc3d351018c2ac065410c30110c3cb6dbe925f4de0da250a09608a8f7d7dd0
+size 133

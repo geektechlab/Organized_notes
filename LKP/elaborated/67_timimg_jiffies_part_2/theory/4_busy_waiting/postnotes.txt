@@ -1,16 +1,3 @@
-Problem with this approach
----------------------------
-
-The processor is tied up spinning in a silly loop—no useful work is accomplished!
-
-Better Solution
-----------------
-
-Reschedule your process to allow the processor to accomplish other work while your code waits
-
-while (time_before(jiffies, delay))
-	cond_resched();
-
-This solution conditionally invokes the scheduler only if there is some more important task to run
-
-Note: Cannot use it from an interrupt handler, only in process context
+version https://git-lfs.github.com/spec/v1
+oid sha256:756ccea4f6106fba28e03764efb60ee0b882000b96bff89dbb566f733bf3f5d4
+size 511

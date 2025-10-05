@@ -1,6 +1,3 @@
-CLOCK_REALTIME
-===============
-
-This clock represents the real time/wall time in the system
-used for timestamping as well as providing actual time to the user.
-Can be both stepped and slewed by time adjustment code (e.g., NTP)
+version https://git-lfs.github.com/spec/v1
+oid sha256:403ab5219ce1701249751a702e51d427492a6a34d65c17239efc446eda342bb8
+size 233

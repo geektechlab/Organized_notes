@@ -1,9 +1,3 @@
-We will first start the process in the background 
-
-Then send it a signal from the shell process by using the kill command.
-
->./program &
-My pid is 403
-...
->kill -SIGSTOP 403
->kill -SIGCONT 403
+version https://git-lfs.github.com/spec/v1
+oid sha256:d28d9635fe6eee0c64367b215baffcf151e78384c3aca338a58719923f1b7491
+size 203

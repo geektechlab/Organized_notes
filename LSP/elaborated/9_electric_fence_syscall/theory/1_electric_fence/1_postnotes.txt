@@ -1,14 +1,3 @@
-when we execute the binary without linked with electric fence, it didn’t shown any error,
-
-$ gcc 1.c -o 1 
-$ ./1
-
-Now, lets link electric fence,
-
-$ gcc 1.c -o 1 -lefence
-$ ./1
-
-$ gcc 1.c -o 1 -lefence -g
-$ gdb ./1
-$ gdb > r
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:09a85f8040aa743997f8c7777483dab50504d02b08df98523b448d58e897fccf
+size 241

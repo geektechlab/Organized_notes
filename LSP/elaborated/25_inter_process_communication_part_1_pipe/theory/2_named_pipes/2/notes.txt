@@ -1,10 +1,3 @@
-Creating FIFO's from Command line
-====================================
-
-Two commands are provided by Linux
-
-$ mknod filename p
-
-$ mkfifo filename
-
-ls -l -> you will see p which indicates pipe
+version https://git-lfs.github.com/spec/v1
+oid sha256:fdb154fb6d45fba7a67dcfdc161c94e1b52ba9061aafb326dee1947740addd11
+size 202

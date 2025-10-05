@@ -1,14 +1,3 @@
-gcc -c main.c -O3
-objdump -dr main.o
-
-Function call order in  memory is unchanged.
-
-gcc -c main_builtin.c -O3
-objdump -dr main_builtin.o
-
-After adding builtin_expect, printf is moved to end of the function and puts after
-
-How should I use it ?
-====================
-
-You should use it only in cases when the likeliest branch is very very very likely, or when the unlikeliest branch is very very very unlikely.
+version https://git-lfs.github.com/spec/v1
+oid sha256:bb2703d9dad67b99b1a89c504b7e45d6d5a791451f46a52e3d96d11a01632b27
+size 423

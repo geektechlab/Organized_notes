@@ -1,2 +1,3 @@
-Is the kernel preemption disabled when the spinlock is acquired?
-=================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:e5acdb37ba4ecd20168c38113dbfccb0c5d3d66d33c990be4966110888280cdd
+size 133

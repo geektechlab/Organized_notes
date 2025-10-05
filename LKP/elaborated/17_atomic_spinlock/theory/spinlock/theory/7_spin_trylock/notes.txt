@@ -1,10 +1,3 @@
-spin_trylock()
----------------
-
-int spin_trylock(spinlock_t *lock);
-
-Tries to acquire given lock;
-
-	If not available, returns zero.
-
-	If available, it obtains the lock and returns nonzero
+version https://git-lfs.github.com/spec/v1
+oid sha256:eeafbffd2f8989c5cfe3bd5ca363535a706bf290fbe3db4e3375fb2931b734a0
+size 198

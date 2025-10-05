@@ -1,10 +1,3 @@
-Connecting
-=================
-
-#include <sys/socket.h>
-int connect(int sockfd, struct sockaddr *addr, socklen_t addrlen);
-
-Returns: 0 on success, -1 on error
-
-	sockfd is your own socket, to be used as your endpoint of the connection
-	addr/addrlen specify the well-known address of the peer you want to connect to, and are given in the same format of bind parameters
+version https://git-lfs.github.com/spec/v1
+oid sha256:064089f98850eb000342753887701b0683fa6d281b617a8b566e87fa38cf944e
+size 375

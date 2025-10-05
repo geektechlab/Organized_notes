@@ -1,2 +1,3 @@
-How to provide a read only file?
-==================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:94e3864ef1254b812a547f03ed6328228053b36a08330edd71d8b2f02aa67aa5
+size 70

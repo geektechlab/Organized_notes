@@ -1,9 +1,3 @@
-An ELF object file consists of various named sections
-
-Some of them are basic parts of an object file, for example the .text section contains executable code that a loader loads.
-
-To see all the sections
-$ objdump --section-headers ./mod_info.ko
-
-To see the contents of the .modinfo section:
-$ objdump --section-headers --section=.modinfo --full-contents ./mod_info.ko
+version https://git-lfs.github.com/spec/v1
+oid sha256:0a4d0c46401b4f485eb38a957e02136d0a44fae9a05e7079dc819aa9b39221a5
+size 378

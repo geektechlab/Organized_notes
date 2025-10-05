@@ -1,8 +1,3 @@
-Can i update the symbol address
---------------------------------
-
-Just like read, you can also write to a symbol's address.
-
-Note: Be careful, some addresses are in rodata section or text section, which cannot be written
-
-If you try to write to a readonly address, you will probably get a kernel oops
+version https://git-lfs.github.com/spec/v1
+oid sha256:d43ad58dabaf281452774ee3659b2a3c53e3913a3dc43f69a54109def7e5f700
+size 309

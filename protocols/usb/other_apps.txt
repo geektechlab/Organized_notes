@@ -1,7 +1,3 @@
-PMG1-CY7113
-
-USB_FS_vendor_interface
-USB_HID_Mouse
-USBFS_CDC_echo
-USBFS_MSC_File_System_in_SRAM
-USBFS_to_UART_Using_DMA
+version https://git-lfs.github.com/spec/v1
+oid sha256:6f4e498ad51a4792ce4bcf3eea9b1d7a6e43c582fdbbc05381bd28ee269e9ef8
+size 127

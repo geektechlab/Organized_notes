@@ -1,1 +1,3 @@
-According to the documentation, "The caller must guarantee that objp points to a valid object previously allocated with either kmalloc() or kmem_cache_alloc()." 
+version https://git-lfs.github.com/spec/v1
+oid sha256:297e90bd0888f1b0d82422450280f03eb1791484fa94cdd3ab286609a88bc188
+size 163

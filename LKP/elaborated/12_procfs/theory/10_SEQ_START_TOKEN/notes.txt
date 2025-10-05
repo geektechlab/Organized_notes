@@ -1,5 +1,3 @@
-SEQ_START_TOKEN is a special value which can be returned by the start() function 
-
-It can be used if you wish to instruct your show() function to print a header at the top of the output.
-
-SEQ_START_TOKEN should only be used if the offset is zero, however.
+version https://git-lfs.github.com/spec/v1
+oid sha256:a216578ebcc0f57a56b75749c69cbd33b42f4642bfc27f38d1cdc7b21d347730
+size 261

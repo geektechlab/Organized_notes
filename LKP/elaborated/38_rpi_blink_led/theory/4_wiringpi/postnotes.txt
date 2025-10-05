@@ -1,12 +1,3 @@
-How to verify?
-===============
-
-gpio command
-
-$ sudo apt install wiringpi
-
-gpio can be used to manipulate the GPIO pins – set outputs and read inputs.
-
-$ gpio -h
-
-$ gpio readall
+version https://git-lfs.github.com/spec/v1
+oid sha256:4b3be0bd16709af05f7e1f53c8ce60556a6cf995926aec93f7c351380f0479ba
+size 192

@@ -1,4 +1,3 @@
-Do readers need to take lock while operating inside the critical section?
-=============================================================================
-
-Locks are not required in case of readers using RCU
+version https://git-lfs.github.com/spec/v1
+oid sha256:d90f621283d64377c1a7eec470d2a509aa378addb5d30bf51937b2b9c661c350
+size 209

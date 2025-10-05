@@ -1,6 +1,3 @@
-Processor Info and Feature Bits
-==============================
-
-When CPUID executes with EAX set to 1, version information is returned in EAX.
-
-Example: model, family, and processor type
+version https://git-lfs.github.com/spec/v1
+oid sha256:06b1def81a7738c5a6c3a20607591cd80ff2f47dc9fa4be47b359ff44dabc4a4
+size 193

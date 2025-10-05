@@ -1,10 +1,3 @@
-wait_event_timeout(queue, condition, timeout)
-
-	The process is put to sleep (TASK_UNINTERRUPTIBLE) until the condition evaluates to true. 
-	The condition is checked each time the waitqueue is woken up.
-
-Return Value:
-
-	0 if the condition evaluated to false after the timeout elapsed
-	1 if the condition evaluated to true after the timeout elapsed
-	remaining jiffies (at least 1) if the condition evaluated to true before the timeout elapsed.
+version https://git-lfs.github.com/spec/v1
+oid sha256:e4a6d46ecba0bedc6988fce36605f8deb824321ff886ed8b3a55d5c33b80eb64
+size 452

@@ -1,5 +1,3 @@
-Support for select/poll system call requires support from the device driver: poll method
-
-unsigned int (*poll) (struct file *, poll_table *);
-
-Header file for poll_table structure : <linux/poll.h>
+version https://git-lfs.github.com/spec/v1
+oid sha256:23864617f1bb48fe878bad1e1c8239cf626d03f14c9a971bdcea4165299a9da4
+size 202

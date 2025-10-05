@@ -1,6 +1,3 @@
-hrtimer_restart
-------------------
-
-A canceled timer can be restarted by passing it to hrtimer_restart()
-
-void hrtimer_restart(struct hrtimer *timer);
+version https://git-lfs.github.com/spec/v1
+oid sha256:f2ffca2f1ae0d30c719641ed4e4eab577b3362fee00f4a62cc79651b856e29b2
+size 157

@@ -1,1 +1,3 @@
-Most ioctl implementations consist of a big switch statement that selects the correct behavior according to the cmd argument.
+version https://git-lfs.github.com/spec/v1
+oid sha256:59af8800508406e97d377a633ca8ec8196018cd3cfcf86b2cf7cb10dbbe76a36
+size 127

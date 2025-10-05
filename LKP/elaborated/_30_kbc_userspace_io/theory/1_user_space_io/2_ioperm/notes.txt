@@ -1,18 +1,3 @@
-ioperm
-============
-
-int ioperm(unsigned long from, unsigned long num, int turn_on);
-
-ioperm()  sets  the  port  access permission bits for the calling thread for num bits starting from port  address from.
-
-if turn_on is nonzero, then permission for the specified bits is enabled;
-
-if turn_on is zero, the permission for the specified bits is disabled.
-
-Example: ioperm(0x200, 3, 1) would give access to ports 0x200 through 0x202 (a total of 3 ports).
-
-Return Value:
-=============
-
-On success, zero is returned
-On error, -1 is returned, and errno is set appropriately.
+version https://git-lfs.github.com/spec/v1
+oid sha256:4907540e2f712578075f4a2abe8aabc25f2d3e782025108ee076359479b88e68
+size 587

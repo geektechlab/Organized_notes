@@ -1,13 +1,3 @@
-ktime_t conversion functions
-----------------------------------
-
-u64 ktime_to_ns(ktime_t kt);
-
-/* Convert ktime_t to nanoseconds */
-static inline s64 ktime_to_ns(const ktime_t kt)
-{
-        return kt;
-}
-
-Direct interpretation of a ktime_t as a number of nanoseconds would be possible on 64-bit machines, 
-but can lead to problems on 32-bit machines . Thus, the function ktime_to_ns is provided to perform the conversion properly.
+version https://git-lfs.github.com/spec/v1
+oid sha256:80dffe0ae9f9dd0ad59c88241b650d9df8a3e2431fc2d6797271d6497e4ff8df
+size 443

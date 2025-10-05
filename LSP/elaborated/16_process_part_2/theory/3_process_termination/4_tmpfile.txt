@@ -1,6 +1,3 @@
-In C Programming Language, the tmpfile() function is used to produce/create a temporary file.
-
-The created temporary file will automatically be deleted after the termination of program.
-
-The syntax of tmpfile() function is:
-FILE *tmpfile(void) 
+version https://git-lfs.github.com/spec/v1
+oid sha256:d4ca9ec98839447e7ff70b2ad3e273b894c463ec71dfb07787ea423175d555ac
+size 251

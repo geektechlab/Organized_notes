@@ -1,8 +1,3 @@
-Browsing/Navigating Linux Kernel Source
-===========================================
-
-Linux source code is huge and evolves very fast
-
-	27 million lines of code
-
-Tools such as cscope, ctags and lxr allows to easily browse the kernel source code
+version https://git-lfs.github.com/spec/v1
+oid sha256:7a7d97b5e8df6dfbf81b0fa30af7e6bbcce2f203a890faddf0d11a92b338e637
+size 252

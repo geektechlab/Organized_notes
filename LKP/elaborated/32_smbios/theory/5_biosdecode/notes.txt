@@ -1,13 +1,3 @@
-biosdecode
-===============
-
-biosdecode parses the BIOS memory and prints information about all structures (or entry points) it knows of.
-
-Currently known entry point types are:
-
-	SMBIOS/DMI
-	SYSID
-	PNP
-	ACPI
-	BIOS32
-	...
+version https://git-lfs.github.com/spec/v1
+oid sha256:1a7e313881f65acb49c852b6a81213d2a765249d20a5ea3a9bfd63d5b1cc47f9
+size 234

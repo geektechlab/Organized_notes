@@ -1,7 +1,3 @@
-
-Do child processes share open filehandles?
-=============================================
-
-Yes! In fact both processes use the same underlying kernel file descriptor. For example if one process rewinds the random access position back to the beginning of the file, then both processes are affected.
-
-Both child and parent should close (or fclose) their file descriptors or file handle respectively.
+version https://git-lfs.github.com/spec/v1
+oid sha256:80e7783d506174f8904fe66a435316d944250dfbb3d756a2e8200e1df1271478
+size 405

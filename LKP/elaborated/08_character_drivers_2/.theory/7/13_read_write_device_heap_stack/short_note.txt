@@ -1,7 +1,3 @@
-same as previous but with use of stack section variable in kernel module in stack which gets user space pointer to memory. 
-
-here it may not work becuase stack content gets copied from user space but it points to user space pointer but directly accessing will violate security policy. ( indiactions: dmesg may get freezed )
-
-To make it work, TBD
-
-check what type of device it is ? charactor or block ?
+version https://git-lfs.github.com/spec/v1
+oid sha256:b665ba25177592ace729ca46ad803c28879d6a07bb74dc0f882f86ff8e177d19
+size 407

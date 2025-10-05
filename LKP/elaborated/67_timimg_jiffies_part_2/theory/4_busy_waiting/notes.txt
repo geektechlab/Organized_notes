@@ -1,6 +1,3 @@
-Busy Waiting/Busy Looping
---------------------------
-
-You can use jiffies to implement busy looping.
-
-Spin in a loop until the desired number of clock ticks/jiffies pass.
+version https://git-lfs.github.com/spec/v1
+oid sha256:3b9e864773ed0ed146e9d8b3421bfb4c647a680896122b8d58bacba78346b8d6
+size 177

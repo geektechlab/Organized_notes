@@ -1,9 +1,3 @@
-in_interrupt()
-====================
-
-Header File: <linux/preempt.h>
-
-To find out whether you are running in interrupt context or process context
-
-in_interrupt() returns non zero if the kernel is performing any type of interrupt handling.
-in_interrupt() returns zero if the kernel is in process context
+version https://git-lfs.github.com/spec/v1
+oid sha256:993110dcd225271a42d5e4be5367ab194c1ab142cda377ab6e1fa48968a5defe
+size 311

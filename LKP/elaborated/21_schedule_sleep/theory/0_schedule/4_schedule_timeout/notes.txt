@@ -1,17 +1,3 @@
-schedule_timeout
-=================
-
-long schedule_timeout (	signed long  timeout);
-
-timeout - timeout value in jiffies
-
-Make the current task sleep until timeout jiffies have elapsed. 
-
-The routine will return immediately unless the current task state has been set using set_current_state.
-
-The current task state is guaranteed to be TASK_RUNNING when this routine returns.
-
-Return value:
-
-	0	when the timer has expired
-	remaining time in jiffies, if the signal is received or process is woken up
+version https://git-lfs.github.com/spec/v1
+oid sha256:0b85538737f750cb40bd4222d34a35ebc59ac3dc3cb57c1353ea04ee7f6e70f3
+size 514

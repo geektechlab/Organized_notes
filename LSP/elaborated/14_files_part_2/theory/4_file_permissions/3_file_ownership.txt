@@ -1,18 +1,3 @@
-File ownership
-===============
-
-Every file is owned by a specific user (or UID) and a specific group (or GID). 
-
-The chown command can be used to change just the user, or the user and group of a file. 
-
-The basic format for the chown command is as follows:
-
-# chown user:group filename
-
-Here is an example of changing the owner of file test to user and its group to user.
-
-# chown user:user test
-
-A period (.) can be used in place of the colon (:) separator character.
-
-Also, either the user or group name can be omitted.
+version https://git-lfs.github.com/spec/v1
+oid sha256:f340e7af5220cc62dcb14f30e037ca6cba2666b1eb3ce15017a91d7896f9caa3
+size 540

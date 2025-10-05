@@ -1,4 +1,3 @@
-waitqueue_active -- locklessly test for waiters on the queue
-
-----
-it checks if waitqueue is empty or not. It checks it by checking if HEAD linked list is empty or not.
+version https://git-lfs.github.com/spec/v1
+oid sha256:6ed5b6be2f594a51b40b10d81b5eadff5557edc6e0b4a955e64e4e07b5d1ed93
+size 173

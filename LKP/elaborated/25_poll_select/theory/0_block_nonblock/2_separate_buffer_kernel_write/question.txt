@@ -1,2 +1,3 @@
-Do we need a separate buffer in the kernel for write operation?
-==================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:58680488be613d4a4928b4816ac498eb8ed4719dc379b79f44d302e30c208060
+size 133

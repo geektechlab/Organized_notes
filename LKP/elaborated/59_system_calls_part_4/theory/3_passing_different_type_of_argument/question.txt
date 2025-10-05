@@ -1,3 +1,3 @@
-What happens if i pass a different type of argument?
-======================================================
-it fails with errornum
+version https://git-lfs.github.com/spec/v1
+oid sha256:82cba0c8dd7f82e6f982cc98ae029952e6d5177d8f1cbd20197fea70481c480f
+size 134

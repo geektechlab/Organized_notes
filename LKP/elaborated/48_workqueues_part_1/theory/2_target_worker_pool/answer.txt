@@ -1,4 +1,3 @@
-How a target worker pool is determined when work item is queued into workqueue?
--------------------------------------------------------------------------------
-
-According to the queue parameters and workqueue attributes
+version https://git-lfs.github.com/spec/v1
+oid sha256:f6c3fa6f979411c996398ae5b534a498c20c576a9f8c3778edd4e06de5d7dd10
+size 224

@@ -1,16 +1,3 @@
-Using GPIOs
-===============
-
-The first thing a system should do with a GPIO is allocate it, using the gpio_request() call
-
-static int gpio_request(unsigned gpio, const char *label) 
-
-	gpio represents the GPIO number we are interested in
-
-	label is the label used by the kernel for the GPIO in sysfs (/sys/kernel/debug/gpio)
-
-Return 0 on success, negative error code on failure
-
-Once you've done this with the GPIO, it should be set free with the gpio_free() function:
-
-void gpio_free(unsigned int gpio) 
+version https://git-lfs.github.com/spec/v1
+oid sha256:d41809f1a05f07bb110d713abe72a2f8128c6b51b4d976dd21e756b14d2e3d80
+size 520

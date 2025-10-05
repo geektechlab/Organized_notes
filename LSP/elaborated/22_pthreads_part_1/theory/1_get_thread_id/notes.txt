@@ -1,3 +1,3 @@
-gettid returns the caller's thread ID (TID)
-
-man 2 gettid
+version https://git-lfs.github.com/spec/v1
+oid sha256:063eee1aca9bb018b790aef2bddec7efd4fea20cd9b47daee7c456a04fab69a2
+size 61

@@ -1,4 +1,3 @@
-CLOCK_THREAD_CPUTIME_ID
-==========================
-
-Measures the amount of CPU time consumed by the thread.
+version https://git-lfs.github.com/spec/v1
+oid sha256:99974e967be2c22d92d1703f043fb99adf19b0aa7d0f411d6d64f106d36feb93
+size 112

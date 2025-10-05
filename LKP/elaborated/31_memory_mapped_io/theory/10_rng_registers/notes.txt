@@ -1,26 +1,3 @@
-Registers
-===========
-
-RNG Status (0xFFBC0160)
-
-Description:
-
-	determine whether or not the RNG Data register contains valid random data
-
-	RNG Data register should never be read until the RNG Status register indicates that the RNG Data register is valid.
-
-	Each time the RNG Data register is read, the RNG Status bit is cleared, and it remains cleared until the RNG Data register is filled with new random data.
-
-	Bit Mask   				Description
-	=====================================================
-
-	0x01				        (Bit 0 – read only) Data Available: 
-						 If this bit is read as 1, the RNG Data register contains valid random data. 
-						If this bit is read as 0, the data in the RNG data register is
-not valid.
-
-RNG Data (0xFFBC0161)
-
-Description:
-
-	The RNG Data register contains a byte of random data.
+version https://git-lfs.github.com/spec/v1
+oid sha256:41707d26130a8cbe394b0db12c6e1c1d3ab1df1c1096ea4cb89b28c94e1a7a3d
+size 836

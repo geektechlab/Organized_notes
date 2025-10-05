@@ -1,10 +1,3 @@
-Out of Tree modules development
-=================================
-
-Load external cscope database
-
-:cs add /path/to/your/kernel/cscope.out  /path/to/your/kernel
-
-Example:
-
-:cs add /home/linuxtrainer/linux-5.2.8/cscope.out  /home/linuxtrainer/linux-5.2.8
+version https://git-lfs.github.com/spec/v1
+oid sha256:e7ca1de343cf672ab099e351fea2abc6b8946c2f673f3994efc2b6727d129192
+size 263

@@ -1,14 +1,3 @@
-RTC IOCTL Interface
--------------------
-
-RTC Driver exposes /dev/rtc
-
-IOCTL Commands are provided for user space.
-
-For more information $man 4 rtc 
-
-To read the time the ioctl request is RTC_RD_TIME
-
-To set the time the ioctl request is RTC_SET_TIME
-
-For interrupt every second: ioctl requests (RTC_UIE_ON, RTC_UIE_OFF)
+version https://git-lfs.github.com/spec/v1
+oid sha256:bc0409f244583d01c6b6faeaecadb78ec6bb63adc9dca73110c04c4e8ec76c50
+size 334

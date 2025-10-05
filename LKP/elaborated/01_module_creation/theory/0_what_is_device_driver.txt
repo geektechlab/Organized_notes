@@ -1,31 +1,3 @@
-What is a device driver
-=========================
-
-A device driver (often referred to as driver’) is a piece of software that controls a particular type of device which is connected to the computer system
-
-A device driver has three sides:
-	one side talks to the rest of the kernel
-	one talks to the hardware, 
-	and one talks to the user
-
-	==================
-	=		 =
-	=   User	 =  ---------
-	= 		 =	    |
-	==================          |
-		|                   |
-		|                   |
-		|                   |
-	==================          |
-	=		 =          |
-	=   Kernel	 =          |
-	= 		 =          |  Via Device File
-	==================          |
-		|                   |
-		|Device Driver 
-		|                   |
-	==================          |
-	=		 =          |
-	=   Hardware	 = ---------
-	= 		 =
-	==================
+version https://git-lfs.github.com/spec/v1
+oid sha256:0680568a2f7abf2f71944fb33582fd381a3d45e78ff0d7d51fa4e96b0f6c0e4c
+size 851

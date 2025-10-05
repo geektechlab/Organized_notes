@@ -1,20 +1,3 @@
-The synchronization techniques discussed till now have one drawback.
-
-	They do not differentiate between situations in which
-
-		data structures are simply read
-		data structures are actively updated
-
-	Read access can be provided to multiple tasks concurrently
-	Write access should be provided to one task at a time.
-
-Kernel provides additional semaphore and spinlock versions for the above requirement, as read operation is performed more often than write operation
-
-	1. Reader/Writer Spinlocks
-
-	2. Reader/Writer Semaphores
-
-These are also known as shared/exclusive or concurrent/exclusive locks
-
-	shared 		--> readers
-	exclusive	--> writers
+version https://git-lfs.github.com/spec/v1
+oid sha256:632d739e5b48d9e132dc7b422f8c5a47b44660fa925f9eb19a58c4dde2991922
+size 663

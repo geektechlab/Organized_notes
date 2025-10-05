@@ -1,6 +1,3 @@
-Another Useful function of gdb debugger is the disassemble command. 
-as its name suggesting, this command helps in disassembling of provide function assembler codes. 
-
-like if we want to disassemble main function. we just need to type
-
-(gdb) disassemble main
+version https://git-lfs.github.com/spec/v1
+oid sha256:561614a53b150a5c290c29eacbb801191c1b8a42a71c95c2d959a9472b95a4a0
+size 265

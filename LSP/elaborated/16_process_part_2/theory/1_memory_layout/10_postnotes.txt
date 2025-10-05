@@ -1,9 +1,3 @@
-malloc is NOT calling brk each time we call it.
-
-The first time, malloc creates a new space (the heap) for the program (by increasing the program break location).
-
-The following times, malloc uses the same space to give our program "new" chunks of memory. 
-
-Those "new" chunks of memory are part of the memory previously allocated using brk
-
-This way, malloc doesn't have to use syscalls (brk) every time we call it, and thus it makes malloc - and our programs using malloc - faster. It also allows malloc and free to optimize the usage of the memory.
+version https://git-lfs.github.com/spec/v1
+oid sha256:bb67f4c738c7ead84e2066b000647350496ab57782ba97674120a3945e5f628c
+size 561

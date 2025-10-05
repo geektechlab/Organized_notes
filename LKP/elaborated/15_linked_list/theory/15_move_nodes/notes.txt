@@ -1,8 +1,3 @@
-Moving Linked List Nodes
-=============================
-
-To move a node from one list to another
-
-list_move(struct list_head *list, struct list_head *head);
-
-This function removes the list entry from its linked list and adds it to the give list after the head element.
+version https://git-lfs.github.com/spec/v1
+oid sha256:4ef34b9aa316a3a3188f6106e716d501ef648df4ec1af4f78e6377cbd3a961ad
+size 276

@@ -1,20 +1,3 @@
-kstrtoint
--------------
-
-kstrtoint - convert a string to an int
-
-Implemented in lib/kstrtox.c
-
-int kstrtoint(const char *s, unsigned int base, int *res);
-
-s: The start of the string. The string must be null-terminated, 
-	The first character may also be a plus sign or a minus sign.
-
-base:  The number base to use. The maximum supported base is 16.
-	If base is given as 0, then the base of the string is automatically detected with the conventional semantics (eg. 0x)
-
-res: Where to write the result of the conversion on success
-
-Return: 0 on success
-	-ERANGE on overflow
-	-EINVAL on parsing error
+version https://git-lfs.github.com/spec/v1
+oid sha256:3b528379b6bcdb7e33ed15c8b4975f5d8182c24d99ff470066d174469ae2f352
+size 617

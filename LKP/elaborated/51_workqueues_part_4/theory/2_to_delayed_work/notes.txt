@@ -1,6 +1,3 @@
-static inline struct delayed_work *to_delayed_work(struct work_struct *work)
-{
-        return container_of(work, struct delayed_work, work);
-}
-
-Header File: <linux/workqueue.h>
+version https://git-lfs.github.com/spec/v1
+oid sha256:73591dad459cad9377c008cd9628df75409bb86d86c5580f553063d5046a6d1f
+size 183

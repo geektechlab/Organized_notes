@@ -1,14 +1,3 @@
-How Sudo Works
-=============
-
-If you take a look at the executable sudo:
-
-linuxtrainer@ubuntu:~$ which sudo
-/usr/bin/sudo
-linuxtrainer@ubuntu:~$ ls -la /usr/bin/sudo
--rwsr-xr-x 1 root root 149080 Jan 17  2018 /usr/bin/sudo
-linuxtrainer@ubuntu:~$ 
-
-You'll notice that it has the setuid bit set
-
-Whenever you run a program with sudo, the sudo process runs with a root privilege straight away.
+version https://git-lfs.github.com/spec/v1
+oid sha256:ec6121e666cc6e32738d4210d763b20942afc238fb178c0add8559b578472c90
+size 405

@@ -1,7 +1,3 @@
-The kmalloc() function returns physically and virtually contiguous memory.
-
-Physically contiguous memory has two primary benefits.
-        1.  many hardware devices cannot address virtual memory.
-        2.  a physically contiguous block of memory can use a single large page mapping. This minimizes the translation lookaside buffer (TLB) overhead of addressing the memory
-
-Allocating physically contiguous memory has one downside: it is often hard to find physically contiguous blocks of memory, especially for large allocations
+version https://git-lfs.github.com/spec/v1
+oid sha256:a9264be1174d0fe2ff2e83533a9b61c6a36b5748a8ef50ab053d7003b388afee
+size 537

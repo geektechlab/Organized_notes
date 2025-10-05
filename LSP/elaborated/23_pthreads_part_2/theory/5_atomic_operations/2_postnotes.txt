@@ -1,5 +1,3 @@
-The above code suffers from a race condition - the value of i is changing. The new threads start later (in the example output the last thread starts after the loop has finished).
-
-To overcome this race-condition, we will give each thread a pointer to it's own data area.
-
-These are synchronization locks that are used to prevent race conditions and ensure proper synchronization between threads running in the same program
+version https://git-lfs.github.com/spec/v1
+oid sha256:82adb999b2175e2fb1fa9e92e1e91d5c8b5776db912587fcc73ea9aef62549f9
+size 428

@@ -1,5 +1,3 @@
-kzalloc
-========================
-
-kzalloc works like kmalloc, but also zero the memory.
-void *kzalloc(size_t size, gfp_t flags);
+version https://git-lfs.github.com/spec/v1
+oid sha256:74185c7da5c1dfdb5085770949ea3c65478258b234eb31bb15034b2ad2146b93
+size 134

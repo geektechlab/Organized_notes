@@ -1,7 +1,3 @@
-Want to include only files which are compiled:
-
-$ make ARCH=x86 COMPILED_SOURCE=1 cscope
-
-This way, the cscope database will only contain symbols that have already been used in the compile process before
-
-Advantage: Better performance when searching for symbols
+version https://git-lfs.github.com/spec/v1
+oid sha256:e65eb958f899647be456aaadae6f0da5f77703183d800d4f4837cd98d286ad9b
+size 269

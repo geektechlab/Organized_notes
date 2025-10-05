@@ -1,4 +1,3 @@
-void wake_up_all (wait_queue_head_t *wq);
-void wake_up_interruptible_all (wait_queue_head_t *wq);
-
-The above functions will wake up all threads.
+version https://git-lfs.github.com/spec/v1
+oid sha256:5c48eed32480f4228cc2ad35afb3eb95027d5fec573e902e22b2f5ea29a8047e
+size 149

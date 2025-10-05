@@ -1,2 +1,3 @@
-Do writers need to take lock while operating inside the critical section?
-=============================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:829f8f7331be78b17d20598d7ec349899eec9c518f84f40712bb14eee568d059
+size 154

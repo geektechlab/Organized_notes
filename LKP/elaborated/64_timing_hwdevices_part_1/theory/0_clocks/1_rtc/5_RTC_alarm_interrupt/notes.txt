@@ -1,5 +1,3 @@
-RTC Alarm Interrupt
---------------------
-
-ioctl request: RTC_AIE_ON, RTC_AIE_OFF for turning ON/OFF
-To read/set alarm time: RTC_ALM_READ, RTC_ALM_SET
+version https://git-lfs.github.com/spec/v1
+oid sha256:dc95bb00e75dddafa12ddacefb9f2f66c5f8f4ff88d53177d4112e06c39087db
+size 155

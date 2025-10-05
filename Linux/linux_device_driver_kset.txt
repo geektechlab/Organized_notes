@@ -1,1 +1,3 @@
-https://www.learningaboutelectronics.com/Articles/Kset-linux.php
+version https://git-lfs.github.com/spec/v1
+oid sha256:7b303ca65022d9db602453642aa873222e16b89207e4d6e8d5f2c7df06de37b8
+size 64

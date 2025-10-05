@@ -1,8 +1,3 @@
-More commands
-===============
-
-1. ctrl + w + ] : Open the definition in a horizontal split
-
-2.  position the cursor over the tag name and press g + ] to get a list of matching tags
-
-3. vim -t tag : Start vi and position the cursor at the file and line where "tag" is defined.
+version https://git-lfs.github.com/spec/v1
+oid sha256:d9f228e87236305dd8c22aec0d1f476be88a536db7e85a51f5b59d599e77cd0c
+size 284

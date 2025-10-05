@@ -1,3 +1,3 @@
-wait_for_completion will places the task in 'TASK_UNINTERRUPTIBLE' state, if you want the process to be placed in 'TASK_INTERRUPTIBLE' state.
-
-int wait_for_completion_interruptible(struct completion *done)
+version https://git-lfs.github.com/spec/v1
+oid sha256:04ff2866d5964ea94374bd4e827b11850e8c259f5c93ba05ade08475f7acb0ad
+size 209

@@ -1,8 +1,3 @@
-What happens when we run the below code snippet?
-
-read_lock(&mylock);
-write_lock(&mylock);
-
-Executing these two functions will cause deadlock, as write_lock will spin until it all readers have released the lock.
-
-write lock can only be acquired when reader has completed read unlock.
+version https://git-lfs.github.com/spec/v1
+oid sha256:121853eee4f5bffef4f073d1867ab06d30b4d4aa8c72b9fd96dcd649aa1fbf66
+size 292

@@ -1,7 +1,3 @@
-The returned address is inside the heap region
-
-the returned address does not start exactly at the beginning of the region
-
- malloc is a "regular" function (as opposed to a system call), so it must call some kind of syscall in order to manipulate the heap.
-
-Let's use strace to find out.
+version https://git-lfs.github.com/spec/v1
+oid sha256:d91042441679bb249c2817b698174bd75303d3d82d713420da0ddd28e8523533
+size 295

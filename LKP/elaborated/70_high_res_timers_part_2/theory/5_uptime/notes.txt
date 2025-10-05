@@ -1,10 +1,3 @@
-uptime
-----------
-
-$uptime
-
-cat /proc/uptime
-
-File: fs/proc/uptime.c
-
-ktime_get_boottime_ts64(&uptime);
+version https://git-lfs.github.com/spec/v1
+oid sha256:1a8f88deb6b3ce20ee06673fef6dd742b1431cc2e3c98db760f239579be295b4
+size 114

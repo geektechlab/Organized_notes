@@ -1,11 +1,3 @@
-Iterative macros
-
-#define ITERATE_LIST_BEGIN(list_ptr, node_ptr)                              \
-{                                                                           \
-    dll_node_t *_node_ptr = NULL;                                           \
-    node_ptr = list_ptr->head;                                              \
-    for(; node_ptr!= NULL; node_ptr = _node_ptr){                           \
-        if(!node_ptr) break;                                                \
-        _node_ptr = node_ptr->right;
-
-#define ITERATE_LIST_END  }}
+version https://git-lfs.github.com/spec/v1
+oid sha256:5a64026aad3404741d51631ea38409cf12dea349654db00bb1937e7cfb5a78cd
+size 564

@@ -1,1 +1,3 @@
-A new shared memory object initially has zero length--the size of the object can be set using ftruncate(2)
+version https://git-lfs.github.com/spec/v1
+oid sha256:fa5bf4240dd813faf89fbafcca1d483325bed2454feb2180562f2bd16ac354f6
+size 108

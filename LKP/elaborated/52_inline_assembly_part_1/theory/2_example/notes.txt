@@ -1,15 +1,3 @@
-Example of speed with inline assembly
----------------------------------------
-
-The x86 architecture includes instructions that determine 
-	the positions of the least significant set bit and 
-	the most significant set bit in a word.
-
-Implementing the same operation in C require a loop and a bit shift.
-
-bsrl
-----------
-
-Instruction computes the position of most significant bit set in first operand, places the bit position into second operand.
-
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:981dc2357431d6b7d42acb9212664a50f92eb80719ee92bc0da372cc12d2b388
+size 462

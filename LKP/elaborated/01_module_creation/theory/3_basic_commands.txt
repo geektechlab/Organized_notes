@@ -1,6 +1,3 @@
-Basic Commands
-==================
-
-1. List Modules: (lsmod) lsmod gets its information by reading the file /sys/modules. ( we can check it by "strace lsmod" ) ( also we can check by "ls /sys/modules" )
-
-2. Module Information: (modinfo) : prints the information of the module. ( it provides various info such as word magic value and then you have what all parameters which are which can be passed to this module so while loading the module )
+version https://git-lfs.github.com/spec/v1
+oid sha256:3c7b61f92d949a1b0da2ad303844dbac68b977ec6d8fc0ef0073de946b430500
+size 445

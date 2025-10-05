@@ -1,3 +1,3 @@
-The default action for things like SIGSEGV is to terminate your process but as you've installed a handler for it, it'll call your handler overriding the default behavior. 
-
-But the problem is segfaulting instruction may be retried after your handler finishes and if you haven't taken measures to fix the first seg fault, the retried instruction will again fault and it goes on and on. So, in this program when we execute, it continously goes into sighandler.
+version https://git-lfs.github.com/spec/v1
+oid sha256:2b53b1483e37b6523f34d0c084361eb1c1351a55bab2dfe254ac10d478f682e8
+size 462

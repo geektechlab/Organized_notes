@@ -1,6 +1,3 @@
-hrtimer_get_remaining
-----------------------
-
-ktime_t hrtimer_get_remaining(const struct hrtimer *timer);
-
-returns the amount of time left before a timer expires
+version https://git-lfs.github.com/spec/v1
+oid sha256:641dbf8d461af9c61d98dea2501efd55ce16a5a52cc564c26c932635ee26bb92
+size 168

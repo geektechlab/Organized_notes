@@ -1,4 +1,3 @@
-Can the RCU read-side critical sections be nested?
-==================================================
-
-Yes, as long as that code does not explicitly block or sleep
+version https://git-lfs.github.com/spec/v1
+oid sha256:18870760f32d613b80108861f56e913533e72d7a0ea8a07edc83cffb57a9f585
+size 168

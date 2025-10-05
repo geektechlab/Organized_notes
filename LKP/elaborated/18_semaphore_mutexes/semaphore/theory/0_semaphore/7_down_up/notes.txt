@@ -1,9 +1,3 @@
-down()
-===========
-	decrements the count by one
-	If count >= 0 task can enter the critical region
-	Else task is placed on the wait queue
-
-up()
-===========
-	increments the count by one
+version https://git-lfs.github.com/spec/v1
+oid sha256:d38b5ad794b170f393f08667cf46e279f6fd6b2aa69dee212056aba86d5e6f5d
+size 193

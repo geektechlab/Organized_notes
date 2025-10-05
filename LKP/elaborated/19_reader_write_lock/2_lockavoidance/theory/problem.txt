@@ -1,10 +1,3 @@
-Problem
-----------------
-
-Readers-writer lock is a special lock mechanism which allows concurrent access for read-only operations
-
-An exclusive lock is needed for writing or modifying data.
-
-A writer process can't acquire a lock as long as at least one reader process which acquired a lock holds it.
-
-This may lead to a problem called writer starvation, where writer process may sometimes need to wait long time for the lock
+version https://git-lfs.github.com/spec/v1
+oid sha256:d5f8643406d0d89623f78a09a5a575f358665041f3d4fd92374d84457669dbe9
+size 435

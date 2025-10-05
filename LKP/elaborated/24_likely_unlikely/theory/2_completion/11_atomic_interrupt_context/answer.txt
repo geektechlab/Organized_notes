@@ -1,4 +1,3 @@
-Can wait_for_completion() and its variants are safe to use in atomic/interrupt contexts
-=======================================================================================
-
-No, as they sleep
+version https://git-lfs.github.com/spec/v1
+oid sha256:b6ef89dda53f3e74a5d190e3691c4833cefdb449d4d22655d618217ec2897cdf
+size 199

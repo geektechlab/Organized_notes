@@ -1,14 +1,3 @@
-Kernel Data structures
-=======================
-
-Linux Kernel Code provides several data structures:
-
-        Linked lists
-
-        Queues
-
-        Maps
-
-        Binary trees
-
-These generic data structures are provided to encourage code reuse.
+version https://git-lfs.github.com/spec/v1
+oid sha256:63e9bd2193b27cb631fbc21bfcc4795646a01d6f054af914f72cbae953721ea9
+size 257

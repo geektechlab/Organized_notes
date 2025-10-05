@@ -1,1 +1,3 @@
-whenever a application terminates, release function will get called. Because SIGINT will get released and all file descriptors will get closed.
+version https://git-lfs.github.com/spec/v1
+oid sha256:f059483845aed71efe51603233fe2880e4d82177327863b675042dd8e3738e1d
+size 143

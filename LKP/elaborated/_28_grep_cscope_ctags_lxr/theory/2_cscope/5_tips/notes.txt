@@ -1,8 +1,3 @@
-Tips
-==============
-
-1. Pressing Ctrl-b allows you to search for previous search terms again.
-
-2. cscope -p4 causes Cscope to prepend the directories (upto 4) leading to a source file in your tree when displaying its results.
-
-3. cscope -C disables case-sensitive search
+version https://git-lfs.github.com/spec/v1
+oid sha256:11e1be58f5555284f626cf9a38156a283728a119d54065d309fd9345234f3169
+size 279

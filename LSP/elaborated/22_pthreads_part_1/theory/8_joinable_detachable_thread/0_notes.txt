@@ -1,14 +1,3 @@
-With every thread some resources are associated like stack  etc
-
-When a thread exits ideally these resources should be reclaimed by process automatically. But that doesn’t happens always. It depends on which mode thread is running.
-
-A Thread can run in two modes i.e.
-
-	Joinable Mode
-	Detached Mode
-
-By default a thread runs in joinable mode. Joinable thread will not release any resource even after the end of thread function, until some other thread calls pthread_join() with its ID.
-
-A Detached thread automatically releases it allocated resources on exit. No other thread needs to join it. 
-
-But by default all threads are joinable, so to make a thread detached we need to call pthread_detach() with thread id 
+version https://git-lfs.github.com/spec/v1
+oid sha256:ebaf7b60938260681528be1e89fc40fd5510d4cf225853ca8d9d461386730c07
+size 731

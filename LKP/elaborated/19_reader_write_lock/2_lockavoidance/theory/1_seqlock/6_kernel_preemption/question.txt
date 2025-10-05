@@ -1,5 +1,3 @@
-Is Kernel Preemption Disabled?
-===============================
-
-        Readers: Yes/No 
-        Writers: Yes/No
+version https://git-lfs.github.com/spec/v1
+oid sha256:dc694487aac7c59135feda09898258663ca802309aa2b871b8e7cf9191c59cb1
+size 118

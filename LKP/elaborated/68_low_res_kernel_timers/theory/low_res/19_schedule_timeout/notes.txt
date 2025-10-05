@@ -1,13 +1,3 @@
-schedule_timeout
-------------------
-
-long schedule_timeout (signed long timeout);
-
-Make the current task sleep until timeout jiffies have elapsed.
-
-Implementation
----------------
-
-It internally uses kernel timers
-
-File: kernel/time/timer.c
+version https://git-lfs.github.com/spec/v1
+oid sha256:88d40387b82d6aebb64d5bd48c20412b551821487b8da5b731ce03eefc45b1a2
+size 253

@@ -1,2 +1,3 @@
-Why can't the application directly access hardware, why do we need system calls?
----------------------------------------------------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:3737c1aa9bff680adaff8d4ea0350df2f68e5952f48074d26de60c674b1e833d
+size 165

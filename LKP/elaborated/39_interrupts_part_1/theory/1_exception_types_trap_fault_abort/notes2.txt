@@ -1,10 +1,3 @@
-General Protection Fault
-========================
-A General Protection Fault may occur for various reasons. The most common are:
-
-Segment error (privilege, type, limit, read/write rights).
-Executing a privileged instruction while CPL != 0.
-Writing a 1 in a reserved register field.
-Referencing or accessing a null-descriptor.
-Trying to access an unimplemented register (like: mov cr6, eax)
-The saved instruction pointer points to the instruction which caused the exception.
+version https://git-lfs.github.com/spec/v1
+oid sha256:9f15d1c2cd49b5de23765728cd8734bbf194a330c0197012fb6e7bfae1b8d72d
+size 484

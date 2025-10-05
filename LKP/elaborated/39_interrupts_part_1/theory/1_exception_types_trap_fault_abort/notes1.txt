@@ -1,10 +1,3 @@
-Exceptions
-============
-
-Exceptions are classified as faults, traps and abort, depending on the way they are reported and whether the instruction that caused the exception can be restarted without loss of program
-
-traps increment the instruction pointer, faults do not, and aborts 'explode'
-
-Faults: These can be corrected and the program may continue as if nothing happened. Eg. page fault
-Traps: Traps are reported immediately after the execution of the trapping instruction. Eg. int instruction, updating instruction pointer
-Aborts: Some severe unrecoverable error. Eg. hardware failure
+version https://git-lfs.github.com/spec/v1
+oid sha256:a52a318e7ea4e3f9718b584ed0313639dc9f6ad2e501beeecec65a84590db7ab
+size 600

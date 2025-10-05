@@ -1,6 +1,3 @@
-GCC Thread Sanitizer
-=========================
-
-Thread Sanitizer (TSAN, -fsanitize=thread): detect data races in multi-threaded programs.
-
--g -fsanitize=thread
+version https://git-lfs.github.com/spec/v1
+oid sha256:38981492bd83e54bd9d831b72e7ea700606fff44f455985a8426f91df321323b
+size 166

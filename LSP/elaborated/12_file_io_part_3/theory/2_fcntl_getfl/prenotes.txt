@@ -1,33 +1,3 @@
-The fcntl function can change the properties of a file that is already open.
-
-----
-run [ man fcntl ] to find if it is system call
-----
-
-#include <fcntl.h>
-int fcntl(int fd, int cmd, ... /* int arg */ );
-
-Returns: depends on cmd if OK (see following), −1 on error
-
-The fcntl function is used for five different purposes
-
-	Duplicate an existing descriptor (cmd = F_DUPFD or F_DUPFD_CLOEXEC)
-	Get/set file descriptor flags (cmd = F_GETFD or F_SETFD)
-	Get/set file status flags (cmd = F_GETFL or F_SETFL)
-	Get/set asynchronous I/O ownership (cmd = F_GETOWN or F_SETOWN)
-	Get/set record locks (cmd = F_GETLK, F_SETLK, or F_SETLKW)
-
-File status flags
-======================
-
-Each open file description has certain associated status flags, initialized by open(2) and possibly modified  by  fcntl()
-
-The file status flags and their semantics are described in open(2)
-
-int open(const char *pathname, int flags); 
-
-
-F_GETFL (void)
-	Get the file access mode and the file status flags; arg is ignored.
-
-	
+version https://git-lfs.github.com/spec/v1
+oid sha256:e832e1a20dfc639730da8471293a2d4c0d98c5d7ac4b57361af1665a729d05b9
+size 1028

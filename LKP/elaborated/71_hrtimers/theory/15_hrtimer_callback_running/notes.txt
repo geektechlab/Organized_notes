@@ -1,9 +1,3 @@
-hrtimer_callback_running
-------------------------
-
-static inline int hrtimer_callback_running(struct hrtimer *timer);
-
-Helper function to check, whether the timer is running the callback function
-
-Return: 1 if the callback is running
-	0 if the callback is not running
+version https://git-lfs.github.com/spec/v1
+oid sha256:2cfdbc685008cc2cdbd1a910b2b7122958b8808c220d558a67aa61d1123bc2e5
+size 277

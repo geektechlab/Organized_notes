@@ -1,4 +1,3 @@
-clock_gettime
----------------
-
-Defined in : kernel/time/posix-timers.c
+version https://git-lfs.github.com/spec/v1
+oid sha256:086426fc1dee6f86bc39ef4cb9468a08cf021e30ecc1f523cdff52c90848dc18
+size 75

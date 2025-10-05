@@ -1,2 +1,3 @@
-What is the disadvantage of having periodic ticks/interrupts in linux kernel
-------------------------------------------------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:1f808127772284f4922a4a1ccec432ac975f9f3a17c18bba07efb9f0391c26b4
+size 158

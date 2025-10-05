@@ -1,11 +1,3 @@
-The following is a snippet from kernel/kthread.c
-
-set_current_state(TASK_INTERRUPTIBLE);
-if (list_empty(&kthread_create_list))
-	schedule();
-__set_current_state(TASK_RUNNING);
-
-Here in this code, it is checking the condition only after setting the state to TASK_INTERRUPTIBLE
-
-Why do you think last line is needed?
-=================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:d571cc9917334bc1b54c950638f16ce6e5dfc32dadf64ac1bc772857f0027b30
+size 375

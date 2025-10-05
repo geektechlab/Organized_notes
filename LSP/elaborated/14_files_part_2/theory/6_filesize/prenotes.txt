@@ -1,4 +1,3 @@
-The st_size member of the stat structure contains the size of the file in bytes
-This field is meaningful only for regular files, directories, and symbolic links.
-
-For a symbolic link, the file size is the number of bytes in the filename
+version https://git-lfs.github.com/spec/v1
+oid sha256:e11d075d37ea8825a280f0f4e06e38b3ab005deb37da3914f831a09e7cf7dd00
+size 241

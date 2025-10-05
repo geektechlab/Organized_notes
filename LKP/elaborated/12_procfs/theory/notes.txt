@@ -1,10 +1,3 @@
-Virtual File Systems
-=======================
-
-There are numerous ways for a device driver (or other kernel component) to provide information to the user or system administrator.  
-
-One useful technique is the creation of virtual files, in debugfs, /proc or elsewhere.
-
-Virtual files can provide human-readable output that is easy to get at without any special utility programs
-
-virtual file system reside in RAM memeory. They do not take any space in harddisk or any storage media. /proc/ /debugfs and /sys file systems are example of this. But SATA etc. take space in storage media.
+version https://git-lfs.github.com/spec/v1
+oid sha256:7306ba819859d996a3bb310c5e1ecaed2205ad0edbba8e2cbe8029e75903ebbd
+size 594

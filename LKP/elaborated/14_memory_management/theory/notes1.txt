@@ -1,6 +1,3 @@
-virtual kernel memory layout
-==============================
-
-x86: You can see in dmesg | grep -A 10 'virtual kernel memory layout'
-
-x86_64: Documentation/x86/x86_64/mm.rst
+version https://git-lfs.github.com/spec/v1
+oid sha256:ef9e2cfe661b070a1acbb65f6198c4c5f20265c6839f6aa56db22cb94ba15cfe
+size 178

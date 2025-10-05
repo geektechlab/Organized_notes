@@ -1,10 +1,3 @@
-Why is the threaded handler not being executed even after thread is created?
-=============================================================================
-
-When the hard-IRQ handler (handler function) function returns IRQ_WAKE_THREAD, 
-
-the kthread associated with this bottom half will be scheduled, invoking the thread_fn
-
-The thread_fn function must return IRQ_HANDLED when complete.
-
-After being executed, the kthread will not be rescheduled again until the IRQ is triggered again and the hard-IRQ returns IRQ_WAKE_THREAD
+version https://git-lfs.github.com/spec/v1
+oid sha256:8d5ac4a468cecc9fa6d774c7fc3f11dcec1e102f75ccf398effc01d3b71af7e7
+size 536

@@ -1,8 +1,3 @@
-LOCK
---------
-
-Intel 64 and IA-32 processors provide a LOCK# signal that is asserted automatically during certain critical memory operations to lock the system bus.
-
-While this output signal is asserted, requests from other processors or bus agents for control of the bus are blocked
-
-Software can specify other occasions when the LOCK semantics are to be followed by prepending the LOCK prefix to an instruction
+version https://git-lfs.github.com/spec/v1
+oid sha256:7e7b8763caf681df4678825b46181a46cdb9d6380e38564a7c9d7feadcd23138
+size 421

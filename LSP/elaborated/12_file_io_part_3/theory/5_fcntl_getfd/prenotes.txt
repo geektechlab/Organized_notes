@@ -1,9 +1,3 @@
-File descriptor flags
-===========================
-
-F_GETFD (void)
-	Read the file descriptor flags; arg is ignored.
-
-Currently,  only  one  such  flag  is  defined: FD_CLOEXEC,  the  close-on-exec flag.
-
-If the FD_CLOEXEC bit is 0, the file descriptor will remain open across an execve(2), other‐wise it will be closed.
+version https://git-lfs.github.com/spec/v1
+oid sha256:5a18c46c94655de00a70f687ad2ab1bc3842a277f55cdffb5805721abeed00ad
+size 330

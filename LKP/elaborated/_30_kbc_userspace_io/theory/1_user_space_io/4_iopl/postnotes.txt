@@ -1,3 +1,3 @@
-use ioperm(2)  or  alternatively iopl(2) to tell the kernel to allow the user space application to access the I/O ports in question. 
-
-Failure to do this will cause the application to receive a  segmentation fault.
+version https://git-lfs.github.com/spec/v1
+oid sha256:ccd7ee6e26be656748534aa75ced5a9039d93a677ae565bb3d15f0ac8db0599b
+size 218

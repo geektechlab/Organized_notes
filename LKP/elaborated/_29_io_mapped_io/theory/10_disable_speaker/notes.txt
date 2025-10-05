@@ -1,12 +1,3 @@
-Speaker
-============
-
-Port 0x61: Speaker
-
-Enabling the speaker
-=========================
-Switch on bit 0 and 1 on port 0x61
-
-Disable the speaker
-=========================
-Write 0x00 on port 0x61
+version https://git-lfs.github.com/spec/v1
+oid sha256:18c4276f91acf49c7f3ed8659807dd2de276aaef4d2771e347644b93ae5d7efb
+size 207

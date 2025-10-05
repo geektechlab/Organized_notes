@@ -1,6 +1,3 @@
-timer_pending
---------------
-
-timer_pending will tell whether a given timer is currently pending or not.
-
-return value: 1 if the timer is pending, 0 if not
+version https://git-lfs.github.com/spec/v1
+oid sha256:34abf02c5fb6d08d49c2adbb9e043afaf2bd252d29f0068bfd94f880168959a6
+size 162

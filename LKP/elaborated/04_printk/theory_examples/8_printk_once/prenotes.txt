@@ -1,1 +1,3 @@
-printk_once is fairly trivial - no matter how often you call it, it prints once and never again.
+version https://git-lfs.github.com/spec/v1
+oid sha256:af1f7bdab1818966aeb925a823518b33f7a817c53bb160dae513a5e2d4790539
+size 98

@@ -1,13 +1,3 @@
-The upper limit (number of bytes that can be allocated in a single kmalloc request), is a function of:
-	the processor – really, the page size – and the number of buddy system freelists (MAX_ORDER).
-
-( check in include/linux/slab.h [ IMP: video 24:00 - 29:00 ] )
-
-On both x86 and ARM, with a standard page size of 4 Kb and MAX_ORDER of 11
-
-#define KMALLOC_SHIFT_MAX       (MAX_ORDER + PAGE_SHIFT - 1)
-
-MAX_ORDER = 11 , PAGE_SHIFT = 12 = 11 + 12 -1 = 22
-
-/* Maximum allocatable size */
-#define KMALLOC_MAX_SIZE        (1UL << KMALLOC_SHIFT_MAX) = 2^22 = 4*1024*1024 = 4MB
+version https://git-lfs.github.com/spec/v1
+oid sha256:fcb6bb0ba4fa7d241b27007cb92708e661770752a010299ca70844fee19558e5
+size 587

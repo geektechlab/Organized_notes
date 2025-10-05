@@ -1,1 +1,3 @@
-Loading the module will either freeze or reboot the kernel depending on your kernel configuration
+version https://git-lfs.github.com/spec/v1
+oid sha256:0b45cd18cb12c18c04b6b27233c80f22c29ca5de0a5ccf093cf8cbf0fe5adbfa
+size 99

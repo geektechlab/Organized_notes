@@ -1,2 +1,3 @@
-why do matching constraints exist when you can just use "+r"(var) for a read/write operand, instead of the more complicated matching-constraint syntax?"
-=================================================================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:9f3f76188fcbad80317eee648b5d29f566b3ec5f8a19082391b31e69b730ff61
+size 269

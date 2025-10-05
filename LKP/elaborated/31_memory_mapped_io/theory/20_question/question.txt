@@ -1,2 +1,3 @@
-If i say echo "linux is the future" and strings /dev/mem | grep "linux is the future"? will it be present in RAM
-=================================================================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:f7ef66e8e590727ca2c95a1556ab3832e44f8418b432fd9404f9b624d8e5cd8f
+size 229

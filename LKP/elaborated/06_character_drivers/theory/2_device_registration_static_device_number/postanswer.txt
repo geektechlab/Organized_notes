@@ -1,2 +1,3 @@
-CHRDEV_MAJOR_MAX as an artificial limit (chosen to be 511)
-file: linux/fs.h
+version https://git-lfs.github.com/spec/v1
+oid sha256:efd18836c5516337d1d1f7e9c558847c00dc3f9a645721aa22122659e0008b91
+size 78

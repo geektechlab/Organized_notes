@@ -1,26 +1,3 @@
-Where to find the kernel sources
-===============================
-
-All of the source code for the Linux kernel can be found on one of the kernel.org
-
-http://www.kernel.org site shows all of the current kernel versions for the various different kernel trees
-
-Linus tree is present at https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/
-
-Fetching the mainline sources
-===============================
-
-$ mkdir linux_mainline
-
-$ cd linux_mainline/
-
-$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/
-
-Fetching the stable kernel sources
-====================================
-
-$ mkdir linux_stable
-
-$ cd linux_stable/
-
-$ git clone https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
+version https://git-lfs.github.com/spec/v1
+oid sha256:71409017382b6bd6a67f4c615ce31a1a0d1ee953280ccaf333e3d2f714d53a0b
+size 766

@@ -1,1 +1,3 @@
-https://www.youtube.com/watch?v=pnnOL7kfkz0&list=RDCMUCJXa3_WNNmIpewOtCHf3B0g&index=9&ab_channel=LaurieWired
+version https://git-lfs.github.com/spec/v1
+oid sha256:7c37d3fa627326b5894ce908d49924d3c52f75bfe3f500597159c321b780fe61
+size 110

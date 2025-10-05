@@ -1,7 +1,3 @@
-To truly appreciate how the process(es) and/or threads of our applications actually consume CPU bandwidth, let's use the interesting gnome-system-monitor GUI application to see resource consumption graphically!
-
-$ gnome-system-monitor &
-
------
-analyze both programs using this
------
+version https://git-lfs.github.com/spec/v1
+oid sha256:eb2c0212533e45751f89fd343a01766ff64d3e95cf1820ce0d4fc0f52c4fcf35
+size 290

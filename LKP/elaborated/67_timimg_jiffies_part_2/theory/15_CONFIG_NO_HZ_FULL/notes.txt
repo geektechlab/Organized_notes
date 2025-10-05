@@ -1,16 +1,3 @@
-CONFIG_NO_HZ_FULL=y
---------------------
-
-If a CPU has only one runnable task, there is little point in sending it a scheduling-clock interrupt because there is no other task to switch to.
-
-Note that omitting scheduling-clock ticks for CPUs with only one runnable task implies also omitting them for idle CPUs.
-
-Adaptive-ticks CPU
-------------------
-
-	kernel avoiding sending scheduling-clock interrupts to CPUs with a single runnable task are called adaptive-tick cpu
-
-Advantage for
---------------
-
-	applications with aggressive real-time response constraints because it allows them to improve their worst-case response times by the maximum duration of a scheduling-clock interrupt
+version https://git-lfs.github.com/spec/v1
+oid sha256:754525293ae04b242efa5b6fa353b68c883547502dff68427f0d971e4cdbabf1
+size 699

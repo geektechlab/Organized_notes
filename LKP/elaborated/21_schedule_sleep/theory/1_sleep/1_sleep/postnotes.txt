@@ -1,3 +1,3 @@
-msleep will put the processor into uninterruptible sleep.
-
-ps will show you 'D' as the state
+version https://git-lfs.github.com/spec/v1
+oid sha256:b11f8a42624311c3714bebb8ee5c6f8f88371812ac057cf00eced301830dc5b4
+size 96

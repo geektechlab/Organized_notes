@@ -1,12 +1,3 @@
-Enable/Disable Interrupt
-=========================
-
-Header File: <linux/irqflags.h>
-
-local_irq_disable(); //disable all interrupts on the current processor
-
-local_irq_enable(); //Enables all interrupts on the current processor
-
-On x86, local_irq_disable() is a simple cli, and local_irq_enable() is a simple sti instruction
-
-cli and sti are the assembly calls to clear and set the allow interrupts flag, respectively.
+version https://git-lfs.github.com/spec/v1
+oid sha256:6a79e0e85268a19d6c49bae407b70bd7b2e6eea8fa1d0dc539defa3de6d5ffe4
+size 430

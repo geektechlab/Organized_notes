@@ -1,6 +1,3 @@
-Can I pause my child?
-=======================
-
-Yes ! You can temporarily pause a running process by sending it a SIGSTOP signal. If it succeeds it will freeze a process; i.e. the process will not be allocated any more CPU time.
-
-To allow a process to resume execution send it the SIGCONT signal.
+version https://git-lfs.github.com/spec/v1
+oid sha256:62d76ff6bccea3231797f906dbccd8436431412157c5a985ea6aa2a1bf556e08
+size 302

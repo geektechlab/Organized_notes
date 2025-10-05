@@ -1,12 +1,3 @@
-Does this code have lost wake up problem?
-=========================================
-
-DEFINE_WAIT(wait);
-add_wait_queue(queue, &wait);
-while (!condition) {
-    prepare_to_wait(&queue, &wait, TASK_INTERRUPTIBLE);
-    if (signal_pending(current))
-        /* handle signal */
-    schedule();
-}
-finish_wait(&queue, &wait);
+version https://git-lfs.github.com/spec/v1
+oid sha256:5b4d548f35041fc3d5451dce967e97e215d08eb7139bb7ec7677895d47dff037
+size 330

@@ -1,4 +1,3 @@
-What happens if i call tasklet_schedule twice?
-------------------------------------------------
-
-After a tasklet is scheduled, it runs once at some time in the near future. If the same tasklet is scheduled again, before it has had a chance to run, it still runs only once
+version https://git-lfs.github.com/spec/v1
+oid sha256:bcb025044c986f651fdee9dbfd7d4e88db7b7abbcc73143e7da83844261908f3
+size 276

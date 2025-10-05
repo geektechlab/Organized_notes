@@ -1,14 +1,3 @@
-First phase of update (Element B unlinked from List)
-
-         Updater          Reader
-       HEAD   /             |
-        |    /              |
-        V   V               v
-    --------------          -----------------               -------------
-    |            |          |               |               |           |
-    |   A        |---       |   B           |-------------->|    C      |
-    |            |  |       |               |            -->|           |
-    --------------  |       ------------------           |  -------------
-                    |                                    |
-                    |                                    |
-                    --------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:b3ee906f5c9408cc1f2326e9042cf61b63f244e69a64844f0df529638a09043e
+size 738

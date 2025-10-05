@@ -1,3 +1,3 @@
-WQ_MAX_UNBOUND_PER_CPU - number of unbound workqueues that can be associated with a cpu
-
-WQ_UNBOUND_MAX_ACTIVE -  total number of unbound workqueues
+version https://git-lfs.github.com/spec/v1
+oid sha256:affbc361cad35ace6b14fe264e775560e196c67ef45021ea3c1eb5a3a6a34141
+size 152

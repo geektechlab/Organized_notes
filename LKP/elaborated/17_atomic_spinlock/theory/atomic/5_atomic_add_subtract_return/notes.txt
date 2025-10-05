@@ -1,7 +1,3 @@
-Atomic Add/Subtract and return
-==============================
-
-int atomic_add_return(int val, atomic_t *i);// Atomically add val to *i and return the result.
-int atomic_sub_return(int val, atomic_t *i); // Atomically subtract val from *i and return the result.
-int atomic_inc_return(atomic_t *i);// Atomically increment *i by one and return the result.
-int atomic_dec_return(atomic_t *i);// Atomically decrement *i by one and return the result.
+version https://git-lfs.github.com/spec/v1
+oid sha256:911534c9f4626331846d3d1eb0b7f5b7a910a238d10a02dcb9f52341c797b48f
+size 452

@@ -1,8 +1,3 @@
-Spin locks are not recursive
-===============================
-
-Unlike spin lock implementations in other operating systems and threading libraries, the Linux kernel’s spin locks are not recursive
-
-This means that if you attempt to acquire a lock you already hold, you will spin, waiting for yourself to release the lock.
-
-But because you are busy spinning, you will never release the lock and you will deadlock.
+version https://git-lfs.github.com/spec/v1
+oid sha256:9788c661e3d052bd7d6754d466a1f60375dad4ecafc35d7b8e4058738e737302
+size 421

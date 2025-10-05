@@ -1,4 +1,3 @@
-CLOCK_BOOTTIME
-===============
-
-CLOCK_MONTONIC does not measure time spent in suspend, use CLOCK_BOOTTIME if you want to measure the time spend ins suspend also
+version https://git-lfs.github.com/spec/v1
+oid sha256:296fda18febe57384336cc03c5e05e26e754f190de84b0dc549d9013e0dce250
+size 165

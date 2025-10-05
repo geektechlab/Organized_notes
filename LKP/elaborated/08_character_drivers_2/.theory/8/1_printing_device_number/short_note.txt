@@ -1,1 +1,3 @@
-kernel provides utility to print device number using dev_t structure and writes back to buffer allocated by kernel itself.
+version https://git-lfs.github.com/spec/v1
+oid sha256:ccf5fd88b4560024edae6acb17378e76af2921f8dc88cbce6f22b0511e537fac
+size 122

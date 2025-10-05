@@ -1,6 +1,3 @@
-Common use of atomic operations
-===============================
-
-	A common use of the atomic integer operations is to implement counters
-	Protecting a sole counter with a complex locking scheme is overkill, so instead developers use 
-	atomic_inc() and atomic_dec(), which are much lighter in weight.
+version https://git-lfs.github.com/spec/v1
+oid sha256:a2ccd343696a5c53492be1b6fc526a42fe153ef6fef6ceb1ccd0d8cab70c7b59
+size 306

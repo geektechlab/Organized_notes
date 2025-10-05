@@ -1,7 +1,3 @@
-How are semaphores implemented? Look at kernel/locking/semaphore.c
-
-struct semaphore {
-        raw_spinlock_t          lock;
-        unsigned int            count;
-        struct list_head        wait_list;
-};
+version https://git-lfs.github.com/spec/v1
+oid sha256:7eb34fd794cb4196fc0047e528ea5d605628b66c2b6f0fd41a90049236eae9b6
+size 217

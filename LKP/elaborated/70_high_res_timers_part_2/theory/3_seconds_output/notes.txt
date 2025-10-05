@@ -1,12 +1,3 @@
-seconds output
--------------------
-
-time64_t ktime_get_seconds(void);
-
-time64_t ktime_get_boottime_seconds(void);
-
-time64_t ktime_get_real_seconds(void);
-
-Return a coarse-grained version of the time as a scalar time64_t
-
-This avoids accessing the clock hardware and rounds down the seconds to the full seconds of the last timer tick using the respective reference.
+version https://git-lfs.github.com/spec/v1
+oid sha256:e8c95f9325d7d9a9bbc2650d85a201b00e6284267daef134ab3697277df17084
+size 377

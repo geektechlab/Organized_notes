@@ -1,4 +1,3 @@
-How to provide a read only file?
-==================================
-
-By appropriately setting the mode bits
+version https://git-lfs.github.com/spec/v1
+oid sha256:8767b87da7877c7881ac7ab1a71ce47b1a545bd71f6924023984c24d585af1f5
+size 112

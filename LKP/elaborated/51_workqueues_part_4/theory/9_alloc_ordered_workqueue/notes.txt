@@ -1,10 +1,3 @@
-alloc_ordered_workqueue
-------------------------
-
-#define alloc_ordered_workqueue(fmt, flags, args...)
-
-Allocate an ordered workqueue
-
-An ordered workqueue executes at most one work item at any given time in the queued order
-
-They are implemented as unbound workqueues with max_active of one
+version https://git-lfs.github.com/spec/v1
+oid sha256:1f11a54bf02bc605044e19db281ccc15170eb6e5a2dc3f8b47c1b4c5aacdaf62
+size 302

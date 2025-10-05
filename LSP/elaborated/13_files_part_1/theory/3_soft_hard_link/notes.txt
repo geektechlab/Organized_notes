@@ -1,16 +1,3 @@
-Links in Linux
-=================
-
-A link in Linux is a pointer to a file.
-
-Creating links is a kind of shortcuts to access a file
-
-Links allow more than one file name to refer to the same file, elsewhere.
-
-There are two types of links :
-
-	1. Soft Link or Symbolic links
-
-	2. Hard Links
-	
-	3. Nothing
+version https://git-lfs.github.com/spec/v1
+oid sha256:11c1d36bc30425425f75299a86726e7dc7bae5376822bc6272486ddd04d82031
+size 316

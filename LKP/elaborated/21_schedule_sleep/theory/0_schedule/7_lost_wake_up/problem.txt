@@ -1,34 +1,3 @@
-Lost Wake Up Problem
-==========================
-
-    processes go to sleep after checking some condition.
-
-    Lost wakeup problem arises out of a race condition that occurs while a process goes to conditional sleep.
-
-Process A                                       Process B
-====================                            ========================
-
-    if (list_empty(&mylist_head))               list_add_tail_rcu(&mylist_head);
-    {                                           wake_up_process(task_a);
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule();
-    }
-
-    //Rest of the Code which performs operation on list 
-
-What is the problem in the above code?
-=======================================
-
-If process A which was executing list_empty  on one processor found that the list is empty and it entered the if loop.
-
-At the same time, process B started on another processor starts and executes all its instructions.
-
-It calls wake_up_process on process A which has not yet slept.
-
-Now process A sets the state to TASK_INTERRUPTIBLE and goes to sleep.
-
-Thus, a wake up from process B is lost.
-
-This is known as lost-wakeup problem.
-
-Process A sleeps, even though there are nodes available on the list.
+version https://git-lfs.github.com/spec/v1
+oid sha256:85296162aef0cac9bee6acd6568e0c5a4de7f04f1493fdd1cfb55059e922e415
+size 1254

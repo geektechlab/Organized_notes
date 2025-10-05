@@ -1,12 +1,3 @@
-A peek inside a LKM
-------------------------
-
-All modules have their own symbols.
-
-Suppose we have a module hello.ko, with a lot of functions, variables and so on.
-
-After compiling it and obtaining the module’s object file, we can get a list of its symbols by running nm
-
-$ nm ./hello.ko
-
-U -> Undefined
+version https://git-lfs.github.com/spec/v1
+oid sha256:e97f031979c059aba5cb351a1923cbd19e730014f7d1270d09c33965e498360d
+size 318

@@ -1,2 +1,3 @@
-How kernel avoids running the same tasklet on multiple processors
-------------------------------------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:9de79d22017664ff6d688c980b35da1603fdcb4bac4c3ebeaad8dd86d7e6b272
+size 135

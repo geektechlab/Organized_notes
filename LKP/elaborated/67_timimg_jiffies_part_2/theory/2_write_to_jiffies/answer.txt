@@ -1,4 +1,3 @@
-Can i write to jiffies?
--------------------------
-yes, but
-The jiffies value is used internally by the scheduler, so bad things can happen modifying it
+version https://git-lfs.github.com/spec/v1
+oid sha256:195368c5e17be0c0b8745860733dc007a7a42f110d645bf77ecf27427147fec5
+size 156

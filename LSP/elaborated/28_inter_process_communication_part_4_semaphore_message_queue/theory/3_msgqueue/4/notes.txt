@@ -1,20 +1,3 @@
-Receiving Messages
-=====================
-
-Once a message has been placed on a queue, you can retrieve the message with a call to the mq_receive function. 
-
-ssize_t mq_receive(mqd_t mqdes, char *msg_ptr,
-                          size_t msg_len, unsigned int *msg_prio);
-
-
-The mq_receive function includes four parameters:
-	the message queue descriptor,
-	a pointer to a buffer to hold the incoming message,
-	the size of the buffer,
-	and the priority of the message received (the priority is returned by the function)
-
- The size of the buffer must be at least the size of the message queue's size attribute
-
-When a process uses the mq_receive function to read a message from a queue, the queue may be empty. 
-
-The receiving process can block until a message arrives in the queue, or it can return immediately, according to the state of the O_NONBLOCK flag established with a preceding call to the mq_open function.
+version https://git-lfs.github.com/spec/v1
+oid sha256:254c994ece2d95825a3904987506755e4addd89344002dc00207df7ad4b98d74
+size 933

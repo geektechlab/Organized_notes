@@ -1,11 +1,3 @@
-The 8086 processor has two hardware interrupt signals
-
-– NMI non-maskable interrupt
-– INTR Interrupt request (maskable interrupt)
-
-How to support more than two interrupts?
-==========================================
-
-It would be very unproductive to make a ton of INTR pins on the CPU for all of them.
-
-To solve this problem a special chip was invented — an interrupt controller.
+version https://git-lfs.github.com/spec/v1
+oid sha256:1362aa7383db96522e8d7629c53b3f8b8070c94a54d6231a4d902ce94110354a
+size 396

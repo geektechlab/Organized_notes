@@ -1,7 +1,3 @@
-Can we access non exported symbols using this logic?
----------------------------------------------------
-
-For example print_cpu_info()
-
-----
-yes, we can access those
+version https://git-lfs.github.com/spec/v1
+oid sha256:d5e470bd72474b6e88849322c18ebadcf923b8d74673f3568c17d0eceb46a0f9
+size 173

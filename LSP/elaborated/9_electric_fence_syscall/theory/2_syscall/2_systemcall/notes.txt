@@ -1,5 +1,3 @@
-echo $? to get the return value 
-
-----
-running  [ strace ./<executable> ] gives all syscalls used by executable.
-----
+version https://git-lfs.github.com/spec/v1
+oid sha256:fd5e1e38ca1972f0323a55f47e875185e215cd0621d4e6f53e2c6021e9cd7550
+size 123

@@ -1,8 +1,3 @@
-Return Value
-==================
-
-What should be the return value when invalid command is passed?
-
-As per the POSIX Standard, if an inappropriate ioctl command has  been issued , then -ENOTTY should be returned.
-
-ENOTTY	-->	Inappropriate IOCTL For the device
+version https://git-lfs.github.com/spec/v1
+oid sha256:f11e5ac6956687a4d8de2f639eafe790dbd66ef2bcddf594f5e7274192cba77d
+size 266

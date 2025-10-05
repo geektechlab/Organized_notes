@@ -1,18 +1,3 @@
-Integer-based GPIO interface 
-============================
-
-In Integer based GPIO interface, GPIO is identified by an integer, which is used for every operation  that needs to be performed on the GPIO.
-
-Header File: <linux/gpio.h>
-
-Platforms define how they use those integers, and usually #define symbols for the GPIO lines so that board-specific setup code directly corresponds to the relevant schematics.
-
-Example: 
-
-	one platform uses numbers 32-159 for GPIOs
-
-	another uses numbers 0..63
-
-To test if the gpio number is valid or not.
-
-	int gpio_is_valid(int number);
+version https://git-lfs.github.com/spec/v1
+oid sha256:0cae8284b2de124e450fd4637a9b9680ec93d69064c07e03263d921fe9f09753
+size 589

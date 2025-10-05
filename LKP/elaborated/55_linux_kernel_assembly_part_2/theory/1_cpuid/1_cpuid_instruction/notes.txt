@@ -1,25 +1,3 @@
-CPUID
------------
-
-Request for CPU identification
-
-The CPUID instruction can be used to retrieve various amount of information about your cpu,
-	vendor string
-	model number
-	size of internal caches
-	the list of CPU features supported
-
-The idea of the CPUID instruction is that you can call it with different values in EAX,it will return different information about the processor
-
-CPU Vendor String
-------------------
-
-EAX = 0, ECX = 0
-Result of Vendor ID String in: EBX, ECX, EDX
-
-      MSB         LSB
-EBX = 'u' 'n' 'e' 'G'
-EDX = 'I' 'e' 'n' 'i'
-ECX = 'l' 'e' 't' 'n' 
-
-Where, MSB stands for "Most Significant Byte" and LSB is the "Least Significant Byte".
+version https://git-lfs.github.com/spec/v1
+oid sha256:9338020a9ebf585e9fc4893de1b8281fc97e1cd30c85bb6617a720a3157721aa
+size 682

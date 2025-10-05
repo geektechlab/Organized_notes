@@ -1,8 +1,3 @@
-Setting up expiration time
----------------------------
-
-When the timer is initialized, we need to set its expiration before the callback gets fired
-
-int mod_timer( struct timer_list *timer, unsigned long expires); 
-
-The expires field represents the jiffies value when the timer is expected to run;
+version https://git-lfs.github.com/spec/v1
+oid sha256:d95d8eee3d44967dc9a209e819cdf4810f1f071fa1ffb085b12e37d2a2dc3277
+size 306

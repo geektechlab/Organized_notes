@@ -1,4 +1,3 @@
-nolapic
-----------
-
-Kernel command line parameter to Disable local apic 
+version https://git-lfs.github.com/spec/v1
+oid sha256:f759a332e32937c98f6708c11d60878f933efee496a775bc4d0936ae6ee5db92
+size 77

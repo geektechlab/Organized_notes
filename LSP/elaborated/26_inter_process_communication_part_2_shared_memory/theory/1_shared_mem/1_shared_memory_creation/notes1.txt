@@ -1,17 +1,3 @@
-Shared Memory Objects and Linux Kernels
-=======================================
-
-On Linux, all shared memory objects can be found in /dev/shm
-
-You may list them with ls -l /dev/shm. 
-
-You may also remove a shared memory object with rm /dev/shm/[name]
-
-Since Linux 3.16, the kernel supports unlimited shared memory size.
-
-$ cat /proc/sys/kernel/shmmax
-18446744073692774399
-
-If the system administrator did not change the limit, then it is ULONG_MAX - (1 << 24) (i.e. 18014398509465599 on 64-bit machines), which stands for unlimited. 
-
-Of course, this is the theoretical upper bound. The physical RAM size and SWAP size may impose other limits.
+version https://git-lfs.github.com/spec/v1
+oid sha256:bbfdd7cc6d2d34e7a755296213a9c5f8db02ade6598d1651db8e49f646d2d993
+size 661

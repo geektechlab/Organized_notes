@@ -1,12 +1,3 @@
-CAP_SYS_ADMIN
-===============
-
-The ability to perform all the system administration operations. Almost near to root.
-
-Before performing a privileged operation, a device driver should check that the calling process has the appropriate capability or not. 
-
-Capabilities checks are performed with the capable function.
-
-Header File: <linux/sched.h>
-
-int capable(int capability);
+version https://git-lfs.github.com/spec/v1
+oid sha256:969f4d16760dfe815c1b0f3b1731871548cc3ee73961f2e5a391db3e4a33f48c
+size 388

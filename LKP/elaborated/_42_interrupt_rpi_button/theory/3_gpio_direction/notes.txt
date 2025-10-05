@@ -1,9 +1,3 @@
-Setting the gpio pin direction
-==============================
-
-	int gpio_direction_input(unsigned gpio);
-	int gpio_direction_output(unsigned gpio, int value);
-	
-The return value is zero for success, else a negative errno
-
-For output GPIOs, the value provided becomes the initial output value
+version https://git-lfs.github.com/spec/v1
+oid sha256:95543395ec1131206e2516668a088a8c74edc499ef706f07fa463314b6206044
+size 301

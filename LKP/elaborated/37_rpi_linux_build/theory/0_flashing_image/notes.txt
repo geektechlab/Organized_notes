@@ -1,16 +1,3 @@
-Flashing Raspbian Image on Raspberry Pi3
-========================================
-
-Pre Requisites: SD Card should be connected to your computer
-$ dmesg | grep sdb
-
-Step 1: Download Raspbian Buster Lite from Raspbian website
-
-$ wget --content-disposition https://downloads.raspberrypi.org/raspbian_lite_latest
-
-Step 2: Extract the image
-
-$ unzip 2019-09-26-raspbian-buster-lite.zip
-
-Step 3: Write it to the SD Card
-$ sudo dd if=2019-09-26-raspbian-buster-lite.img of=/dev/sdb bs=4096 && sync
+version https://git-lfs.github.com/spec/v1
+oid sha256:e7ee3dd02f6c1603a982b1bb5947e73119e48c5afe6d5ea198447c71820885ed
+size 507

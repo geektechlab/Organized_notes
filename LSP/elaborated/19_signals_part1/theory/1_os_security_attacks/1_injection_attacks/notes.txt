@@ -1,7 +1,3 @@
-===================================
-Introduction
-===================================
-
-Now, lets consider a situation where you use system() better. You call all programs with absolute path and everything, but even that is not enough.
-
-You must also consider injection attacks which is when the attacker can inject code that will run.
+version https://git-lfs.github.com/spec/v1
+oid sha256:7e5ecb5273bb1ee47127fd552496821b7f46713b367bd1220857739f5462e064
+size 341

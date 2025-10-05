@@ -1,4 +1,3 @@
-Can I list all the references of a symbol in vim using Ctags like cscope?
-==========================================================================
-
-Not possible with ctags
+version https://git-lfs.github.com/spec/v1
+oid sha256:5b6e97e61a619360634882fd4f99a3e73f662e557fda251eca10f31fab7b3613
+size 178

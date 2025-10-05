@@ -1,1 +1,3 @@
-$ ltrace -c ls /
+version https://git-lfs.github.com/spec/v1
+oid sha256:65e9c8eff6f6eca4300a6b5d0e692ca17fc2c8a2d2131a443392917986356711
+size 18

@@ -1,11 +1,3 @@
-Signals and Threads
-===========================
-
-What happens to a multithreaded Linux process if it gets a signal?
-====================================================================
-
-Each thread has its own signal mask, but the signal disposition is shared by all threads in the process.
-
-As a consequence, individual threads can block signals, but when a thread modifies the action associated with a given signal, all threads share the action.
-
-Thus, if one thread chooses to ignore a given signal, another thread can undo that choice by restoring the default disposition or installing a signal handler for that signal.
+version https://git-lfs.github.com/spec/v1
+oid sha256:12852bd62f2f1a04907c8987535febd7b49f407ff6472c16e60ae9fce15d9284
+size 635

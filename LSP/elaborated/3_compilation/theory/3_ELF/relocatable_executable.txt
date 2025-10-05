@@ -1,25 +1,3 @@
-----------------
-use [ objdump -D hello.o ] ( object file ) and [ objdump -D hello ] ( executable ) to dissassemble the file and then try to match with following
-----------------
-
-Difference between Relocatable Code and Machine Executable Code
-================================================================
-
-1. Instructions of Relocatable Code are bound to offset address assigned as per the position of the instruction within the procedure
-Eg. 00000000 <main>
-    0:  55  push %ebp
-Executable binary code bounds to platform specific load address
-Eg. 0804312d <main>
-    0804312d:   55  push %ebp
-
-2. Function call instructions in relocatable object files referred to called functions offset position
-Eg. call 12 <main+0x12>
-Call instructions in executable binaries referred to functions base address
-Eg. call 8048300<printf@plt>
-
-3. Relocatable object files only contains instructions that appear in the source file
-Machine Executable code contains functionality plus run time code.
-
-----------------
-Linux generated executable will not work on Windows even if machine architecture is same. Because, Linux executable file format is ELF but Windows executable file format is COFF.
-----------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:1b6b9df675d5a958b3ae5171e612512cc84f475a255da691011da965797edb1d
+size 1225

@@ -1,1 +1,3 @@
-In our previous program, each one is operation on same user buffer. But if I want private user buffer for each, use this example.
+version https://git-lfs.github.com/spec/v1
+oid sha256:08b722e1766eadbdb3f4f7ac85e1dec2cc8a1bda7f7cf2b37593493a2e0ea169
+size 129

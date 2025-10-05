@@ -1,21 +1,3 @@
-Waking up
-===============
-
-	Given a reference to a task structure, the process could be woken up by calling:
-
-	wake_up_process(sleeping_task);
-
-	Implementation: kernel/sched/core.c
-
-	-->	this sets the task state to TASK_RUNNING
-
-	-->	puts the task back on the run queue.
-
-	Note:	the process runs only when the scheduler looks at it the next time around.
-
-	Return: 
-		1 if the process was woken up, 
-		0 if it was already running.
-
------
-example is a device driver showing skeep and wake of process.
+version https://git-lfs.github.com/spec/v1
+oid sha256:47d2737bc7336292f6090c0af219852e8239f934e62e6b0ebb6c78aa7006e5f5
+size 520

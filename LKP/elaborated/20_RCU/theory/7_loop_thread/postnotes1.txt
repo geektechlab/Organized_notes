@@ -1,5 +1,3 @@
-What is the problem in the below code?
-=======================================
-
-Memory Leak
-- at write thread we are allocating memeory but not freeing.
+version https://git-lfs.github.com/spec/v1
+oid sha256:622555708e6d59bd857c9cfec8d5a9d4c853349566ad952662332c12eec6fdce
+size 158

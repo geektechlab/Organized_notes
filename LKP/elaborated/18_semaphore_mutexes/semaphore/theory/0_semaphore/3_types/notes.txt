@@ -1,13 +1,3 @@
-Types of Semaphore
-=====================
-
-Spin locks allow only one task to hold the lock at a time.
-
-With semaphores,number of tasks to hold the lock at a time can be specified while initializing/declaring semaphore
-
-    This value is called as usage count or simply count.
-
-Count = 1   --> Binary Sempahore
-                Used for mutual exclusion
-
-Count > 1   --> Counting Semaphore
+version https://git-lfs.github.com/spec/v1
+oid sha256:5e81a8d149eaad20788430e6d5266ec19085587a51eed8094239d164a5aa484a
+size 400

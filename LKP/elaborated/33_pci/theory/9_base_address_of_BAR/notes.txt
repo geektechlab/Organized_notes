@@ -1,10 +1,3 @@
-Get the Base Address of BAR:
-============================
-
-When you want to retrieve the actual base address of a BAR, be sure to mask the lower bits
-
-For 32-Bit Memory Space BARs, you calculate (BAR[x] & 0xFFFFFFF0)
-
-For 64-Bit Memory Space BARs, you calculate ((BAR[x] & 0xFFFFFFF0) + ((BAR[x+1] & 0xFFFFFFFF) << 32))
-
-For I/O Space BARs, you calculate (BAR[x] & 0xFFFFFFFC)
+version https://git-lfs.github.com/spec/v1
+oid sha256:f846bf5e35c85711fab0af6ed18183d8edf1f89c26b85561ba2563d2e1df087e
+size 387

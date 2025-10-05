@@ -1,14 +1,3 @@
-How do you find out whether a function is static or global by looking into /proc/kallsyms?
-------------------------------------------------------------------------------------------
-
-$ cat /proc/kallsysms | grep <function_name>
-
-$ cat /proc/kallsyms | grep msleep
-
-If you observe 't' it is static and 'T' then it is global symbol
-
-$ cat /proc/kallsyms | grep crc32c_mod_init 
-
-/proc/kallsysms follows nm syntax
-
-All exported symbols will have another symbol prefixed with __ksymtab_
+version https://git-lfs.github.com/spec/v1
+oid sha256:4f055e2838d3dd7836b283bda730de43604100ee111e50a67e0d13ef8b731cc8
+size 497

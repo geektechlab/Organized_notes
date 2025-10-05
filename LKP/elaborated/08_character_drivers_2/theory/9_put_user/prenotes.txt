@@ -1,7 +1,3 @@
-What is jiffies?
-
-Informally, According to wikipedia, jiffy is term used for any unspecified short period of time.
-
-Coming back to our Linux Kernel World, jiffies is a global variable which stores the number of clock ticks since boot. It is present in <linux/jiffies.h>
-
-Let's write a character driver which on read returns the value of 'jiffies'.
+version https://git-lfs.github.com/spec/v1
+oid sha256:142481547a7db882c5a660f4465c7e9c7449d7c3283110e1482210f656c7e2a1
+size 355

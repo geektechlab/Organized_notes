@@ -1,4 +1,3 @@
-schedule() function
-=====================
-
-schedule() invokes scheduler and it then picks up the next process/task from the run queue.
+version https://git-lfs.github.com/spec/v1
+oid sha256:e63361380419240edcdf898d684b9d38a3f41cfc7c1c740406c6023f345f7727
+size 139

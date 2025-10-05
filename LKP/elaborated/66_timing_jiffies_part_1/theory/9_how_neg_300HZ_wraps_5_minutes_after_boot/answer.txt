@@ -1,10 +1,3 @@
-How -300*HZ wraps 5 minutes after boot
-===========================================
-
-HZ is the number of clock ticks (jiffies) in 1 second.
-
-300 seconds is 5 minutes.
-
-Therefore 300 x HZ is the number of jiffies in 5 minutes.
-
-Therefore after 5 minutes, an initial value of -300 * HZ will have been incremented to 0.
+version https://git-lfs.github.com/spec/v1
+oid sha256:d1e400182923b822412f9d6b3066400294622005365bae91e5fa7ab963ab9a83
+size 326

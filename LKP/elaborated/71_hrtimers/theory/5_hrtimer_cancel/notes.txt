@@ -1,11 +1,3 @@
-hrtimer_cancel
----------------
-
-cancel a timer
-
-int hrtimer_cancel(struct hrtimer *timer);
-
-Returns:
-
-        0 when the timer was not active
-        1 when the timer was active
+version https://git-lfs.github.com/spec/v1
+oid sha256:fb62d16873ee61f38803ebf93b695c6237a97019ffd285d89184cee166985b72
+size 189

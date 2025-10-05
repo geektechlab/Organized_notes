@@ -1,7 +1,3 @@
-void disable_irq_nosync(unsigned int irq);
-The function disable_irq_nosync() does not wait for current handlers to complete.
-
-void synchronize_irq(unsigned int irq);
-The function synchronize_irq() waits for a specific interrupt handler to exit, if it is executing, before returning.
-
-synchronize_irq() spins until no interrupt handler is running for the given IRQ
+version https://git-lfs.github.com/spec/v1
+oid sha256:be3edb232ea6661dc1ba6e1100ade5372708afc63150c99bc1e9d7c2c063fb3d
+size 371

@@ -1,1 +1,3 @@
-see PPT for lec 23-26
+version https://git-lfs.github.com/spec/v1
+oid sha256:817a75769749be9bc1cfc4a43e201d45f35c0725871375b5a9bcbae9e3b90ab5
+size 21

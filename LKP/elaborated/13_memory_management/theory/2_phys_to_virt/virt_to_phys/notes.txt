@@ -1,16 +1,3 @@
-Kinds of Memory
-===============
-
-Kernel and user space work with virtual addresses .
-
-These virtual addresses are mapped to physical addresses by memory management hardware (MMU)
-
-Header File: #include <asm/io.h>
-
-phys_addr = virt_to_phys(virt_addr);
-virt_addr = phys_to_virt(phys_addr);
-
----
-[ uname -a ] shows 64-bit / 32-bit machine type. i686=32-bit, x86_64=64-bit
-buildroot generates linux images for lightweight targets. Yocto is for heavy weight.
----
+version https://git-lfs.github.com/spec/v1
+oid sha256:44bb128fc49f3881f1894d98e3cb8631d4de62a8d03610489408a47eb83b99c6
+size 474

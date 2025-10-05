@@ -1,14 +1,3 @@
-Usb notes
-
-105
-106 ?
-115
-116
-119
-134
-135
-137
-139
-140
-141
-142
+version https://git-lfs.github.com/spec/v1
+oid sha256:8994f53e7c5828a857ba6de5797da96916b07bb7ef5817bf6c46f91979a729c4
+size 75

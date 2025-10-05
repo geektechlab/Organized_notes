@@ -1,5 +1,3 @@
-The actual filesystem entry is created at bind time
-	If the file already exists, bind will fail
-	It’s up to you to remove stale sockets as needed
-
-$ ls /tmp -l
+version https://git-lfs.github.com/spec/v1
+oid sha256:2dc8a4ff00451f632b873dcd040ec0cc95c667fed3aeeacd19bd52e174305f31
+size 167

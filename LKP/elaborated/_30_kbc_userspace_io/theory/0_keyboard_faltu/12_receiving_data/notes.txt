@@ -1,5 +1,3 @@
-Receiving Data
-=============
-
-1. Wait until bit 0 of the status register becomes set
-2. Read the received byte of data from IO Port 0x60
+version https://git-lfs.github.com/spec/v1
+oid sha256:019dce729717a6c2e12e21b8e2aca598c25486f3dc1336bd886175716ace1170
+size 142

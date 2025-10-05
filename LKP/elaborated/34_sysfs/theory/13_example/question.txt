@@ -1,1 +1,3 @@
-What happens if i only have show function and no store and i call echo?
+version https://git-lfs.github.com/spec/v1
+oid sha256:d45fced9be45b1c2f0cb6c14e42d2965f5b959ea6dbedbe8217c214dbd98337b
+size 73

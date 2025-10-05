@@ -1,6 +1,3 @@
- asm("movq %1, %0" :
-		"=r"(num): //output operand
-		 "I" (0xff00aaffaaff) //input operand
-	);
-
-Replace "I" with "i" and it will work
+version https://git-lfs.github.com/spec/v1
+oid sha256:6988d42a33776ad65487dcd1a4123e7166909e72aaa6e8aae0a966a50e330fac
+size 140

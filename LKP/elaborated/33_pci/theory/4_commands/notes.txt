@@ -1,34 +1,3 @@
-How do you find out Bus, Device and Function of a PCI Device?
-=============================================================
-
-$ lspci
-
-Each line starts with the PCI bus address formatted as bus:slot.function
-
-If you want to display the PCI vendor code, and the device code only as the numbers, use -n option
-
-$ lspci -n
-
-If you want to display both the description and the number
-
-$ lspci -nn
-
-Display the name of kernel driver
-
-$ lspci -k
-
-Display Configuration Space
-
-$ lspci -x
-
-Display information about a single device
-
-$ lspci -s 03:00:00
-
-Verbose Output
-
-$ lspci -v
-
-For more information
-
-$ man lspci
+version https://git-lfs.github.com/spec/v1
+oid sha256:5721b16148bee8701045a763336ba9b552106d3a09d60ce26654730eaf558861
+size 641

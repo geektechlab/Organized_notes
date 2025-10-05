@@ -1,17 +1,3 @@
-X86 I/O Architecture
-====================
-I/O Bus
-===========
-
-Data path connecting a CPU to an I/O device
-
-I/O Ports
-===========
-
-Every device connected to the I/O bus has its own set of I/O addresses, also called as I/O Ports.
-
-In the IBM PC architecture, I/O address space has up to 2^16 8-bit I/O ports (65536 8-bit I/O Ports)
-
-	Two consecutive 8-bit ports may be regarded as a single 16-bit port, starting at an even address
-
-	Two consecutive 16-bit ports may be regarded as a single 32-bit port, starting at an address divisible by 4
+version https://git-lfs.github.com/spec/v1
+oid sha256:35c8fb231f3aa78208007842fa1f692abd66f1c2274ad1dbcfd3106fd5d4b461
+size 557

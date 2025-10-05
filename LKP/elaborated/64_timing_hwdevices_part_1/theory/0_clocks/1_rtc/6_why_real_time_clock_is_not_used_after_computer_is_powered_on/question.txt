@@ -1,2 +1,3 @@
-Why Real Time clock is not used after computer is powered on?
----------------------------------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:e4df0589724a0eca68aa68c6e960683823035352a8b742765b74b2e79dcc1877
+size 128

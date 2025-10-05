@@ -1,1 +1,3 @@
-here, strlen can't work directly on user space memory. Proper way to do that it to copy in kernel space.
+version https://git-lfs.github.com/spec/v1
+oid sha256:19faf63f178e4bc54cecd715040dfcb9138158aeeb11794e0eacc470ab8a99b0
+size 104

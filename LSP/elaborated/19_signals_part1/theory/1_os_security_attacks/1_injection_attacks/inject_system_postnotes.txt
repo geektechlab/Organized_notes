@@ -1,13 +1,3 @@
-If we were to run this program, it does mostly what you expect:
-
-Ok, now consider if we were to provide input that doesn't fit this model. What if we were to provide shell commands as input.
-
-./inject_system 
-What input do you want to 'cat' (choose from below)
-input > ;echo
-Executing: /bin/cat ./;echo
-/bin/cat: ./: Is a directory
-
-The input we provided was ";echo" the semi-colon closes off a bash command alowing a new one to start. Notice that there is an extra new line printed, that was the echo printing. Now, can we get this program to run something more interesting?
-
-We still have the cat program we wrote that prints "Goodbye World" and the PATH is set up to look in the local directory.
+version https://git-lfs.github.com/spec/v1
+oid sha256:0d6ae7bac4684b554d47b5a63a140c859e38e585d54ef0f1204d0925f50f0dc0
+size 712

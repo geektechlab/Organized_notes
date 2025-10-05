@@ -1,7 +1,3 @@
-hrtimer_forward_now
----------------------
-
-Forward the timer expiry so it will expire after the current time of the hrtimer clock base. Returns the number of overruns
-
-static inline u64 hrtimer_forward_now(struct hrtimer *timer,
-                                      ktime_t interval);
+version https://git-lfs.github.com/spec/v1
+oid sha256:0c5ac49b6f172e8fb9d96dae383f1ab5247c39080878ae66ce0469af7ecccf1a
+size 293

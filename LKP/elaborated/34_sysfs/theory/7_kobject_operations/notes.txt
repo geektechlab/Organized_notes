@@ -1,33 +1,3 @@
-kobject Operations
-===================
-
-kobject_init
-------------
-
-void kobject_init(struct kobject *kobj, struct kobj_type *ktype);
-
-Initialize a kobject structure.
-
-kobj --> kobject to initialize
-
-Before calling this function, the kobject must be zeroed.
-
-struct kobject *kobj;
-kobj = kmalloc(sizeof (*kobj), GFP_KERNEL);
-if (!kobj)
-	return -ENOMEM;
-memset(kobj, 0, sizeof (*kobj));
-kobj->kset = my_kset;
-kobject_init(kobj, my_ktype);
-
-kobject_create
----------------
-
-The above multistep effort is handled by kobject_create()
-
-struct kobject * kobject_create(void);
-
-struct kobject *kobj;
-kobj = kobject_create();
-if (!kobj)
-	return –ENOMEM;
+version https://git-lfs.github.com/spec/v1
+oid sha256:7e3e45ea155f076c480bfe37bae38bdef9dd4403dc984f40d609811853f64b5e
+size 679

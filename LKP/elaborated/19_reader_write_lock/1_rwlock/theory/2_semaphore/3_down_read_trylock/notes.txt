@@ -1,7 +1,3 @@
-int down_read_trylock(struct rw_semaphore *sem);
-
-int down_write_trylock(struct rw_semaphore *sem);
-
-Note: Both return 1 if the lock is successfully acquired and 0 if it is currently contended.
-
-this is the opposite of normal semaphore behavior!
+version https://git-lfs.github.com/spec/v1
+oid sha256:3b90dd83c0581dfb4fea47f93d6218299efa3b4cae8e5769f840bb823801480f
+size 253

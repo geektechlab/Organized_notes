@@ -1,17 +1,3 @@
-RCU Variants of Linked List API
-===============================
-
-Header File: <linux/rculist.h>
-
-void INIT_LIST_HEAD_RCU(struct list_head *list);
-
-void list_add_rcu(struct list_head *new, struct list_head *head);
-
-void list_add_tail_rcu(struct list_head *new, struct list_head *head);
-
-void list_del_rcu(struct list_head *entry);
-
-list_entry_rcu(ptr, type, member);
-
-list_for_each_entry_rcu(pos, head, member);
-....
+version https://git-lfs.github.com/spec/v1
+oid sha256:2f1f2ebe29236cda574cc5020fd25ee581648c32e30e7b00dd392025f3363989
+size 433

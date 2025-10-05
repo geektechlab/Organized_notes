@@ -1,2 +1,3 @@
-How does the hardware distinguish between port IO and memory access?
-====================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:5cff9d666b54c8f8298079aa2178afe432040116e11d8dec82803f3b63cdf2bd
+size 140

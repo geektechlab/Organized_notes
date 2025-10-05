@@ -1,8 +1,3 @@
-Softirqs vs tasklets
-----------------------
-                Softirqs                    Tasklets
-        
-Allocation:     Allocated at compile time   Can be dynamically registered
-
-Reentrancy:     Yes, same softirqs can run  No, Same tasklet will not be scheduled
-                on different processors     on different processors
+version https://git-lfs.github.com/spec/v1
+oid sha256:b47f7451ea23d4291db993047f9f9ee050bb3ba709a260484266cb9d4677fe5d
+size 340

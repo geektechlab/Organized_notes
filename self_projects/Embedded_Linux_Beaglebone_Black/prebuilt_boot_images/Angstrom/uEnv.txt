@@ -1,9 +1,3 @@
-console=ttyO0,115200n8
-ipaddr=192.168.7.2
-serverip=192.168.7.1
-loadaddr=0x82000000
-fdtaddr=0x88000000
-loadfromsd=load mmc 0:2 ${loadaddr} /boot/uImage;load mmc 0:2 ${fdtaddr} /boot/am335x-boneblack.dtb
-linuxbootargs=setenv bootargs console=${console} root=/dev/mmcblk0p2 rw 
-uenvcmd=setenv autoload no; run loadfromsd; run linuxbootargs; bootm ${loadaddr} - ${fdtaddr}
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:7d75d54b61ae18563a7e46f1c0738b9d6e7d3db2273d27a5f659d72b1ba67abd
+size 379

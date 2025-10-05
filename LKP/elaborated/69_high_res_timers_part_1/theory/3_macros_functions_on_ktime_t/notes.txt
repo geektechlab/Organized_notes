@@ -1,18 +1,3 @@
-ktime_t macros/functions
-------------------------
-
-Various other functions exist for changing ktime_t values.
-
-    ktime_t ktime_add(ktime_t kt1, ktime_t kt2);
-    ktime_t ktime_sub(ktime_t kt1, ktime_t kt2);  /* kt1 - kt2 */
-    ktime_t ktime_add_ns(ktime_t kt, u64 nanoseconds);
-
-All of these treat their arguments as read-only and return a ktime_t value as their result
-
-/* Subtract two ktime_t variables. rem = lhs -rhs: */
-#define ktime_sub(lhs, rhs)     ((lhs) - (rhs))
-
-/* Add two ktime_t variables. res = lhs + rhs: */
-#define ktime_add(lhs, rhs)     ((lhs) + (rhs))
-
-#define ktime_add_ns(kt, nsval)         ((kt) + (nsval))
+version https://git-lfs.github.com/spec/v1
+oid sha256:881abb6d2072c14bf99ad3ecf11fcd244821f77c1dc1d68b74226ada5d65fc38
+size 651

@@ -1,14 +1,3 @@
-iopl
-===========
-
-int iopl(int level);
-
-iopl() changes the I/O privilege level of the calling process, as specified by the two least significant bits in level
-
-The I/O privilege level for a normal process is 0
-
-Return Value:
-===============
-
-On success, zero is returned.
-On error, -1 is returned, and errno is set appropriately.
+version https://git-lfs.github.com/spec/v1
+oid sha256:1843b09b0f28ebfc00c964436c151478cd325fb83a4a6d921d198cea9b72f2f9
+size 344

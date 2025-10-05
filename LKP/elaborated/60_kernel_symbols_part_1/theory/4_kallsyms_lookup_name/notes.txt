@@ -1,10 +1,3 @@
-kallsyms_lookup_name
----------------------
-
-unsigned long kallsyms_lookup_name(const char *name);
-
-This takes symbol name as argument and returns its address in memory
-
-The calling code can dereference the pointer to make use of that symbol.
-
-If the symbol isn’t found, the function returns NULL
+version https://git-lfs.github.com/spec/v1
+oid sha256:f3e4b75e4e38e4ca993042ae19c44a0f48900be95e2f1159372d34df1104c128
+size 308

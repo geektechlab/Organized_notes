@@ -1,11 +1,3 @@
-Halt Instruction
------------------
-
-In x86, hlt instruction halts the CPU until the next interrupt is fired.
-
-Advantage
--------------
-
-hlt instruction allows the processor to significantly reduce its power usage and heat output
-
-The combination of a CLI followed by a HLT is commonly used to intentionally hang the computer.
+version https://git-lfs.github.com/spec/v1
+oid sha256:5cd53c3df6f9c82e7b872a277772f34d00f7760e88fe9115f69f58a2684afea8
+size 336

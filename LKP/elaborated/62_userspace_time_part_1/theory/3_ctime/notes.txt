@@ -1,8 +1,3 @@
-ctime
-==========
-
-char *ctime(const time_t *timep);
-
-Header File: #include <time.h>
-
-The ctime() function returns the string representing the localtime based on the argument timer.
+version https://git-lfs.github.com/spec/v1
+oid sha256:e59a3b4b310344eba9b62f47168be2f9f400c9dc12e729333cf202e92669c898
+size 189

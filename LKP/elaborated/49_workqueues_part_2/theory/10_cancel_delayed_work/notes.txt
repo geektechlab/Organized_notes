@@ -1,4 +1,3 @@
-cancel delayed work
-------------------
-
-bool cancel_delayed_work(struct delayed_work *dwork)
+version https://git-lfs.github.com/spec/v1
+oid sha256:646f44212c589effd2979bd645d512de01f79f45aba627bec54236c0d035b17a
+size 97

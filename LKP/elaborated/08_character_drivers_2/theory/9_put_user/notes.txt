@@ -1,8 +1,3 @@
-put_user function is used to write a simple variable from the kernel into user space
-
-put_user (x, ptr);
-
-x 	-->	Value to copy to user space. 
-ptr	-->	Destination address, in user space.
-
-It supports simple types like char and int, but not larger data types like structures or arrays.
+version https://git-lfs.github.com/spec/v1
+oid sha256:270d1abb019e2a6a69bc8e1303794f5ff42acc75353b6a2aefb8aa7837a9218c
+size 293

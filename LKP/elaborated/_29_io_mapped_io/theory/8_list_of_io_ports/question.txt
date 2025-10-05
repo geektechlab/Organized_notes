@@ -1,2 +1,3 @@
-cat /proc/ioports does it list all the I/O Ports used by the processor?
-=======================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:f53ab068ff72b6e298cb7d7b01506f467606c40676c62c30567bfcdd57d1d039
+size 146

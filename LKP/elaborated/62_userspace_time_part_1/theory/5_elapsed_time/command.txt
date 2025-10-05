@@ -1,7 +1,3 @@
-To stop ntp service
--------------------------
-$sudo systemctl stop systemd-timesyncd.service
-
-To start ntp service
--------------------------
-$sudo systemctl start systemd-timesyncd.service
+version https://git-lfs.github.com/spec/v1
+oid sha256:3996e6337f5bb785ce50b6374d11ec4f4e34b003ad33921b149a03950dda8389
+size 196

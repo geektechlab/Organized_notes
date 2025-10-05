@@ -1,10 +1,3 @@
-Different Architecture
-==========================
-
-The kernel build system allows you to specify a different architecture from the current system with the ARCH= argument
-
-The build system also allows you to specify the specific compiler that you wish to use for the build by using the CC= argument or a cross-compile toolchain with the CROSS_COMPILE argument.
-
-$ make ARCH=x86_64 defconfig
-
-$ make ARCH=arm CROSS_COMPILE=/usr/local/bin/arm-linux
+version https://git-lfs.github.com/spec/v1
+oid sha256:4e6267e74d94145e6826953b265ed7310e199e8c8443d91deb441fe48515b5dd
+size 456

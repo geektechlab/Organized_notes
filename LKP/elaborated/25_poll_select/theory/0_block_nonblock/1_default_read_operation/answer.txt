@@ -1,14 +1,3 @@
-What is the default operation in Linux when you call read() and there is no data: block/nonblock
-=================================================================================================
-
-Default: Blocking
-
-Read:
-===========
-	No data is available, the process must block.
-	Data available, process is awakened, even if available data < requested data 
-
-Write:
-===========
-	No space is available in write buffer, process must block
-	Space available, process is awakened, even if available space < requested write data
+version https://git-lfs.github.com/spec/v1
+oid sha256:8454c5699540f37137d56acb46e947f06b68cf74cfa41f3a221b3794ccc4960c
+size 538

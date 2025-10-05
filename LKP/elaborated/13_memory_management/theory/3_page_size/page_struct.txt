@@ -1,20 +1,3 @@
-Page
-==========
-
-Kernel represents every virtual page on the system with struct page structure.
-
-Header File: <linux/mmtypes.h>
-
-struct page {
-        unsigned long flags;
-	atomic_t      _count;
-	void          *virtual;
-	....
-};
-
-Flags: Status of the page: Dirty, locked in memory. 
-	Values: <linux/page-flags.h>
-
-_count : Usage count of the page. How many references are to this page. When page is free _count is negative one
-
-virtual: Page's virtual Address.
+version https://git-lfs.github.com/spec/v1
+oid sha256:eeb7e4aeaaa732f4731f0e5eb50bf5b23b0bdf6d9da144ecaf78ccf2fb9cc5c6
+size 481

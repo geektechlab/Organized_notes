@@ -1,10 +1,3 @@
-What is the disadvantage of having periodic ticks/interrupts in linux kernel
-------------------------------------------------------------------------------
-
-The timer interrupts are good but has one major issue: Power consumption
-
-	With HZ option, kernel is interrupted HZ times per second in order to reschedule tasks
-	If HZ is set to 1000, there will be 1000 timer interrupts per second
-	This timer tick happens periodically irrespective of the processor state (idle vs busy)
-	If the processor is idle, it has to wake up from its power saving sleep state every 1ms (if HZ=1000)
-	Thus power consumption is increased.
+version https://git-lfs.github.com/spec/v1
+oid sha256:076cbce32c9aee01736a5ae87aa057575b30d822fa82667812c9d7fdbae3d87e
+size 628

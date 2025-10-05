@@ -1,4 +1,3 @@
-Periodic timers
-------------------
-
-You can make the timer periodic by calling mod_timer in the timer handler
+version https://git-lfs.github.com/spec/v1
+oid sha256:d4f6d731ca56f31c73099e53ef12d85673bed5f185e943480c5beecdd8560f52
+size 114

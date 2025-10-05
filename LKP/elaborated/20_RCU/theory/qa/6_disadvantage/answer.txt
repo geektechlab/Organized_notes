@@ -1,4 +1,3 @@
-What is the disadvantage of the RCU when compared to seqlock?
-=============================================================
-
-As we are performing copy operation to update the data structure, increased memory cost
+version https://git-lfs.github.com/spec/v1
+oid sha256:498a6e08f95353573d5f210e3bda8693d0dcac3a3c15937d3eca25babfe19fa7
+size 217

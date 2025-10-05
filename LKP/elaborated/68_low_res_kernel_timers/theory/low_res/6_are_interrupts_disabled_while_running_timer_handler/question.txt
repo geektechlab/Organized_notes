@@ -1,3 +1,3 @@
-Are interrupts disabled while running timer handler?
-
-soft irqs runs with interrupts enabled, so interrupts are enabled while running timer handler.
+version https://git-lfs.github.com/spec/v1
+oid sha256:93b7f9c4fe3da0281a296ed16904211de932dd0ee5286c58604514d6bea6d65f
+size 152

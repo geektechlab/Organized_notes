@@ -1,14 +1,3 @@
-Different ways to pass command line arguments
-==============================================
-
-You can run gdb with --args parameter,
-
-$ gdb --args executablename arg1 arg2 arg3
-
-========================
-
-$ gdb ./a.out
-
-(gdb) r arg1 arg2 arg3
-
-=======================
+version https://git-lfs.github.com/spec/v1
+oid sha256:9ddd8b5f8c82dda45995e0f033793d5aaaf13753b8c8fa45598626569af6503c
+size 281

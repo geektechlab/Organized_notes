@@ -1,9 +1,3 @@
-Lines that end with the backslash character \ are folded by deleting the backslash and the 
-following newline character. This occurs before division into tokens.
-
-#define tempfile(dir) #dir "%s" 
-the macro call tempfile(/usr/tmp) yields 
- "/usr/tmp" "%s"
-
-#define cat(x, y) x ## y 
-the call cat(var, 123) yields var123.
+version https://git-lfs.github.com/spec/v1
+oid sha256:deeb71bb346f3612d24a5a417e11dad34b9ecccbc3524679ede1609be2b22f3a
+size 329

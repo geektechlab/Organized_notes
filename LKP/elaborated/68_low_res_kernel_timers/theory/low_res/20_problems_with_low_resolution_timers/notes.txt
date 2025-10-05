@@ -1,9 +1,3 @@
-Problems with low resolution timers
--------------------------------------
-
-1. Low resolution timers  in Linux are only supported at a resolution of 1 jiffy
-	The length of a jiffy is dependent on the value of HZ in the Linux kernel
-
-2. Multimedia applications
-	timer resolution of several milliseconds is not good enough
-	need very precise timekeeping, for instance, to avoid frame skips in videos, or jumps during audio playback
+version https://git-lfs.github.com/spec/v1
+oid sha256:7482e52cf6e70edd8ff7d85a6a354c58f625bfec02395da9d50d9fafe8bcf402
+size 438

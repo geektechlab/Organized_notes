@@ -1,4 +1,3 @@
-Do the reader needs to retry the read operation like seqlock when the writer is also in critical section?
-=============================================================================================================
-
-Not required. Writer needs to handle this and atomically update the shared resource to the latest 
+version https://git-lfs.github.com/spec/v1
+oid sha256:04e1b0d33a090c738bc8d85e2da9cc5c62af3066e3abbe082eacab83da69b67e
+size 320

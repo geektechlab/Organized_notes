@@ -1,6 +1,3 @@
-cat /proc/ioports does it list all the I/O Ports used by the processor?
-=======================================================================
-
-It's the list of I/O ports regions that have been claimed by kernel drivers using the request_region().
-
-It's not the complete list of I/O Ports or devices available, only the one which are claimed by various drivers
+version https://git-lfs.github.com/spec/v1
+oid sha256:3efc2b783e45a8feac2a52a614a9a0564de82523e0b9d57d8ddbcd3010e0d0f7
+size 368

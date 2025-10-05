@@ -1,10 +1,3 @@
-Write operation:
-----------------
-Writers must take out exclusive access before making changes to the protected data.
-
-write_seqlock(&the_lock);
-/* Make changes here */
-write_sequnlock(&the_lock);
-
-write_seqlock() locks the spinlock and increments the sequence number.
-write_sequnlock() increments the sequence number again, then releases the spinlock.
+version https://git-lfs.github.com/spec/v1
+oid sha256:e1f77be9dcddca47b899a8cec8f86a7ed639b781b64b9b25ca739c863e324236
+size 363

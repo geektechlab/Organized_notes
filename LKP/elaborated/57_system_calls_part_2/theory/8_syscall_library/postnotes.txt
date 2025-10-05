@@ -1,1 +1,3 @@
-$ vi glibc-2.30/sysdeps/unix/sysv/linux/x86_64/syscall.S
+version https://git-lfs.github.com/spec/v1
+oid sha256:8d313fa387e273fd9ec8a3cb12ebc1c1148e6c5d1dddbf61d38e814af4e08f61
+size 58

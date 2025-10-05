@@ -1,11 +1,3 @@
-All modules loaded on the system are linked in a list that can be accessed from any module
-
-struct module {
-      ....
-     struct list_head list;
-     ....
-     char name[MODULE_NAME_LEN];
-     ....
-     unsigned int taints;
-     ....
-};
+version https://git-lfs.github.com/spec/v1
+oid sha256:53566218d43d03833f85a7899421a94eeea3588926eef439637dfb187e442434
+size 250

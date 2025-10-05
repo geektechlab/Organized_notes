@@ -1,6 +1,3 @@
-what are some ways of handling the return value?
-
-as return value can never be a stack variable, there are two ways of handling the return variable.
-    i) create a struct and pass it the pthread_create() function itself, which the thread function will fill it before exiting the  function.
-   ii) use a global variable to pass the return value.
-  iii) pass a specific location to the thread that is created detached, and let the main thread use the return value, when suits.
+version https://git-lfs.github.com/spec/v1
+oid sha256:006108cfc88145f3c043242cc91fc23d28b2fb31eecacbb58447fd7ab3d0abb3
+size 482

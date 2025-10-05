@@ -1,13 +1,3 @@
-How do you determine the amount of address space needed by a PCI device?
-=========================================================================
-
-A Base Address is half the information that’s needed 
-
-We need to get the size of the device.
-
-1. you must save the original value of the BAR
-2. write a value of all 1's to the register
-3. then read it back
-4. restore the original value.
-
-The amount of memory can then be determined by masking the information bits, performing a bitwise NOT ('~' in C), and incrementing the value by 1
+version https://git-lfs.github.com/spec/v1
+oid sha256:e74925df0e1311892871e1f5430782660367c3ba6e973cdf1e88215e837eee79
+size 548

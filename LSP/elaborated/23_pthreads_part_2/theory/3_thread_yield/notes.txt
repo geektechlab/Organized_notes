@@ -1,7 +1,3 @@
-Calling pthread_yield api by any thread will give up the cpu to the other threads.
-
-The current thread will be placed in the end of the run queue and another thread will be scheduled by the scheduler
-
-Syntax: int pthread_yield(void);
-
-Returns 0 on success and error value on error.
+version https://git-lfs.github.com/spec/v1
+oid sha256:21005ee3a5e7234785b583914b6e99ed1029a1afc3714e4d5bde3b48961f446c
+size 289

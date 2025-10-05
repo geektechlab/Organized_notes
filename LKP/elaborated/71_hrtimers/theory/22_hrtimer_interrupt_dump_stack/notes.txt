@@ -1,4 +1,3 @@
-hrtimer_interrupt
------------------
-
-When the clock event device responsible for high-resolution timers raises an interrupt, hrtimer_interrupt is called as event handler
+version https://git-lfs.github.com/spec/v1
+oid sha256:030f7f7f957c06c23c045eb4a39e20f51f39498aa555ed66585270fd0d5a2943
+size 174

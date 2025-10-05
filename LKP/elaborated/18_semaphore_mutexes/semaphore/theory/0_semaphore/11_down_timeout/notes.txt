@@ -1,9 +1,3 @@
-int down_timeout(struct semaphore *sem, long jiffies);
-
-	Attempts to acquire the semaphore.
-
-	If no more tasks are allowed to acquire the semaphore, calling this function will put the task to sleep.
-
-	If the semaphore is not released within the specified number of jiffies, this function returns -ETIME.
-
-	It returns 0 if the semaphore was acquired.
+version https://git-lfs.github.com/spec/v1
+oid sha256:4a4eb69cf6192d29ae735bacd2cd077ba494022ebf846bd8fafcc38a51bd75c4
+size 359

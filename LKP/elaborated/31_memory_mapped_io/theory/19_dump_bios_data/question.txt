@@ -1,2 +1,3 @@
-How to dump BIOS data on to a file?
-====================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:73556896c08003ab7824e1075b6dfe4b15d209bd631017eb4775cb0859df8d63
+size 75

@@ -1,4 +1,3 @@
-Can you pass pointers to stack variables from one thread to another?
-=====================================================================
-
-Yes. However you need to be very careful about the lifetime of stack variables.
+version https://git-lfs.github.com/spec/v1
+oid sha256:e8ad42fb3f1fb0710ef59a874e4ae5aaff4d848ebd3764cf90d14935cbe4a090
+size 224

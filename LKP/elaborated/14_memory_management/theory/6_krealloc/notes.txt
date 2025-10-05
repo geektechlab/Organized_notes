@@ -1,6 +1,3 @@
-krealloc
-==========
-
-Memory allocated by kmalloc() can be resized by:
-
-void *krealloc(const void *p, size_t new_size, gfp_t flags);
+version https://git-lfs.github.com/spec/v1
+oid sha256:35e171db9c26f191437c039ef7af8bc9f49906f0440dc5fae1096bd8b2a2a2f9
+size 138

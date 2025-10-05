@@ -1,15 +1,3 @@
-spinlock vs mutexes
-=======================
-
-	Requirement				Recommended Lock
-	=========================================================
-
-	Low overhead locking			Spinlock
-
-	Short lock hold time			Spinlock
-
-	Long lock hold time			Mutex
-
-	Need to lock from interrupt context	Spinlock
-
-	Need to sleep while holding lock	Mutex
+version https://git-lfs.github.com/spec/v1
+oid sha256:29c719761b20418a3f7d0cd2be38f9ac7244a733ada6c2c1ae515209f3c577d3
+size 338

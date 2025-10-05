@@ -1,8 +1,3 @@
-$make V=1
----------
-Above commands will display all make processes in verbose mode.
----------
-module.symverse contains all modules exported.
----------
-Since it is a propriatory license, we can't access myadd(). It will give error in MODPOST stage.
----------
+version https://git-lfs.github.com/spec/v1
+oid sha256:6dea07edfb5869a260786548fd3ba40c644084ba275de10af0109487072f6e4c
+size 266

@@ -1,1 +1,3 @@
-The *offp should be updated after each data transfer to represent the current file position after successful completion of the system call. Othrwise it will take same one as previous call. That's why previous example was failing.
+version https://git-lfs.github.com/spec/v1
+oid sha256:d4b9b94ee0bd6e569aa6bf788c58291e3696ce0b988abc089b38e3198fb93928
+size 231

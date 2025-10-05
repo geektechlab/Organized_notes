@@ -1,10 +1,3 @@
-Boolean Values
-================
-
-Boolean values can be placed in debugfs with:
-
-struct dentry *debugfs_create_bool(const char *name, umode_t mode,
-				       struct dentry *parent, bool *value);
-
-Read: Y (for non-zero values) or N, followed by a newline
-Write: Upper or lower case values, or 1 or 0
+version https://git-lfs.github.com/spec/v1
+oid sha256:10eaabff526063c4795d395357a122fc48c79e00649573e7affd13dbd55976fb
+size 309

@@ -1,1 +1,3 @@
-What happens if we don't specify a log level in the printk
+version https://git-lfs.github.com/spec/v1
+oid sha256:fbc245a644ecf624de06517f71c1f213116983b82fc8164a874b430ba8724810
+size 60

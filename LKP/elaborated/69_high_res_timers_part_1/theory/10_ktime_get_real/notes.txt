@@ -1,16 +1,3 @@
-ktime accessors
-----------------
-
-ktime_t ktime_get_real(void);
-
-Header file: <linux/timekeeping.h>
-
-Clock used: CLOCK_REALTIME
-
-Returns the time in relative to the UNIX epoch starting in 1970 using the Coordinated Universal Time (UTC), same as gettimeofday() user space
-
-Use cases: timestamps that need to persist across a reboot, like inode times
-
-should be avoided for internal uses, since it can jump backwards due to 
-	a leap second update, 
-	NTP adjustment settimeofday() operation from user space
+version https://git-lfs.github.com/spec/v1
+oid sha256:f83536797c0ce5d5f3c21bc74ebfe9dde806363693e373dfb82f0daf599ed7dd
+size 520

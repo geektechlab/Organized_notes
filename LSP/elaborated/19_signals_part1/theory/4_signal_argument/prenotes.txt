@@ -1,3 +1,3 @@
-the second argument to signal() is a function pointer, a reference to a function to call. This tells the operating system that whenever this signal is sent to this process, run this function as the signal handler.
-
-Also, the execution of the signal handler is asynchronous, which means the current state of the program will be paused while the signal handler executes, and then execution will resume from the pause point, much like context switching.
+version https://git-lfs.github.com/spec/v1
+oid sha256:a9c250cfcc74d22433351870721f671b3e744821ce886404868046e77952e4e2
+size 454

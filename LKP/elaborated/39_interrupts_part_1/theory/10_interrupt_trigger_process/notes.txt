@@ -1,12 +1,3 @@
-What happens when there is an interrupt
-=======================================
-
-Device Asserts IRQ of I/O APIC
-
-I/O APIC transfer interrupt to LAPIC
-
-LAPIC asserts CPU interrupts
-
-After current instruction completes CPU senses interrupt line and obtains IRQ number from LAPIC
-
-Jumps to interrupt handler
+version https://git-lfs.github.com/spec/v1
+oid sha256:79a658643028a8aef2c6892b2d70085caebe92bdd75294da15adb9b9d6da0062
+size 317

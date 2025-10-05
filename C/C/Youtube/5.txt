@@ -1,36 +1,3 @@
-void test(int a)
-{
-	/* copy of b will be created on stack */
-	/* lifetime of a will be within this func, it can't be referenced outside */
-	a=a+1;
-}
-int main()
-{
-	int b=5;
-	test(5);
-}
-------------------------------
-void test(int *a)
-{
-	/* change will happen on b itself */
-	(*a)=(*a)+1;
-}
-int main()
-{
-	int b=5;
-	test(&b);
-}
-------------------------------
-void swap(int *a, int *b)
-{
-	/* This is wrong because a and b pointers are created on stack and just changing their pointed address will not affect actual memories pointed by those */
-	/* Asked in BRCM */
-	int *temp=b;
-	b=a;
-	a=temp;
-
-	/* correct way is this */
-	int temp=*b;
-	*b=*a;
-	*a=temp;
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:5eddbed051d6c324a7dcb5fa6f8e5bd18864a7a17a56060bc2389b2372fcffcd
+size 688

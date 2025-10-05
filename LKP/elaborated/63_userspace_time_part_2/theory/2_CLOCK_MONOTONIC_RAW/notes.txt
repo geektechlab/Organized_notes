@@ -1,8 +1,3 @@
-CLOCK_MONOTONIC_RAW
-====================
-
-Similar to CLOCK_MONOTONIC, but provides access to a raw hardware-based time that is not  subject to NTP adjustments
-
-CLOCK_MONOTONIC_RAW would be relevant mainly to cases where more accurate time is wanted over very short intervals
-
-CLOCK_MONOTONIC would be preferable for longer-term timers measured in minutes, hours or days
+version https://git-lfs.github.com/spec/v1
+oid sha256:6919bcf52600aee4084f8c231b5549c02d11a5c5f0ee35d96cec112ccfe39180
+size 378

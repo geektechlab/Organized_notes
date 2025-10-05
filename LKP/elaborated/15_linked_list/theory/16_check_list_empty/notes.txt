@@ -1,6 +1,3 @@
-Check whether a list is empty or not
-====================================
-
-list_empty(struct list_head *head);
-
-This returns nonzero if the given list is empty; otherwise it returns zero
+version https://git-lfs.github.com/spec/v1
+oid sha256:e901a48f5237666690fe20446fb8dd510b473257a56e485dd0e13f923b8b8e52
+size 193

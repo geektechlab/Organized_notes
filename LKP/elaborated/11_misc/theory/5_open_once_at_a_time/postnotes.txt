@@ -1,2 +1,3 @@
-You can see while one thread was using the device and when the other thread tried to access it failed.
-Also, from dmesg output, open was called twice and release only once
+version https://git-lfs.github.com/spec/v1
+oid sha256:2d74c1643fe14ec73b63fa0fabf56978a9e0a86db07126cfc7aef28eb4e2cf5a
+size 174

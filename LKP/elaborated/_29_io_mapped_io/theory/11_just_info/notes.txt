@@ -1,1 +1,3 @@
-http://bochs.sourceforge.net/techspec/PORTS.LST
+version https://git-lfs.github.com/spec/v1
+oid sha256:1e4c3b047c256dbc2658e0fcdf8e8d385af90a2dd0c1821efdff7fa448625bd7
+size 49

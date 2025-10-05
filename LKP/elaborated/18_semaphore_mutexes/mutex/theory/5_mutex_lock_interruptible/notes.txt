@@ -1,21 +1,3 @@
-int mutex_lock_interruptible(struct mutex *lock);
-
-	places the calling process in the TASK_UNINTERRUPTIBLE state when it sleeps
-
-Return value:
-
-	0 -> mutex is acquired
-
-	-EINTR	-> If the task receives a signal while waiting for mutex
-
-
-int mutex_lock_killable(struct mutex *lock);
-
-
-	places the calling process in the TASK_KILLABLE state when it sleeps, only fatal signal can interrupt
-
-Return value:
-
-	0 -> mutex is acquired
-
-	-EINTR	-> If the task receives a fatal signal while waiting for mutex
+version https://git-lfs.github.com/spec/v1
+oid sha256:f5a56807d78b8b8b3461aba671c9462ddd6d0efc202af759da10ff90b094a5e2
+size 519

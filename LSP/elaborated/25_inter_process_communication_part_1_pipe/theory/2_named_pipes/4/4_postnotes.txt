@@ -1,1 +1,3 @@
-This will fail if there is no process that has the FIFO open for reading
+version https://git-lfs.github.com/spec/v1
+oid sha256:d2014e2e18379d736f4ad3d9414dba981f92eab616a61c3ee3c59a7d56b10b31
+size 74

@@ -1,12 +1,3 @@
-$ !<command> will execute the previous command with all the arguments
-
-$ !vi #will open the last vi command executed
-
-$ sudo !! will execute the previous command with sudo permissions
-
-$ dmesg -c
-dmesg: klogctl failed: Operation not permitted
-
-$ sudo !!
-sudo dmesg -c
-[sudo] password for 
+version https://git-lfs.github.com/spec/v1
+oid sha256:bb81acdcd79d2156fa8f67534cc4c76be22467f10b8c4b911b2119851359e2c0
+size 301

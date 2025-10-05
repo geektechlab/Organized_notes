@@ -1,6 +1,3 @@
-gettimeofday
----------------------
-
-Defined in: kernel/time/time.c
-
-Calls ktime_get_real_ts64
+version https://git-lfs.github.com/spec/v1
+oid sha256:828397a5cb8f3e9713da3a28b08116a9c423864f05c9bcc404abf0ad077c2735
+size 100

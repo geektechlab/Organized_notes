@@ -1,4 +1,3 @@
-How can i synchronize between process context and timer handler?
-=================================================================
-
-You need to use spin_lock API
+version https://git-lfs.github.com/spec/v1
+oid sha256:bbf1ee1253918ac0ab26601534bc4f6c582f6b83a3a2d266d7a34062fc8dc3d9
+size 166

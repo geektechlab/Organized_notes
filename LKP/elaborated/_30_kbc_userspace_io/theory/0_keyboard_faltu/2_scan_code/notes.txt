@@ -1,20 +1,3 @@
-Scan Codes
-=============
-
-Your keyboard's processor spends most of its time "scanning", or monitoring, the matrix of keys. 
-
-If it finds that any key is being pressed, released, or held down, the keyboard will send a packet of
-information known as a "scan code" to your computer.
-
-Types of Scan Codes
-=====================
-	1. Make Codes : Sent when a key is pressed or held down
-	2. Break Codes: Sent when a key is released
-
-Every key is assigned its own unique make code and break code so the host can determine exactly what happened to which key by looking at a single scan code.
-
-Scan Code Set: set of make and break codes for every key
-
-There are three standard scan code sets, named one, two and three.
-
-All modern keyboards default to set two.
+version https://git-lfs.github.com/spec/v1
+oid sha256:4907affc5f10b718e28887db21d2f714fa66c509083a1ba5770bcfec97cc15bf
+size 771

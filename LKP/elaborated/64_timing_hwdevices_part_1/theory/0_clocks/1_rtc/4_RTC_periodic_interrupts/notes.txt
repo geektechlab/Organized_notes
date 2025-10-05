@@ -1,8 +1,3 @@
-RTC Periodic Interrupts
------------------------
-
-IOCTL Request: RTC_PIE_ON, RTC_PIE_OFF for enabling and disabling interrupts
-
-Frequency can be read/set through:  RTC_IRQP_READ, RTC_IRQP_SET
-
-Frequency range: 2 interrupts per second and 8192 interrupts per second. 
+version https://git-lfs.github.com/spec/v1
+oid sha256:a1c1b309f6161ced0ede9c75d841447e7f41ae73fa5a09bdad940ed2f8332d1a
+size 274

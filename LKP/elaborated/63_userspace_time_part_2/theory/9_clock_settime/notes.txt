@@ -1,6 +1,3 @@
-clock_settime
-================
-
-The function clock_settime() sets the the time of the specified clock clk_id
-
-int clock_settime(clockid_t clk_id, const struct timespec *tp);
+version https://git-lfs.github.com/spec/v1
+oid sha256:145242c920bcca617e5919acdbd3e9bff6f174652399c60faa2dabaa0ced8bb2
+size 180

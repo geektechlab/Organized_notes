@@ -1,8 +1,3 @@
-Why is the value read not the same as what is written?
-=====================================================
-
-request_region is a book keeping routine, to keep track of which drivers are using which ports addresses.
-
-A single port don't have to be readable and at the same time writeable.
-
-Port can be read-only or write-only 
+version https://git-lfs.github.com/spec/v1
+oid sha256:7ae5504715f24df367d694652258fa050b928f0c606833a325eae5dd22b843eb
+size 335

@@ -1,6 +1,3 @@
-What happens when a call to complete happens before wait_for_completion
-==========================================================================
-
-the waiting side simply will continue immediately as all dependencies are satisfied
-
-If not, it will block until completion is signalled by complete()
+version https://git-lfs.github.com/spec/v1
+oid sha256:1b99175f64f3b776146e7be443480e54b2d05a47d7b2701b413e4e6262463554
+size 305

@@ -1,1 +1,3 @@
-make ARCH=arm CROSS_COMPILE=arm-buildroot-linux-uclibcgnueabi- -C /home/linuxtrainer/buildroot_training/buildroot-2019.05/output/build/linux-4.19.16 M=${PWD} modules
+version https://git-lfs.github.com/spec/v1
+oid sha256:3f99661b380709868c59f6daa5caf3e424e0032ac2157bd05b545d0f903e4719
+size 167

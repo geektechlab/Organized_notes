@@ -1,26 +1,3 @@
-Setting Thread Cleanup Functions
-=================================
-
-One of the features the pthreads library supplies is the ability for a thread to clean up after itself, before it exits. 
-
-This is done by specifying one or more functions that will be called automatically by the pthreads library when 
-1. the thread exits, 
-2. due to its own will (e.g. calling pthread_exit()), or due to it being canceled.
-
-Two functions are supplied for this purpose. 
-
-The pthread_cleanup_push() function is used to add a cleanup function to the set of cleanup functions for the current thread. 
-
-The pthread_cleanup_pop() function removes the last function added with pthread_cleanup_push(). 
-
-When the thread terminates, its cleanup functions are called in the reverse order of their registration. 
-
-So the the last one to be registered is the first one to be called.
-
-When the cleanup functions are called, each one is supplied with one parameter, that was supplied as the second parameter to the pthread_cleanup_push() function call
-
-#include <pthread.h>
-
-void pthread_cleanup_push(void (*rtn)(void *), void *arg);
-
-void pthread_cleanup_pop(int execute);
+version https://git-lfs.github.com/spec/v1
+oid sha256:fcb1818614f8ecc3b4cc0b141a25dd9f6311719fbd9ac674c3d09b1b659990cc
+size 1173

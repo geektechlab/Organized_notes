@@ -1,2 +1,3 @@
-Does executing CLI instruction disable interrupts on other processors
-------------------------------------------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:7d46196b309745ed0a08783407d06775e0311db19fae8e7a8ca947b67dac06bb
+size 145

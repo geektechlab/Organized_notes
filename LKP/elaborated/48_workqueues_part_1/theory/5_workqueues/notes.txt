@@ -1,9 +1,3 @@
-Workqueues
---------------
-
-Workqueue API provides two types of function interfaces to
-	a) Create own workqueue
-	b) Use System Workqueue (extern struct workqueue_struct *system_wq;)
-		Header File: <linux/workqueue.h>
-
-	System workqueue is shared by all kernel subsystems and services
+version https://git-lfs.github.com/spec/v1
+oid sha256:3eca1b74894970fbdfd5a5f82734be42545d8990bf521bdb2ddef0ee0a67d3e6
+size 292

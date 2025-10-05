@@ -1,8 +1,3 @@
-/proc/softirqs
-================
-
-Shows Per CPU statistics
-
-Implementation: fs/proc/softirqs.c
-
-to watch all softirq handling, run [ $ watch -n1 grep RX /proc/softirqs ]
+version https://git-lfs.github.com/spec/v1
+oid sha256:71895a992d25c263a58269fdc9521a70a0c906567e56ecfd307a7dc96ab583e8
+size 177

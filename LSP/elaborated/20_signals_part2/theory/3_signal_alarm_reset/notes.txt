@@ -1,4 +1,3 @@
-Alarm can be set continually, but only one alarm is allowed per process. 
-Subsequent calls to alarm() will reset the previous alarm. 
-
-Suppose, now, that we want to write a program that will continually alarm every 1 second, we would need to reset the alarm once the signal is delivered. The natural place to do that is in the signal handler
+version https://git-lfs.github.com/spec/v1
+oid sha256:405b9ef223097c50ed5c648857f29f4e65cdd12657aefc3f7ba36f1433b1ea61
+size 346

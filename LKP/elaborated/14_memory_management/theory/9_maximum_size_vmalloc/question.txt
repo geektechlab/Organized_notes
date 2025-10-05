@@ -1,7 +1,3 @@
-What is the maximum size allocatable using vmalloc?
-
-Unlike kmalloc(), it will keep allocating till RAM size. Theoratically, /proc/meminfo -> vmalloctotal shows how much can we allocate.
-
-[ bc -q ] launches calculator ?
-
-[ /fs/proc/meminfo ] has vmalloc related proc calls.
+version https://git-lfs.github.com/spec/v1
+oid sha256:92004c54e642197526b9d54b01d9f64a95c7314871ffc6bd186e50b1e7090f72
+size 281

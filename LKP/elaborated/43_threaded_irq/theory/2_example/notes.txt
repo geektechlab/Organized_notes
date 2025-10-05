@@ -1,21 +1,3 @@
-Top and bottom halves with an example
----------------------------------------
-
-Network Card on reception of packet from the network, issues an interrupt, kernel responds it by executing the handler
-
-Top Half(Interrupt Handler): 
-	Acknowledges the interrupt, 
-	copies the new networking packets into main memory,
-	pushes it up to the protocol layer
-	readies the network card for more packets.
-	schedule the bottom half
-
-Bottom Half: 
-	Rest of the processing and handling of the packets
-
-Various Mechanisms available for Bottom Half
----------------------------------------------
-
-1. Soft IRQ
-2. Tasklets
-3. Workqueue
+version https://git-lfs.github.com/spec/v1
+oid sha256:5e73a8f105b68f5a108fe0160c7bf375f32e62ae15a09f9511076bfb8a0c8789
+size 636

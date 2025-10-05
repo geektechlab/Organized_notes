@@ -1,4 +1,3 @@
-in_softirq
------------------
-
-You can tell you are in a softirq (or tasklet) using the in_softirq() macro
+version https://git-lfs.github.com/spec/v1
+oid sha256:a1ac7097f5056a52fde40043fd7e2eed997c2720317e70af5c3768c03ab19e5b
+size 110

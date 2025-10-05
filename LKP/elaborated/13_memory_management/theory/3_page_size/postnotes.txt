@@ -1,3 +1,3 @@
-with 4KB Page Size and 4GB of Physical Memory = 1048576 Pages
-
-Each page is taking 64 bytes = 1048576*64 = 64 MB is used to store all the physical pages
+version https://git-lfs.github.com/spec/v1
+oid sha256:e34576070a9ce9bc80ae3b794d9cd1cb6af8371268978acac158ef5bdddf6d0f
+size 156

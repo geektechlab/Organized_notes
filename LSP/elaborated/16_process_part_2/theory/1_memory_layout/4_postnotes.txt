@@ -1,3 +1,3 @@
-Let's disassemble our program 4 with objdump to look at the "memory address" of the main function:
-
-objdump -M intel -j .text -d 4 | grep '<main>:' -A 5
+version https://git-lfs.github.com/spec/v1
+oid sha256:336c9f042ec99b60a468e56b20a8142743e3778678163eda7136a911691f287c
+size 156

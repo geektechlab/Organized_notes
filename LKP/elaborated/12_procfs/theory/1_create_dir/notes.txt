@@ -1,9 +1,3 @@
-Creating Directory in /proc
-===========================
-
-Header Files: <linux/proc_fs.h>
-
-struct proc dir entry* proc_mkdir(const char *name, struct proc dir entry * parent);
-
-name: The name of the folder that will be created under /proc.
-Parent: In case the folder needs to be created in a sub folder under /proc a pointer to the same is passed else it can be left as NULL
+version https://git-lfs.github.com/spec/v1
+oid sha256:5b712b7289d77c73f36c291dc7ea5311e2892edbb15df174419ab3a06b6e69e2
+size 383

@@ -1,5 +1,3 @@
-What is grace period?
-========================
-
-----
-from start of synchronize RCU to end of synchronize RCU
+version https://git-lfs.github.com/spec/v1
+oid sha256:dfd0a4dcb44e49719edbe7efeb2bb9c0b5ef050628f6de1cd01c8a7767d57c66
+size 112

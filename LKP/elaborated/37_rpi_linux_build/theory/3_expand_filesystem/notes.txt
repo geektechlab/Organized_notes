@@ -1,12 +1,3 @@
-Expand File System on Raspberry Pi
-==================================
-
-After installing a new OS on your PI’s SD card you might notice there is a lot of diskspace ‘missing’ on the card
-
-$ sudo raspi-config
-
-Select Option 7: Advanced Options
-
-Select Option A1: Expand FileSystem
-
-Finally Select Yes when it asks for "reboot"
+version https://git-lfs.github.com/spec/v1
+oid sha256:d7702f5254662de483d16c77ff3ea069407f42333bee3588bd12916f12878396
+size 342

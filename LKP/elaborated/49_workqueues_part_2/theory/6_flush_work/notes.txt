@@ -1,8 +1,3 @@
-Flushing work
---------------------
-
-bool flush_work(struct work_struct *work)
-
-	wait for a work to finish executing the last queueing instance
-
-returns true if waited for the work to finish execution, false if it was already idle
+version https://git-lfs.github.com/spec/v1
+oid sha256:559671073eb97d14cb4d0d4760a925361ade216d7a6bbc0d828841a653701fa3
+size 238

@@ -1,4 +1,3 @@
-If you need to view the library calls from a live process, you can use ltrace(1)’s “-p” option:
-
-$ ltrace -p 2644
-The parameter -c outputs the number and duration of the library calls that have occurred
+version https://git-lfs.github.com/spec/v1
+oid sha256:58e4184ade0a239389e8d38931b5ebb6be67048b25e312ac1ac9da3c1c06bda2
+size 213

@@ -1,12 +1,3 @@
-downgrade_write():
-
-Reader-writer semaphores have a unique method which is not present in reader-writer spinlocks
-
-void downgrade_write(struct rw_semaphore *sem);
-
-This function atomically converts an acquired write lock to a read lock.
-
-Where can i use this?
-=========================
-
-Used in situation where writer lock is needed for a quick change, followed by longer period of read-only access
+version https://git-lfs.github.com/spec/v1
+oid sha256:0a2bca3eafe50301f54a9b21113bba72dd0e76390e757cf0215b1c5c74bfed99
+size 411

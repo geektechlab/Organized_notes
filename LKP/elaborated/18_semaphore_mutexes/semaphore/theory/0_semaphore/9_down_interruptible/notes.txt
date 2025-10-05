@@ -1,10 +1,3 @@
-int down_interruptible(struct semaphore *sem);
-
-down vs down_interruptible
-===========================
-
-	down() places the calling process in the TASK_UNINTERRUPTIBLE state when it sleeps.
-
-	down_interruptible() places the calling process to sleep in the TASK_INTERRUPTIBLE state
-
-	If the task receives a signal while waiting for the semaphore, it is awakened and down_interruptible() returns -EINTR.
+version https://git-lfs.github.com/spec/v1
+oid sha256:0ce26219dec2a563ef2c75ade2abcbccdd80db00ff526644b552841ec5c84250
+size 411

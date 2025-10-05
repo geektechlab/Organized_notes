@@ -1,7 +1,3 @@
-TIMER_IRQSAFE 
---------------
-
-An irqsafe timer is executed with IRQ disabled
-
-----
-with this, it will run with IRQ disabled
+version https://git-lfs.github.com/spec/v1
+oid sha256:a5ddcfdd1d5172eba615dfe33e2d95f1267759dc826a5b25ead45c08a9c98cf9
+size 132

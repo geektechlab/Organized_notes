@@ -1,1 +1,3 @@
-If there are no output operands but there are input operands, you must place two consecutive colons surrounding the place where the output operands would go
+version https://git-lfs.github.com/spec/v1
+oid sha256:85db157083bf74f283f176148bb98b92849866a9a58ad128c33fef4ec79cc2e7
+size 158

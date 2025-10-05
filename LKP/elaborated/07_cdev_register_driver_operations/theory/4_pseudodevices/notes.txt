@@ -1,26 +1,3 @@
-Pseudo-Devices
-==============================
-
-Devices in Linux (and other Unix clones) do not necessarily have to correspond to physical devices. These are known as pseudo-devices. For example,
-
-        -->     /dev/urandom generates a stream of pseudo-random numbers (try running head /dev/urandom in a terminal)
-
-        --> /dev/null produces no output, but accepts and discards any input (if you wanted to test your download speed without writing any data to your disk, you could download a file to /dev/null by running, e.g., wget http://some.website/big.file > /dev/null).
-
-	--> /dev/zero: Used by developers to create a file with no meaningful data but a particular size
-
-        /dev/null
-        Read : Returns End of file (read returns 0)
-        Write: Data written is discarded
-
-        /dev/zero:
-        Read: Returns endless bytes of zeroes (\0 characters)
-        Write: Data written is discarded
-
-File: drivers/char/mem.c has the implementation for this devices
-
-----
-go into linux source code and go into [ ls drivers/char/mem.c ] and chek it's called register_chrdev wit MEM_MAJOR argument. check MEM_MAJOR using [ grep ] command and it comes out as 1. then [ cat /proc/devices ] and check [ ls -l /dev/zero ], [ ls -l /dev/null ], [ ls -l /dev/urandom ] and check all has major number 1 and only minor number differs.
-
-check chr_dev_init() internals and see how device number creation, assignment and registration etc. happens
-----
+version https://git-lfs.github.com/spec/v1
+oid sha256:84602d5eddda32c89f68980279d449f0f9b4061245cd4254b1f6e1970cfddb1b
+size 1479

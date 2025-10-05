@@ -1,6 +1,3 @@
-Destroying Thread Attributes
-==============================
-
-The function pthread_attr_destroy() is used to remove the storage allocated during initialization. The attribute object becomes invalid. It is prototyped by:
-
-int pthread_attr_destroy(pthread_attr_t *tattr);
+version https://git-lfs.github.com/spec/v1
+oid sha256:49f07474234566fcb90ffe4f0e143d10bcc6690895fc08ad95f1d67bc980f68b
+size 275

@@ -1,2 +1,3 @@
-Why kernel messages don't appear in shell in graphical mode?
-=============================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:14019ebab2bdadd89af3907352d96e21800447f480aa866e8ee39db9cdb11f11
+size 125

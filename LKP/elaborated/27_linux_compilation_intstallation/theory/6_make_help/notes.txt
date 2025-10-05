@@ -1,13 +1,3 @@
-make help
-==============
-
-	gives a quick listing of all of the make targets
-
-help is divided into two parts
-
-	1. First part is hard coded
-	2. Second part changes based on the architecture
-
-$ make ARCH=arm help
-$ make ARCH=powerpc help
-$ make ARCH=blackfin help
+version https://git-lfs.github.com/spec/v1
+oid sha256:bbb61cdf30a9c11b48b35b07e4f9745f83942f5724838ad341f74b5e5f3995ca
+size 274

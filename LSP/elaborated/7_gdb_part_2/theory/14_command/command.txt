@@ -1,5 +1,3 @@
-command breakpoint-number specifies commands to run whenever the breakpoint is reached. 
-
-(gdb) command 2
-  Type commands for when breakpoint 2 is hit, one per line.
-  End with a line saying just "end".
+version https://git-lfs.github.com/spec/v1
+oid sha256:282c1099fdeebf6b0c14378faf24fbcf2567fc2090f02d5ffe47d46f270499e2
+size 208

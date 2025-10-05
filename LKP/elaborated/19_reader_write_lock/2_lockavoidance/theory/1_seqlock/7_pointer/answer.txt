@@ -1,9 +1,3 @@
-Limitations
-===========
-
-Seqlocks cannot be used for pointers, it can only be used for normal data like integers, booleans
-
-There can be pointer which can be already freed, dereferencing such pointer will cause oops
-
-----
-also writer might be freeing without informing to reader
+version https://git-lfs.github.com/spec/v1
+oid sha256:8f9b758de3abee2c5c94745a7b0a0c807de068e490a00cd44101bfa391cdbfb7
+size 288

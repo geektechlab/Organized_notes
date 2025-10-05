@@ -1,1 +1,3 @@
-What happens if we give some arbitrary string in MODULE_LICENSE macro
+version https://git-lfs.github.com/spec/v1
+oid sha256:8e8c21f04652a025438201d10dffd1ec9349543cf69f8078f439de2f6a146d3f
+size 71

@@ -1,3 +1,3 @@
-bool flush_delayed_work(struct delayed_work *dwork);
-
-delayed timer is cancelled and the pending work is queued for immediate execution
+version https://git-lfs.github.com/spec/v1
+oid sha256:f679edd347d5f9ebcfd96a5297dbc54102ab95c3e578bc57103f6af4ac44909a
+size 139

@@ -1,8 +1,3 @@
-static inline void reinit_completion(struct completion *x)
-{
-        x->done = 0;
-}
-
-This inline function should be used to reinitialize a completion structure so it can be reused. This is especially important after complete_all() is used.
-
-Calling init_completion() on the same completion object twice is most likely a bug
+version https://git-lfs.github.com/spec/v1
+oid sha256:1b672676d538a976a8f0c69423e97cbfc3d3ba91930a999cadf59aaafe6edcc3
+size 332

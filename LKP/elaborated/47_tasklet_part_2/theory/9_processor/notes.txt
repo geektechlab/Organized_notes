@@ -1,4 +1,3 @@
-Tasklets are also guaranteed to run on the same CPU as the function that first schedules them.
-
----
-the same CPU on which softirq, interrupt handler and tasklet is running.
+version https://git-lfs.github.com/spec/v1
+oid sha256:bdac292b6d1b4890bbce54ad85d0e7a921b7b04971a2c3a7edc75473b34427e7
+size 177

@@ -1,14 +1,3 @@
-Creating New Attributes
-=========================
-
-int sysfs_create_file(struct kobject *kobj, const struct attribute *attr);
-
-This function associates the attribute structure pointed at by attr with the kobject pointed at by kobj.
-
-Before it is invoked, the given attribute should be filled out.
-
-Return Value: 
-	Success - 0
-	Failure - Negative error code
-
-void sysfs_remove_file(struct kobject *kobj, const struct attribute *attr);
+version https://git-lfs.github.com/spec/v1
+oid sha256:e901a37a0a098925c30cf69deb18f4f5c6e331d36f51b6d769b61493155941af
+size 448

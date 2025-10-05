@@ -1,10 +1,3 @@
-Restricting Access to a Single User at a Time
-===============================================
-
-Allow a single user to open a device in multiple processes but allow only one user to have the device open at a time.
-
-To achieve this, two items are needed:
-	an open count
-	uid of the owner of the device.
-
-The open call grants access on first open but remembers the owner of the device.
+version https://git-lfs.github.com/spec/v1
+oid sha256:fb73c911c91ab89199dba1c73084b78e38878541f9ee36b3ab03d31fca63bc97
+size 393

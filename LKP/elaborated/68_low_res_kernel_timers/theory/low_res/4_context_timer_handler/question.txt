@@ -1,4 +1,3 @@
-Guess in which context timer handler runs?
-------------------------------------------
-
-it runs in interrupt context, not in process context.
+version https://git-lfs.github.com/spec/v1
+oid sha256:ad309bdecd084a8053117c8297b25083f2f197d3a1ab26e862021a5a09e22b81
+size 145

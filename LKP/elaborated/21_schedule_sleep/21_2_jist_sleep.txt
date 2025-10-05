@@ -1,25 +1,3 @@
-Theory0:
-
-Sometimes processes may need to go to Sleep state for a particular amount of time
-
-void msleep(unsigned int msecs);
-Header File : <linux/delay.h>
-
-msleep will put the processor into uninterruptible sleep.
-[ ps ] will show you 'D' as the state
-
-Theory1:
-unsigned long msleep_interruptible(unsigned int msecs);
-	will put the process into interruptible sleep
-
-Return value : 
-	Normally 0
-
-	If the process is awakened early, then the return value is number of milliseconds remaining in the
-	original requested sleep period
-
-Theory2:
-void ssleep(unsigned int seconds);
-Header File: <linux/delay.h>
-
-it is uninterruptible sleep.
+version https://git-lfs.github.com/spec/v1
+oid sha256:44771b041b4a467ef62c19ffa8fd6f80290f190425012999ced9c456313bf4b7
+size 658

@@ -1,9 +1,3 @@
-Does kernel checks all the timer entries in linked list on each raise softirq?
-------------------------------------------------------------------------------
-
-The kernel partitions timers into five groups based on their expiration value.
-
-Timers move down through the groups as their expiration time draws closer.
-
-The partitioning ensures that, in most executions of the timer softirq, the kernel has to do little work to
-find the expired timers.
+version https://git-lfs.github.com/spec/v1
+oid sha256:3892757547e68680980d90722b3cb1402a09c2ddd5e2751aecc909b2a39cb446
+size 457

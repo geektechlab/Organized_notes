@@ -1,5 +1,3 @@
-BLKGETSIZE ioctl returns unsigned long , it may fail if the size is 2TB or greater. 
-
-For this reason it is better to use BLKGETSIZE64  which produces a 64-bit result which is the size in bytes
-
-Header File: <linux/fs.h>
+version https://git-lfs.github.com/spec/v1
+oid sha256:2d4e7887c60ac98c3f662ae1951137c4563defe8f188e39d498d002e77d164ed
+size 226

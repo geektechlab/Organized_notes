@@ -1,18 +1,3 @@
-Cleaning Targets
-=================
-
-$ make clean
-	Remove most generated files
-	keeps the config
-	enough build support to build external modules
-
-$ make mrproper
-	Remove all generated files
-	Removes config
-	Removes various backup files (include/config, include/generated, scripts/basic, scripts/fixdep)
-
-$ make distclean
-	Performs all operations of make mrproper
-	Deletes temporary code navigation files:tags, cscope*
-	Deletes files generated as a side-effect of working with patches: *.orig *.rej *.bak
-	Deletes core dump files
+version https://git-lfs.github.com/spec/v1
+oid sha256:fe19f4ab8737c23365232fe7bd78269f2b6d5fd5802f96ab467c1c14a3b13ca3
+size 546

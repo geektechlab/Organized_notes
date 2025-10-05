@@ -1,1 +1,3 @@
-CAP_SYS_MODULE: Ability to load or remove kernel modules
+version https://git-lfs.github.com/spec/v1
+oid sha256:b76d58cd6de7da03c891384827a66b9a1ce707fdca069ff011a049ccde1e7146
+size 58

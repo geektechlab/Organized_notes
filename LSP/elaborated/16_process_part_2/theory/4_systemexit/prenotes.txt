@@ -1,16 +1,3 @@
-With ISO C, a process can register at least 32 functions that are automatically called by exit
-
-These are called exit handlers and are registered by calling the atexit function.
-
-#include <stdlib.h>
-int atexit(void (*func)(void));
-Returns: 0 if OK, nonzero on error
-
-The exit function calls these functions in reverse order of their registration.
-
-Each function is called as many times as it was registered.
-With ISO C and POSIX.1, exit first calls the exit handlers and then closes (via fclose) all open streams.
-
-Usecase:
-=================
-Free memory allocated using malloc()
+version https://git-lfs.github.com/spec/v1
+oid sha256:2559227236d49ff5544b7ccc028b76d82df7f48c20c5dd86b27459560bd1923f
+size 595

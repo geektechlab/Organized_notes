@@ -1,6 +1,3 @@
-Matching Constraints
-----------------------
-
-In some cases, a single variable may serve as both input and output operand
-
-Such cases may be specified in asm by using matching constraints.
+version https://git-lfs.github.com/spec/v1
+oid sha256:15d5e819b8739c040a33331987a103fb434a4fba842812583d65c649b1ca2d5a
+size 194

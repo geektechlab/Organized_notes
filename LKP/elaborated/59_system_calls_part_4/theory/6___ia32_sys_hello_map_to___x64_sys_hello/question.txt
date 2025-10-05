@@ -1,2 +1,3 @@
-How is __ia32_sys_hello map to __x64_sys_hello
------------------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:f612c753bec7e83814983c62db57bfb2bf239d4a56c9a672483d49726c7300f7
+size 97

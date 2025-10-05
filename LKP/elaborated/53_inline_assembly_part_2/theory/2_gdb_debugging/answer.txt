@@ -1,7 +1,3 @@
-How to debug?
-------------
- use gdb
-
-$ p $eax
-
-$ info registers
+version https://git-lfs.github.com/spec/v1
+oid sha256:032c290a9625487e611a310a3a435b089a9c92d1b769d24c55161ad9ca59afc2
+size 71

@@ -1,16 +1,3 @@
-Header File: <linux/rwsem.h>
-
-Data Structure: struct rw_semaphore
-
-Implementation : kernel/locking/rwsem.c
-
-Initialization:
-================
-
-	Static: 	DECLARE_RWSEM(name)
-
-	Dynamic:	init_rwsem(struct rw_semaphore *sem)
-
-All reader-writer semaphores are mutexes—that is, their usage count is one
-
-they enforce mutual exclusion only for writers, not readers.
+version https://git-lfs.github.com/spec/v1
+oid sha256:e96155cc35583ac8af5ada1756af45478ec4d307d4607907525cd2b14ba95f3b
+size 376

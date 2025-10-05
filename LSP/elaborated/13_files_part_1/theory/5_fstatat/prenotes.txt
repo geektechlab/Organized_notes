@@ -1,13 +1,3 @@
-int fstatat(int fd, const char *restrict pathname,struct stat *restrict buf, int flag);
-
-The fstatat function provides a way to return the file statistics for a pathname relative to an open directory represented by the fd argument.
-
-The flag argument controls whether symbolic links are followed;
-
-when the AT_SYMLINK_NOFOLLOW flag is set, fstatat will not follow symbolic links, but rather returns information about the link itself.
-
-Otherwise, the default is to follow symbolic links, returning information about the file to which the symbolic link points
-
-If the fd argument has the value AT_FDCWD and the pathname argument is a relative pathname
-
-If the pathname argument is an absolute pathname, then the fd argument is ignored. In these two cases, fstatat behaves like either stat or lstat, depending on the value of flag.
+version https://git-lfs.github.com/spec/v1
+oid sha256:60812dd22e985ec290c8b4b9bf52ca6848613fc78a1a93b6a1e6b9fcf3918c20
+size 842

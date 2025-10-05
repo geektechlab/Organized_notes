@@ -1,15 +1,3 @@
-copy_to_user
-==============
-
-unsigned long copy_to_user(void __user *to, const void *from, unsigned long n);
-
-Header File: <linux/uaccess.h>
-
-The copy_to_user function copies a block of data from the kernel into user space. 
-
-This function accepts a 
-	pointer to a user space buffer, 
-	a pointer to a kernel buffer, and 
-	a length defined in bytes. 
-
-Returns zero on success or non-zero to indicate the number of bytes that weren’t transferred
+version https://git-lfs.github.com/spec/v1
+oid sha256:2fb035ddd1f16ea42bce539625e2de630fc18334befafb7f1f50fe110021b214
+size 461

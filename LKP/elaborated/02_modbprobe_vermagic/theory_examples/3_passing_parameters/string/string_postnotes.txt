@@ -1,5 +1,3 @@
-Solution to prenotes:
-
-This happens because shell removes double quotes and pass it to insmod, to avoid this add a single quotes over the string.
-
-Run the following command: "insmod argument.ko name='"Linux World"' to pass the whole string
+version https://git-lfs.github.com/spec/v1
+oid sha256:526c8b1625c0f7af4f39998eaf0809f3f603a4411d4676afbf2ab82bea825f4a
+size 245

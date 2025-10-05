@@ -1,2 +1,3 @@
-How do you find out whether a function is static or global by looking into /proc/kallsyms?
-------------------------------------------------------------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:9d0efb8e3c2e099e908d4beaa5e047ea02856c25112683d0a6a32a3d887298c0
+size 184

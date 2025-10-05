@@ -1,1 +1,3 @@
-What is the maximum size allocatable using kmalloc?
+version https://git-lfs.github.com/spec/v1
+oid sha256:761c93fd0ac75de4f9617fd281a341197f0ff9af80a98d1ea99dda727189d1ec
+size 53

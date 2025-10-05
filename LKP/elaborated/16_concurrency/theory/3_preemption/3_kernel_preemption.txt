@@ -1,9 +1,3 @@
-Kernel preemption can occur
-
-	When returning to kernel-space from an interrupt handler
-
-	When kernel code becomes preemptible again
-
-	If a task in the kernel explicitly calls schedule()
-
-	If a task in the kernel blocks (which results in a call to schedule())
+version https://git-lfs.github.com/spec/v1
+oid sha256:da4229c1e21ccfcd84f9ba71cca3b4765669b23203ca9d9a795b6f6b79d3efe6
+size 268

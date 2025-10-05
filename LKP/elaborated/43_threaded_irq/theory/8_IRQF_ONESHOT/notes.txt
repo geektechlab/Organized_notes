@@ -1,12 +1,3 @@
-IRQF_ONESHOT
-=============
-
-The interrupt is not reenabled after the IRQ handler finishes
-
-This flag is required for threaded interrupts which need to keep the interrupt line disabled until the threaded handler has run
-
-Specifying this flag is mandatory if the primary handler is set to NULL.
-
-The default primary handler does nothing more than to return IRQ WAKE THREAD to wake up a kernel thread to execute the thread fn IRQ handler.
-
-kernel/irq/manage.c 	-->	irq_default_primary_handler
+version https://git-lfs.github.com/spec/v1
+oid sha256:d8e73c6be533a3cecb220f53a0370f257c432e8cad64781f0440ee747f437c80
+size 502

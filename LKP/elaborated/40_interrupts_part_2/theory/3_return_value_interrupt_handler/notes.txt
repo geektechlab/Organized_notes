@@ -1,7 +1,3 @@
-Return Value of Interrupt Handlers
-===================================
-
-Interrupt handlers return an irqreturn_t value.
-
-IRQ_NONE            interrupt was not from this device or was not handled
-IRQ_HANDLED         interrupt was handled by this device
+version https://git-lfs.github.com/spec/v1
+oid sha256:82b947f74b0e7b6a864ad071a1304d65944dd2c1e3fea21bf1b31b9e8e1366dc
+size 259

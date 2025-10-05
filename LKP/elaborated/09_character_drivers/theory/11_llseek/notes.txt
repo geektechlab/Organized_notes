@@ -1,6 +1,3 @@
-The llseek Implementation
-=========================
-
-The llseek method implements the lseek and llseek system calls.
-
-If your device is unseekable, you should return -ESPIPE
+version https://git-lfs.github.com/spec/v1
+oid sha256:847f07bf16ed82737d2e0ac1461403501481bb7382e5402ce828e89062a9150f
+size 180

@@ -1,4 +1,3 @@
-Out of tree modules development
-================================
-
-:set tags=/home/linuxtrainer/linux-5.2.8/tags
+version https://git-lfs.github.com/spec/v1
+oid sha256:d9af2c6366f39e0491151e8e4341acad3b852bb982203812b002c49795735135
+size 116

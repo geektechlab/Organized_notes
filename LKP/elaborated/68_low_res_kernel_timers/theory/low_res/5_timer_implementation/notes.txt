@@ -1,14 +1,3 @@
-Timer Implementation
-----------------------
-
-The kernel executes timers in bottom-half context, as softirqs, after the timer interrupt completes
-
-The timer interrupt handler runs update_process_times(), which calls run_local_timers():
-
-void run_local_timers(void)
-{
-	.....
-	raise_softirq(TIMER_SOFTIRQ); /* raise the timer softirq */
-}
-
-The TIMER_SOFTIRQ softirq is handled by run_timer_softirq().This function runs all the expired timers (if any) on the current processor
+version https://git-lfs.github.com/spec/v1
+oid sha256:4bdc5bdbc596782bb8b5cdafff008d37013f24d55648fc49e8940fbcc363d310
+size 487

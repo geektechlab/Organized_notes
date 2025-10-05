@@ -1,10 +1,3 @@
-/proc/devices
-===============
-
-This file displays the various character and block devices currently configured 
-
-The output from /proc/devices includes the major number and name of the device
-
-Output is broken into two major sections:
-	Character devices and 
-	Block devices.
+version https://git-lfs.github.com/spec/v1
+oid sha256:a0a9e1dee7416d2eb03886861b305ddc2064f5e0eca841b48dbc503888a0313a
+size 285

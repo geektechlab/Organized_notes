@@ -1,1 +1,3 @@
-It is safe for the same thread to recursively obtain the same read lock
+version https://git-lfs.github.com/spec/v1
+oid sha256:9752215416008f05c81e436477a705a8b7ec01b1f76d9cd54dc4a542fd3d64a4
+size 73

@@ -1,16 +1,3 @@
-$ ./4 &
-
-$ ps -LA
-
--A: Select all processes; identical to -e 
-
--L: Show threads, possibly with LWP and NLWP columns
-
-The main thread, by invoking pthread_exit(3), has exited before the other threads in the process; the Linux kernel thus marks it as a zombie.
-
-How to prevent the main thread from becoming zombie?
-======================================================
-
-The answer is straightforward: do not allow the main thread to terminate before the other threads in the application; 
-
-in other words, the recommendation is to always keep main() alive, waiting for all the other threads to die, before it itself terminates (and thus the process terminates).
+version https://git-lfs.github.com/spec/v1
+oid sha256:2c3ece43c8dcc84ec4eb01ae1c2b838d336394a2eec808fa20d4c85569264d26
+size 677

@@ -1,14 +1,3 @@
-Second phase of update (Updater deletes the node after grace period)
-
-                                Updater                     Reader
-       HEAD                        |                           |
-        |                          |                           |
-        V                          V                           v
-    --------------          -----------------               -------------
-    |            |          |               |               |           |
-    |   A        |---       |   B           |-------------->|    C      |
-    |            |  |       |               |            -->|           |
-    --------------  |       ------------------           |  -------------
-                    |                                    |
-                    |                                    |
-                    --------------------------------------
+version https://git-lfs.github.com/spec/v1
+oid sha256:fd4195fa4d7d6eb264badd55b258517d6829a19f4c3fe7da9071b973ce278f9e
+size 893

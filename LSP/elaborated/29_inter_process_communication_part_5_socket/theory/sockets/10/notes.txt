@@ -1,12 +1,3 @@
-Ioctls
-The following ioctl(2) calls return information in value.  The correct syntax is:
-
-int value;
-error = ioctl(unix_socket, ioctl_type, &value);
-
-ioctl_type can be: SIOCINQ
-
-For  SOCK_STREAM socket the function returns the amount of queued unread data in the receive buffer
-
-
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:352750e088d545fdfa74ec821444c19ccbc3a1ac8994746fc1241c35dd71e41e
+size 293

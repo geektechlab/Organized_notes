@@ -1,9 +1,3 @@
-Much effort has been put in developing synchronization primitives that avoid locks.
-
-Lock free and wait free synchronization plays a major role in RTOS, where time guarantees must be given.
-
-Two new synchronization mechanisms added in 2.6 Kernel to totally remove locking on the reader side:
-
-	1. Sequence Lock
-
-	2. Read Copy Update (RCU)
+version https://git-lfs.github.com/spec/v1
+oid sha256:ac4ce59cb9c734c13ea10e435e64fc6695b5ae6de32e0bf7c57b8b5538e1d5a1
+size 348

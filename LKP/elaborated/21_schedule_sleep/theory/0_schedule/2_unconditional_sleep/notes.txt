@@ -1,5 +1,3 @@
-When the schedule() function is called with the state as TASK_INTERRUPTIBLE or TASK_UNINTERRUPTIBLE, an additional step is performed
-
-	the currently executing process is moved off the run queue before another process is scheduled. 
-	The effect of this is the executing process goes to sleep, as it no longer is on the run queue.
-	Hence, it never is scheduled by the scheduler. And, that is how a process can sleep.
+version https://git-lfs.github.com/spec/v1
+oid sha256:df65cd584b4b577665e91864ea558925164865a21caa31364ff5e5656f1baba3
+size 420

@@ -1,10 +1,3 @@
-nanosecond output
--------------------
-
-u64 ktime_get_ns(void);
-
-u64 ktime_get_boottime_ns(void);
-
-u64 ktime_get_real_ns(void);
-
-Same as the plain ktime_get functions, but returning a u64 number of nanoseconds in the respective time reference, which may be more convenient for some callers.
+version https://git-lfs.github.com/spec/v1
+oid sha256:af5fea762941a8989697e1cdbf89fcb805d6090f1bb4d4d64c5897814b690c01
+size 300

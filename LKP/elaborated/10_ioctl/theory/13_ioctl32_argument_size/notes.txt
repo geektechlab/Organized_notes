@@ -1,10 +1,3 @@
-[ set -x ] shows what mod command is doing.
-
-long (*compat_ioctl) (struct file *filp, unsigned int cmd, 
-                          unsigned long arg);
-
-Called when a 32-bit process calls ioctl() on a 64-bit system
-
-It should then do whatever is required to convert the argument to native data types and carry out the request.
-
-unsigned log, unsigned int etc. size changes accross 32biit and 64bit.
+version https://git-lfs.github.com/spec/v1
+oid sha256:7bd8d00813139ab05da0e2568aec221e61c999c5e95daff756ebf8784e859cb8
+size 406

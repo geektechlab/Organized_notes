@@ -1,7 +1,3 @@
-What happens when you call queue_work?
---------------------------------------
-
-Use cscope/ctags to find out
-
-----
-IMP: watch video https://youtu.be/Ew3KI0-ybGc?list=PLCFZYUMGKxqCOP3tSrSW1XgNUI8RBOxCH at 20:00
+version https://git-lfs.github.com/spec/v1
+oid sha256:988c99d95d37d88175c7e20342f9c9e1fb188e128d012172855d69e04d305b0e
+size 214

@@ -1,6 +1,3 @@
-irqs_disabled()
-=================
-
-The macro irqs_disabled(), returns nonzero if the interrupt system on the local processor is disabled.
-
-Header File: <linux/irqflags.h>
+version https://git-lfs.github.com/spec/v1
+oid sha256:13c78336d466705861a6535d2f14a344993102a45b8f5467c44a3f731298e465
+size 177

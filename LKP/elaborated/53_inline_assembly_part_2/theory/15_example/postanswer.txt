@@ -1,6 +1,3 @@
-Why is the output not as expected?
-=====================================
-
-By default, gcc will assume that an inline asm block will finish using the input operands before updating the output operands.
-
-This means that both an input and an output may be assigned to the same register.
+version https://git-lfs.github.com/spec/v1
+oid sha256:3d776410e6248823ed51360ba92ead065e0533c762540e6b4eae265323440b4e
+size 290

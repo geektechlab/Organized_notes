@@ -1,17 +1,3 @@
-Static
-=============
-
-DECLARE_WAIT_QUEUE_HEAD(name);
-
-#define __WAIT_QUEUE_HEAD_INITIALIZER(name) {                                   \
-        .lock           = __SPIN_LOCK_UNLOCKED(name.lock),                      \
-        .head           = { &(name).head, &(name).head } }
-
-#define DECLARE_WAIT_QUEUE_HEAD(name) \
-        struct wait_queue_head name = __WAIT_QUEUE_HEAD_INITIALIZER(name)
-
-Dynamic
-============
-
-wait_queue_head_t my_queue;
-init_waitqueue_head(&my_queue);
+version https://git-lfs.github.com/spec/v1
+oid sha256:9e18c23e136528f549c0c6bf67041f3eb2c5bc3e29b1c98ce189f8a0f31574e8
+size 492

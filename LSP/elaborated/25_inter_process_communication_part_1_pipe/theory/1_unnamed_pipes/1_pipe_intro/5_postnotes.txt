@@ -1,3 +1,3 @@
-A pipe has a limited capacity.  If the pipe is full, then a write(2) will block or fail, depending on whether the O_NONBLOCK flag is set 
-
-ulimit -a  ( 8*512)
+version https://git-lfs.github.com/spec/v1
+oid sha256:9c999d84b33b6d996c4a76e3d1ca53d6eb7eeebf04c91be3dc902a05d45ee650
+size 162

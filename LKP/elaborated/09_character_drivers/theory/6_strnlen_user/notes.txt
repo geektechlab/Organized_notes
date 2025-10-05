@@ -1,16 +1,3 @@
-strnlen_user
-===============
-
-Get the size of a string in user space.
-
-long strnlen_user (const char __user *s, long  	n);
-
-s 	The string to measure.
-
-n	The maximum valid length
-
-Get the size of a NUL-terminated string in user space.
-
-Returns the size of the string INCLUDING the terminating NUL.
-
-If the string is too long, returns a value greater than n.
+version https://git-lfs.github.com/spec/v1
+oid sha256:431a91e13f3914de38bf75573f5d0a6935d9e8b5d26f16f861e3c83202a8f688
+size 373

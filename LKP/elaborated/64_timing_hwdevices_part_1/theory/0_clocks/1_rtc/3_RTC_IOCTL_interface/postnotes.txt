@@ -1,7 +1,3 @@
-$ cat /proc/driver/rtc
-
-$ watch -n 0.1 -d 'cat /proc/interrupts | grep rtc0'
-
-read will block until there is no interrupt.
-
-whenever the interrupt is received the read call would return
+version https://git-lfs.github.com/spec/v1
+oid sha256:68e4770862f306ac3c2a6e3b640a5aa0deb43d23655597d2322d90e2e912f654
+size 193

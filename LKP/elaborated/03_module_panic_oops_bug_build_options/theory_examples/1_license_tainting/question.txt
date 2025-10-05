@@ -1,5 +1,3 @@
-What happens if we don't specify MODULE_LICENSE macro in C Code
-
-What will modinfo show?
-
-Verify the behavior by loading it more than once
+version https://git-lfs.github.com/spec/v1
+oid sha256:18b369a0853a76a7fe8d9b98df4f97f372021b7e30ec403dbc8c5299afd4fbb7
+size 144

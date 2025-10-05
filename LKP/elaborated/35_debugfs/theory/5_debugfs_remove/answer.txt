@@ -1,6 +1,3 @@
-What happens if i forget to delete call debugfs_remove?
-======================================================
-
-There is no automatic cleanup of any directories created in debugfs.
-
-If a module is unloaded without explicitly removing debugfs entries, the result will be a lot of stale pointers
+version https://git-lfs.github.com/spec/v1
+oid sha256:72f6cedecd8f82abde98bd6f8ed163448c9275712695c508777ea411091876de
+size 300

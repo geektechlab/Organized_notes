@@ -1,29 +1,3 @@
-When should i free memory?
-============================
-
-RCU should free after waiting For Pre-Existing RCU Readers to Complete
-
-RCU waits on "RCU read-side critical sections".
-
-RCU read-side critical sections
--------------------------------
-
-	rcu_read_lock();
-	.....
-	critical section
-	.....
-	rcu_read_unlock();
-
-Basic idea behind RCU is to split updates/write into two phases:
-
-        1. Removal
-        2. Reclamation
-
-Removal:
-
-        Replaces references to data items with the latest
-
-Reclamation:
-
-        Freeing the old reference.
-        It should happen only when all the readers completed accessing using old reference
+version https://git-lfs.github.com/spec/v1
+oid sha256:8e9a4bedfb4c570fe1c4ec5aa1615cb15c810df26c2e759fcd295a954c210fcb
+size 661

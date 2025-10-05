@@ -1,9 +1,3 @@
-Maximum number of processors that an SMP kernel could support
-
-$ grep NR_CPUS /boot/config-`uname -r`
-
-You can override this with the nr_cpus kernel parameter in the bootloader command line.
-
-nr_cpus=12
-
-Use num_online_cpus() function to get the number of cpus online.
+version https://git-lfs.github.com/spec/v1
+oid sha256:248bdbc4449e6b095ebb9fad898c6f38fb6652c1fcddeec1b8aeec7b53f0227a
+size 278

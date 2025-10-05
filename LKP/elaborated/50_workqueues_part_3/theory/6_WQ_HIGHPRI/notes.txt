@@ -1,21 +1,3 @@
-WQ_HIGHPRI
--------------
-
-This flag is used to mark a workqueue as high priority
-
-Queued to the highpri worker-pool of the target cpu.
-
-Highpri worker-pools are served by worker threads with elevated nice level.
-
-Nice value: 
-------------
-
-Nice value ranges from -20 (highest priority level) to 19 (lowest priority level)
-
-Default value is 0.
-
-To check the nice value:
-
-$ ps ax -o pid,ni,cmd
-
-The above command prints pid, nice value and process name
+version https://git-lfs.github.com/spec/v1
+oid sha256:74d8893d1f95c22f1aa0322865336ebf53e467e62c52a79cbbabba329bb65d1e
+size 472

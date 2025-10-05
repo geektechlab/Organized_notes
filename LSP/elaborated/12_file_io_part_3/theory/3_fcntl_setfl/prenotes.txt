@@ -1,5 +1,3 @@
-Set the file status flags to the value specified by arg.
-
-File access mode (O_RDONLY, O_WRONLY, O_RDWR)  and  file  creation flags  (i.e.,  O_CREAT,  O_EXCL, O_NOCTTY, O_TRUNC) in arg are ignored.
-
-On Linux this command can change only the O_APPEND,O_ASYNC, O_DIRECT, O_NOATIME, and O_NONBLOCK flags.
+version https://git-lfs.github.com/spec/v1
+oid sha256:8246de839b2512b9dedb457c409b373316c59811fbe5e501cbf0770ca7533760
+size 306

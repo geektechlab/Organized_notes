@@ -1,7 +1,3 @@
-to find out number of cores:
-
-getconf -a | grep _NPROCESSORS_ONLN | awk '{print $2}'
-
-or
-
-cat /proc/cpuinfo
+version https://git-lfs.github.com/spec/v1
+oid sha256:2962af5f57392e79f2e20b746f13ebd3c39ec00167572116bb66471da6f108f5
+size 115

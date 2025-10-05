@@ -1,5 +1,3 @@
-After a successful fork, execution in both the parent and child process continues at the instruction following the fork.
-
-Why does this happen?
-
-the job of fork is to make a (pretty much) identical copy of the parent in the child; this includes the hardware context (mentioned earlier), which of course includes the Instruction Pointer (IP) register (sometimes called the Program Counter (PC)) itself! Hence, the child process too will execute the user mode code at the same location as the parent.
+version https://git-lfs.github.com/spec/v1
+oid sha256:1dd15c9a4c45ab84abd1040865e628834474d6a8626463fa686d90f66edb7650
+size 504

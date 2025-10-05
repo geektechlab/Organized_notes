@@ -1,17 +1,3 @@
-Inline functions
------------------
-
-schedule_work - put work task in global workqueue
-
-schedule_work_on - put work task on a specific cpu
-
-static inline bool schedule_work(struct work_struct *work)
-{
-        return queue_work(system_wq, work);
-}
-
-static inline bool schedule_work_on(int cpu, struct work_struct *work)
-{
-        return queue_work_on(cpu, system_wq, work);
-}
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:9161b0c8f07dfa26eb2e31be403bf5a7fd68eb78dfe5656641bf82f20db53672
+size 392

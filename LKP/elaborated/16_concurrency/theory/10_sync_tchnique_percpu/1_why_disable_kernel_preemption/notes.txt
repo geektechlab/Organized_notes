@@ -1,12 +1,3 @@
-Per CPU Variables
-=================
-
-The simplest and most efficient synchronization technique consists of declaring kernel variables as per-CPU Variables.
-
-Basically a per CPU Variables is an array of data structures, one element  per each CPU in the system.
-
-A CPU should not access the elements  of the array corresponding to other CPU.
-
-It can freely read and modify its own element without fear of race conditions, because it is the only CPU Entitled to do so.
-
-The elements of the per-CPU array are aligned in main memory so that each data structure falls on a different line of the hardware cache
+version https://git-lfs.github.com/spec/v1
+oid sha256:1e688a985f498d6bd88843c9c6abde2de74212539a3028495aba60247ed982d2
+size 616

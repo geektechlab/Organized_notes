@@ -1,1 +1,3 @@
-If complete() is called multiple times then this will allow for that number of waiters to continue - each call to complete() will simply increment the done field.
+version https://git-lfs.github.com/spec/v1
+oid sha256:15ed55f84289207500fefe6e9a14c865ea2b0a492bc2f4778287cd2804460ad9
+size 164

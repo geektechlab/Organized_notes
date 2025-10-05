@@ -1,20 +1,3 @@
-Building the Linux Kernel
-=========================
-
-To compile the Linux Kernel, run
-
-$ make
-
-Running make causes the kernel build system to use the configuration you have selected to build a kernel and all modules needed to support that configuration.
-
-While the kernel is building, make displays the individual file names of what is currently happening, along with any build warnings or errors.
-
-To build the kernel in a multithreaded way, use the -j option to the make program.
-
-It is best to give a number to the -j option that corresponds to twice the number of processors in the system.
-
-Example with four processors.
-
-$ make -j8
-
-Older kernel versions prior to 2.6 release required the additional step of 'make modules' to build all needed kernel modules. That is no longer needed.
+version https://git-lfs.github.com/spec/v1
+oid sha256:b749f8213ccff0e3604c4566e7b0f203ea720565c6263f625ebbd50adb328bcb
+size 810

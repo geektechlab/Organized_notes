@@ -1,7 +1,3 @@
-$ ./fcntl_getfl 0 < /dev/tty
-read only
-$ ./fcntl_getfl 1 > temp.foo
-$ cat temp.foo
-write only
-$ ./fcntl_getfl 2 >>temp.foo
-write only, append
+version https://git-lfs.github.com/spec/v1
+oid sha256:b4b69f075cd60025bc0a3bba74cb50db7a8df6979b2201ec7f2bca06321a6dd0
+size 149

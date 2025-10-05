@@ -1,18 +1,3 @@
-Common Memory Issues in C Programming
-=====================================
-
-	Incorrect memory accesses  
-		Using uninitialized variables 
-		Out-of-bounds memory accesses (read/write underflow/overflow bugs)
-		Use-after-free/use-after-return (out-of-scope) bugs 
-		Double-free
-
-	Leakage
-
-	Undefined Behavior
-
-	Data Races
-
----------
-gcc doesn't report run time errors while compiling.
----------
+version https://git-lfs.github.com/spec/v1
+oid sha256:0bac1c215abfbdbf4ace5043486b21762fc481dd6bd7dcc60d868d701ecdecaa
+size 412

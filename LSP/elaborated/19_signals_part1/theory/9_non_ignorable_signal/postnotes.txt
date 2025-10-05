@@ -1,1 +1,3 @@
-The two signals that can never be ignored or handled are: SIGKILL and SIGSTOP.
+version https://git-lfs.github.com/spec/v1
+oid sha256:0fcbf4d3cf6e9b455a398ad4df5380bf7239c806c5ee4e9802d4e09eafb81f47
+size 80

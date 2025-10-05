@@ -1,9 +1,3 @@
-Seqlocks have other variants to use in interrupts.
-
-write_seqlock_irq(seqlock_t *sl);
-
-write_sequnlock_irq(seqlock_t *sl);
-
-write_seqlock_irqsave(seqlock_t *sl);
-
-write_sequnlock_irqrestore(seqlock_t *sl, unsigned long flags);
+version https://git-lfs.github.com/spec/v1
+oid sha256:e2b136ec5d37f055c1a8845de43f89d17364dc69f953d0c404eeae7128e057ac
+size 236

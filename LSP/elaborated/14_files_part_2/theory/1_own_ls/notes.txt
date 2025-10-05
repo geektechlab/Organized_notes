@@ -1,7 +1,3 @@
-The dirent structure defined in the file <dirent.h> 
-
-  struct dirent {
-        ino_t d_ino;                  /* i-node number */
-        char  d_name[NAME_MAX + 1];   /* null-terminated filename */
-      }
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:069d5a192bc80a15f654a5c3dc5b9c1670e08f387aa9e878dedf4cc76aa3753d
+size 215

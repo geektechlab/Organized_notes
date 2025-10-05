@@ -1,3 +1,3 @@
-The kernel runs the timer handler when the current tick count is equal to or greater than the specified expiration
-
-Although the kernel guarantees to run no timer handler prior to the timer’s expiration, there may be a delay in running the timer
+version https://git-lfs.github.com/spec/v1
+oid sha256:94261f03f70644d8a450c602fa604106edbda5ad4b4c81e4653d46852d7a3285
+size 251

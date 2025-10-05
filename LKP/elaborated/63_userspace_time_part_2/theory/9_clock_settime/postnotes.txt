@@ -1,6 +1,3 @@
-NTP Service status
-==================
-
-$ timedatectl status
-
-$ systemctl stop systemd-timesyncd.service
+version https://git-lfs.github.com/spec/v1
+oid sha256:ed006706819650cab7c4a559ab0c22c5536334dcdbc98752c5c380e8857b32d3
+size 110

@@ -1,5 +1,3 @@
-process invoking the schedule() voluntarily yields the processor, as the process is still in run queue, it would be scheduled again.
-
-You must call set_current_state() before calling schedule() to move it from the run queue.
-
-Header File: <linux/sched.h>
+version https://git-lfs.github.com/spec/v1
+oid sha256:e77d37a44bfac19159f973ddc69ae35ac349ce41c9724dde241b202374215fa3
+size 260

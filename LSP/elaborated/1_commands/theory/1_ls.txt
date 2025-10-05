@@ -1,29 +1,3 @@
-Windows equivalent "dir"
-
------------------
-
-ls --- list
-The ls command is used for viewing files, folders and directories.
-==================
-
-1. List Files when no arguments passed
-$ ls
-
-2. -l option: Provides information regarding permissions, file sizes and modified date and time
-$ ls -l
-
-3. -h option: human readabale format. If you want the file sizes in Kilo Bytes, Mega Bytes etc.
-$ ls -lh
-
-4. -a option: Viewing hidden files. Hidden files begin with a full stop (.)
-$ ls -a
-
-5. -t option: Sorts the file by modification time
-$ ls -t
-
-6. -r option: Perform reverse operation of sorting
-$ ls -lrt
-
-
-
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:b691289202b66afd11358d6387bb91681abc19b17f51f4d5ca3aa5d746b83741
+size 638

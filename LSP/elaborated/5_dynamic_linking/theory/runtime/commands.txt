@@ -1,31 +1,3 @@
-How to create the dynamic library
-===================================
-
-Step1: Create object files using the below command
-
-	$ gcc -fPIC -c *.c
-
-the -fPIC flag stands for Position Independent Code, a characteristic required by shared libraries
-
-Step2: Create the library
-
-	$ gcc -shared -Wl,-soname,libarith.so -o libarith.so *.o
-
-The -shared key tells the compiler to produce a shared object which can then be linked with other objects to form an executable.
-
--Wl flag passes an options to linker with following format -Wl,options
-	in case of our example it sets the name of library, as it will be passed to the linker.
-
-
-Use the dynamic library
-=============================
-$ cd app
-$ gcc main.c -o main -I.. -larith -L..
-
-
-Tools to work with dynamic library
-===================================
-
-To find out what functions a library has, use the nm command
-
-$ nm libarith.so
+version https://git-lfs.github.com/spec/v1
+oid sha256:320d9d160e4e8b4c694405dd33ac9a5559cefad088f255bfe117145d1a7c882a
+size 908

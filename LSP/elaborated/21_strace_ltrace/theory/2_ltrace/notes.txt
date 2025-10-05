@@ -1,7 +1,3 @@
-ltrace is a debugging utility in Linux, used to display the calls a userspace application makes to shared libraries.
-
-Its name itself comes from library-call tracing.
-
-This tool is very useful for debugging user-space applications to determine which library call is failing.
-
-ltrace ./executable <parameters>
+version https://git-lfs.github.com/spec/v1
+oid sha256:b5c3f71161044fb2a82a33d8ad1750cdae64ab30bca3106cefc1a485fe24a33e
+size 316

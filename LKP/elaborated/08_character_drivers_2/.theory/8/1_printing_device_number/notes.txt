@@ -1,14 +1,3 @@
-Printing Device Numbers
-=========================
-
-Kernel provides a couple of utility macros to print device numbers.
-
-Header File: <linux/kdev_t.h>
-
-int print_dev_t(char *buffer, dev_t dev);
-
-char *format_dev_t(char *buffer, dev_t dev);
-
-Both macros encode the device number into the given buffer; the only difference is print_dev_t returns the number of characters printed, while format_dev_t returns buffer;
-
-The buffer size should be atleast 20 bytes.
+version https://git-lfs.github.com/spec/v1
+oid sha256:b172953a4f2e0df16342eeac9051e4335e526b1c2a5bb55ea3289a45d49960fa
+size 471

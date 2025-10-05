@@ -1,6 +1,3 @@
-complete_all
-===============
-
-void complete_all(struct completion *);
-
-complete_all, wakes up all processing waiting for the completion.
+version https://git-lfs.github.com/spec/v1
+oid sha256:bab93c40a0a7dd976f95726b79414e7c4e4b3d1cc1980750013d5fe3d88bbbdd
+size 143

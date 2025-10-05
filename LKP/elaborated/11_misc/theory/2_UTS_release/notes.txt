@@ -1,6 +1,3 @@
-UTS_RELEASE
-============
-
-This macro expands to a string describing the version of this kernel tree.
-
-Header File: #include <generated/utsrelease.h>
+version https://git-lfs.github.com/spec/v1
+oid sha256:dd9f550d9fa1b5e8b2270d1d7f16a33209d564e50496894117c0d93f0a3f78c5
+size 155

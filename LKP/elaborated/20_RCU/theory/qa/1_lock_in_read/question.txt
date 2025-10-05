@@ -1,2 +1,3 @@
-Do readers need to take lock while operating inside the critical section?
-=============================================================================
+version https://git-lfs.github.com/spec/v1
+oid sha256:163f2c85f77c4c65e141f5b02b2b749a10ac1145af4e7bb70b0db08b2270bbe2
+size 154

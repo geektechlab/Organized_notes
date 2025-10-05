@@ -1,22 +1,3 @@
-Clobbering
-----------
-
-Besides general purpose registers, we can pass two special specifiers
-
-	cc
-	memory
-
-cc
---------
-
-cc indicates that an assembler code modifies flag register.
-This is typically used if the assembly statements contains arithmetic and logic instructions.
-
-Example: asm volatile("incq %0" ::""(variable): "cc");
-
-memory
------------
-
-informs compiler that the given inline assembly statement executes read/write operations on memory not specified by operands in the output list.
-
-This prevents the compiler from keeping memory values loaded and cached in registers
+version https://git-lfs.github.com/spec/v1
+oid sha256:e8dc6532bc242c96e085e37874673b4836c09429b592d19451563c40d3e3ec0d
+size 604

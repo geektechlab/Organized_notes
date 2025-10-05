@@ -1,4 +1,3 @@
-Which one do you choose in between semaphores and mutexes?
-============================================================
-
-	Start with mutex and move to semaphore only if the strict semantics of mutexes are unsuitable
+version https://git-lfs.github.com/spec/v1
+oid sha256:5bd92bb2eea4e04fd5c3ac22713f12207b0eaa0dd6a595e55866334af862d062
+size 220

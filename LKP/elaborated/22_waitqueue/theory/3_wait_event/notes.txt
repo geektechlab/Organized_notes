@@ -1,16 +1,3 @@
-API's
-================
-
-wait_event(queue, condition);
-
-queue -->	wait queue head to use.
-
-condition --> arbitrary boolean expression that is evaluated by the macro before and after sleeping; 
-
-The process goes to sleep only if the condition evaluates to false. Care is taken to avoid the lost wake-up problem.
-
-Some other thread of execution (a different process, or an interrupt handler, perhaps) has to perform the wakeup for you, since your process is, of course, asleep.
-
-void wake_up(wait_queue_head_t *queue);
-
-Note: until condition evaluates to a true value, the process continues to sleep.
+version https://git-lfs.github.com/spec/v1
+oid sha256:0d40b47c57891d6fb5536a89eb4c59c0e3190b2bf61b70ccc1127df2e37f59f8
+size 614

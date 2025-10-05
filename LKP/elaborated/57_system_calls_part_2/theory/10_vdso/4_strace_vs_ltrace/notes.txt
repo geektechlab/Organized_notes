@@ -1,6 +1,3 @@
-strace and vdso
-==================
-
-When tracing systems calls with strace, system calls that are exported by the vDSO will not appear in the trace output.
-
-You can capture calls to system calls which have been implemented via the vDSO by using ltrace instead of strace.
+version https://git-lfs.github.com/spec/v1
+oid sha256:7a055cde91e6baa4f38730ef862e4a869d5ba0ddad6289cbe1771ab1cf2fd76f
+size 277

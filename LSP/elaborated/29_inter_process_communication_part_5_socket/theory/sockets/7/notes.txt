@@ -1,16 +1,3 @@
-Sockets are fairly configurable
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-int getsockopt(int s, int level, int optname, void *optval,
-               socklen_t *optlen);
-int setsockopt(int s, int level, int optname, const void *optval,
-               socklen_t optlen);
-
-When getsockopt is invoked with the SO_PEERCRED option, it accepts the struct ucred structure as further parameter 
-This structure has three elements: pid, uid and gid. 
-
-After calling getsockopt with a pointer to this structure, these fields will contain the process, user and group ids of the party on the other end of the socket connection
-
-What makes this call so important is that provides a clean and reliable way of establishing the identity of another process.
+version https://git-lfs.github.com/spec/v1
+oid sha256:5abc896801d328811983bc1db32ddf383d589451dd138672a2f6e9229221c834
+size 762

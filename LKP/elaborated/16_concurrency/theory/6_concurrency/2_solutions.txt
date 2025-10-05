@@ -1,30 +1,3 @@
-Simple Solutions
-==============
-
-1. Kernel Preemption Disabling
-----------------------------------
-
-	disabling kernel preemption
-	critical region start 
-	......
-	.....
-	critical region end
-	enable kernel preemption
-
-Problem:
-	On Multiprocessor, two kernel paths running on different CPUs can concurrently access the same global data
-
-2. Disabling Hardware Interrupts
-------------------------------------
-
-	Disabling Hardware Interrupts
-	critical region start
-	......
-	......
-	critical region end
-	enable hardware interrupts
-
-Problem:
-	If the critical region is large, interrupts can remain disabled for a relatively long time, potentially causing all hardware activities to freeze/ might get missed.
-
-	On a multiprocessor system, disabling interrupts on the local CPU is not sufficient, and other synchronization techniques must be used.
+version https://git-lfs.github.com/spec/v1
+oid sha256:596c135e9b544d7e1161792e7f8f2d03e15e1f1746fbcb38a4c40fd92f001c3b
+size 868

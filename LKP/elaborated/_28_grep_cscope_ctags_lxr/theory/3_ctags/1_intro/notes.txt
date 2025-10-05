@@ -1,35 +1,3 @@
-What is ctags
-================
-
-With ctags, you can jump from the current source file to definitions of functions and structures in other files
-
-How to install
-================
-
-$ sudo apt install exuberant-ctags
-
-How to use it
-==============
-
-To build the ctags database.
-
-$ make tags
-
-or
-
-$ make ARCH=arm tags
-
-or
-
-make ARCH=arm SUBARCH=omap2 tags
-
-Files Created
-=============
-
-$ ls -lh tags
-
-Stores the index in tags file.
-
-The above make command is equivalent to:
-
-$ ctags -R *
+version https://git-lfs.github.com/spec/v1
+oid sha256:6abd663925965b697ff4158063c191fe54b376fdfa90291acefd365146cd93b6
+size 517

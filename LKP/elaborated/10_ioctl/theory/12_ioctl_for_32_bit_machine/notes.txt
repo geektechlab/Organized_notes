@@ -1,3 +1,3 @@
-64 bit ioctl will fail for 32 will -ENOTTY.
-
-to use older 32 bit ioctl, we can use compact_ioctl instead of unlock_ioctl. compact_ioctl convert to unlock_ioctl arguments.
+version https://git-lfs.github.com/spec/v1
+oid sha256:fb6ea4fc60a721bf47a2a3faa256aa7316086c8827c616a10c4d4e17e258f1bc
+size 172

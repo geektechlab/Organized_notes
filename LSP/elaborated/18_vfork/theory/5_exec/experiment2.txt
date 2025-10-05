@@ -1,15 +1,3 @@
-1. Fire up a shell
-
-2. In the window, or more precisely, at the shell prompt, run ps followed by bash — yes, we're spawning a subshell here, followed by ps once more.
-$ps
-$bash
-$ps
-
-notice the PIDs of the original and sub-shell Bash processes
-
-3. On the sub-shell, exec the ps command; this ps successor process overwrites (or overlays) the process image of the predecessor process—the bash sub-shell.
-$ exec ps
-
-4. Observe the output: In the exec ps command output, the PID of ps is the PID of the bash subshell process:
-
-5. Also notice we're back to the original bash shell process PID 3,396 now, as, of course, we cannot return to the predecessor:
+version https://git-lfs.github.com/spec/v1
+oid sha256:e38aae3dd910ca83abbec7c925531906ca2cb886e66a032bedeea95a0a43ffc7
+size 670

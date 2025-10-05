@@ -1,16 +1,3 @@
-syscall
------------
-
-syscall() is a small library function that invokes the system call
-This is provided to use when invoking a system call that has no wrapper function in the C library.
-
-syscall()
-	saves CPU registers before making the system call
-	restores the registers upon return from the system call
-	and stores any error code returned by the system call in errno if an error occurs
-
-#define _GNU_SOURCE         /* See feature_test_macros(7) */
-#include <unistd.h>
-#include <sys/syscall.h>   /* For SYS_xxx definitions */
-
-long syscall(long number, ...);
+version https://git-lfs.github.com/spec/v1
+oid sha256:cb17676ebcfa624995bcf2895188fe5f75e6051263cda007cc041357cf8ea254
+size 577

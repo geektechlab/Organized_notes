@@ -1,8 +1,3 @@
-Why can't the application directly access hardware, why do we need system calls?
----------------------------------------------------------------------------------
-
-Advantage of having system calls:
-
-	1. Makes programming easier by freeing users from studying low-level programming characteristics of hardware devices
-
-	2. It greatly increases system security, because kernel can check the accuracy of the request at the interface level before attempting to satisfy it.
+version https://git-lfs.github.com/spec/v1
+oid sha256:27bbd0d6174da96d6ddbeb9c2f0417171bad8a83b7b51737fa7cbdba3f60e917
+size 477

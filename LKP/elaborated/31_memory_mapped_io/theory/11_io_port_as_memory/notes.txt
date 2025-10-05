@@ -1,12 +1,3 @@
-Ports as I/O Memory
-=====================
-
-Linux kernel provides a function ioport_map which maps I/O ports and make them appear as I/O Memory.
-
-void *ioport_map(unsigned long port, unsigned int count);
-
-To unmap:
-
-void ioport_unmap(void *addr);
-
-Note: I/O Ports must still be allocated with request_region before they can be remapped in this way.
+version https://git-lfs.github.com/spec/v1
+oid sha256:1c1be5ecc7584ea9d095606c0c09f3b3599c85ccb9f119f5689aad4e3a16c763
+size 360

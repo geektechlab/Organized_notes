@@ -1,4 +1,3 @@
-Use of a mapped region can result in these signals:
-=======================================================
-
-SIGSEGV            Attempted write into a region mapped as read-only.
+version https://git-lfs.github.com/spec/v1
+oid sha256:55e4492e274fa029ea62735c2b198a03ac9456bc1f86b72aabc51c099735be62
+size 183
