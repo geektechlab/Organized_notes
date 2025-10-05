@@ -1,0 +1,3531 @@
+Skip to content
+Chat history
+
+You said:
+Writeback, as the names suggests, is the process by
+which Linux ultimately writes data back to disk from
+the page cache. The kernel must maintain a trade-off
+between caching writes in memory and writing back
+to disk and handle scenarios under which dirtying ex-
+ceeds writeback bandwidth. We discuss how all of this
+is performed within this chapter.
+In order to track which page cache folios need writeback, we track which
+ones have had changes made to them since they were last synchronised to
+disk. These pages are termed dirty. Those which are in sync with the disk
+(and uptodate, i.e. have already successfully been read from disk) are termed
+clean. We discuss the process of tracking dirty data in Section 10.1.
+The actual process of writeback is performed one of two ways—
+periodically in the background, or when explicit synchronisation is trig-
+gered. When folios are dirtied, they automatically become subject to back-
+ground writeback. In detail:
+Writeback in Linux is divided into several different stages:
+Dirty Tracking We first need to know that data has changed in the page
+cache, which occurs when data is written to the page cache. Both the
+folio written to and the inode describing the file are marked dirty as de-
+scribed in Section 10.1. Dirty Page Balancing Each time data is marked dirty, the kernel checks to
+see whether either the amount of dirty data exceeds vm.dirty_bytes, or
+the ratio between this data and available memory exceeds vm.dirty_ratio.
+If this is the case, the I/O operation blocks and writeback is performed
+immediately, as described in Section 10.14.
+Background Dirty Page Balancing If direct balancing is not required,
+the kernel check to see whether the amount of dirty data exceeds
+vm.dirty_background_bytes, or the ratio between this data and available
+memory exceeds vm.dirty_background_ratio (these are mutually exclusive,
+of one tuneable is set, the other is cleared). In either case, the writeback
+work queue thread is immediately woken to perform background write-
+back. Again, see Section 10.14 for details on this process.
+Synchronisation A user can additionally opt to manually trigger synchroni-
+sation to the disk via a number of system calls, e.g. sync(). We examine
+how manual synchronisation to disk is performed in the kernel in Sec-
+tion 10.6.
+Background Writeback If not immediately awoken, the writeback kernel
+thread is otherwise woken up vm.dirty_writeback_centisecs (expressed in
+‘centiseconds’, or hundredths of a second) after the last time this check
+was performed.
+Writing Back to Disk Either synchronisation is requested or the writeback
+work queue thread has identified data that need to be written back, i.e.
+older than vm.dirty_expire_centisecs. In either case writeback to disk is
+begun, as described in in Section 10.10.
+Writing Back to the Block Device Ultimately the actual I/O must be sub-
+mitted to the underlying block device. What we must write back is deter-
+mined by the levels above, which are then translated into block opera-
+tions, which we examine in Section 9.10.4. In order to keep track of what needs to be written back to disk in the page
+cache we need to track two separate things–the dirty folios themselves and
+the inodes which back them.
+Recalling from Section 4.5 that the struct address_space object is en-
+veloped by its describing struct inode object, we can observe how this track-
+ing is performed in Figure 10-1 Each device which ‘backs’ the data stored in the page cache is termed
+a ‘Backing Device’, and data associated with it is termed ’Backing Device
+Information’ or BDI for short. BDI is typically used interchangeably to
+describe the backing device itself, as will we. These are described by the
+struct backing_dev_info type.
+The state of writeback on each BDI is tracked using a struct bdi_writeback
+object, and it is here that dirty inodes are tracked in its b_dirty list as shown
+in Figure 10-1.
+We tag dirty folios in the struct address_space->i_pages xarray us-
+ing xas_set_mark() which uses the xarray mark functionality to set the
+PAGECACHE_TAG_DIRTY tag.
+This enables us to very quickly iterate through all dirty pages in an
+struct address_space using xas_for_each_marked().
+Once we have tagged the dirty pages, we also need to keep track of which
+inodes possess struct address_space objects which have dirty pages attached.
+These are termed ‘dirty inodes’.
+If the kernel configuration option CONFIG_CGROUP_WRITEBACK is not set, this
+object is simply accessible via struct backing_dev_info->wb field and we simply
+maintain a single writeback object per BDI.
+This makes sense, as writeback is limited by each backing device’s avail-
+able I/O bandwidth, so the state should be tied to each of these devices.
+However, if cgroups are in use, available bandwidth in the BDI may
+be subdivided between cgroups. Discussion of cgroups is out of scope
+for the book, but it is useful to note that if CONFIG_CGROUP_WRITEBACK is set, then a pointer to the struct bdi_writeback relevant object is stored in the
+struct inode->i_wb field instead.
+In either case, we obtain the relevant BDI writeback object via
+inode_to_wb().
+Maintaining this list is how we track which pages inodes are dirty and
+whose pages need writeback. We examine how this is ultimately performed
+in Section 10.10.
+Placing inodes into the dirty list and marking pages as dirty typically oc-
+cur either through a write operation such as that accomplished through the
+write() system call, discussed in Section 10.12, or by a page fault occurring
+on a memory-mapped file-backed page, discussed in Section 10.12.
+ChatGPT said:
+Got it 👍 — let me explain this whole Linux writeback mechanism in crisp, simple terms while keeping all the technical details intact.
+
+📝 Linux Writeback — Complete but Simple Explanation
+Writeback = the process of taking dirty data in page cache (RAM) and writing it back to the backing storage (disk, SSD, etc.).
+
+The kernel must balance:
+
+✅ Caching writes in memory (fast)
+
+✅ Writing them back to disk (slow, permanent)
+
+❌ Avoiding memory overload when dirty pages exceed limits
+
+🔑 Key Concepts
+Clean vs Dirty Pages
+
+Clean: In sync with disk (uptodate).
+
+Dirty: Modified in memory but not yet written to disk.
+
+Writeback Triggers
+
+Automatic/background (periodic checks or thresholds exceeded).
+
+Explicit/user-requested (sync(), fsync(), etc.).
+
+⚙️ Stages of Writeback
+Dirty Tracking
+
+When data is written → both the folio (page in cache) and the inode (file metadata) are marked dirty.
+
+Marking is done via:
+
+address_space->i_pages xarray with PAGECACHE_TAG_DIRTY using xas_set_mark().
+
+This lets kernel scan dirty pages fast (xas_for_each_marked()).
+
+Dirty Page Balancing
+
+Each write checks thresholds:
+
+vm.dirty_bytes / vm.dirty_ratio → if exceeded → block writer until writeback runs.
+
+Background Dirty Page Balancing
+
+If not blocking → check against softer thresholds:
+
+vm.dirty_background_bytes / vm.dirty_background_ratio.
+
+If exceeded → wake up the writeback kernel thread (background worker).
+
+Manual Synchronisation
+
+User/system calls (sync(), fsync(), fdatasync()) force writeback immediately.
+
+Background Writeback Timer
+
+Even if no thresholds exceeded, kernel wakes periodically after vm.dirty_writeback_centisecs to check.
+
+Expire Dirty Data
+
+Dirty pages older than vm.dirty_expire_centisecs must be written out.
+
+Writeback to Block Device
+
+Finally, writeback translates into block I/O operations to the storage device driver.
+
+📦 Data Structures
+struct inode
+↳ Has struct address_space → represents file’s cached pages.
+
+struct address_space->i_pages
+↳ xarray of folios (pages). Dirty pages are tagged here.
+
+struct backing_dev_info (BDI)
+↳ Represents a backing device (disk/SSD).
+↳ Each BDI has writeback limits tied to its I/O bandwidth.
+
+struct bdi_writeback
+↳ Tracks writeback state of a BDI.
+↳ Contains lists of dirty inodes (like b_dirty).
+
+inode_to_wb()
+↳ Maps inode → appropriate bdi_writeback object.
+
+cgroups (optional)
+
+If CONFIG_CGROUP_WRITEBACK=y → writeback bandwidth can be subdivided per cgroup.
+
+Then each inode carries its i_wb pointer to correct writeback object.
+
+📌 How Dirtying Happens
+System call write()
+→ Copies data to page cache → marks pages + inode dirty.
+
+Page fault on mmap() file
+→ Modifying file-backed pages via memory-mapping also dirties pages.
+
+🗂️ Textual Diagram (Hierarchy)
+User writes → write() / mmap fault
+       |
+       v
+Page cache (folio in address_space->i_pages)
+       |  (mark dirty: PAGECACHE_TAG_DIRTY)
+       v
+Inode (tracks dirty pages)
+       |
+       v
+Backing Device (struct backing_dev_info, BDI)
+       |
+       v
+bdi_writeback (tracks dirty inode list)
+       |
+       +-- Direct Writeback (dirty_ratio / dirty_bytes exceeded)
+       +-- Background Writeback (dirty_background_ratio exceeded)
+       +-- Timer Writeback (dirty_writeback_centisecs)
+       +-- Manual Sync (sync(), fsync(), fdatasync())
+       |
+       v
+Block Device I/O (actual disk writes)
+⚠️ FAANG / Core Systems Interview Caveats
+Threshold tuning questions:
+Know difference between dirty_ratio, dirty_background_ratio, dirty_bytes, and timers (dirty_writeback_centisecs, dirty_expire_centisecs).
+
+Scalability:
+
+Why use xarray tags for dirty pages → avoids O(n) scans.
+
+Why track inodes separately → efficient batch writeback.
+
+Cgroups:
+
+Writeback isolation per cgroup ensures fair bandwidth.
+
+Consistency:
+
+Writeback does not guarantee durability unless user triggers fsync() or sync().
+
+Crashes may lose dirty data still in cache.
+
+Trade-off:
+
+Too much caching = latency on flush
+
+Too aggressive writeback = wastes bandwidth
+
+👉 So, writeback is essentially about: tracking dirty folios + batching disk writes efficiently + balancing memory vs I/O.
+
+Do you want me to also give you a step-by-step execution flow of what happens when you run write() → until the disk sees the write, in the same crisp detail?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve shared the writeback + dirty tracking + page fault handling path from Lorenzo’s Linux Memory Manager book. Let’s go through each piece in simple but technically precise language.
+
+🔑 Big Picture
+When data is modified in memory (page cache), the kernel must:
+
+Mark it dirty (so it knows to write it back later).
+
+Track the inode associated with those dirty pages.
+
+Eventually write it back to the disk safely, avoiding corruption (like torn writes).
+
+This whole machinery involves:
+
+folio_mark_dirty() → marks the page dirty
+
+__mark_inode_dirty() → adds inode to dirty list
+
+writeback threads → flush dirty data
+
+folio_wait_stable() → prevents races while flushing
+
+1. Marking the Folio Dirty
+📄 Code: __folio_mark_dirty()
+
+Locks the address_space->i_pages xarray.
+
+Calls folio_account_dirtied() to update statistics.
+
+Uses __xa_set_mark(..., PAGECACHE_TAG_DIRTY) to tag the folio as dirty in the xarray.
+
+This lets kernel quickly scan only dirty pages instead of all pages.
+
+Also marks the inode dirty, since file metadata must be updated too.
+
+👉 Dirty tracking = folio (page cache) + inode metadata.
+
+2. Marking the Inode Dirty
+📄 Code: __mark_inode_dirty()
+
+Gets the inode’s superblock (inode->i_sb).
+
+Gets the bdi_writeback structure via inode_to_wb().
+
+Uses spinlocks (i_lock, wb->list_lock) to update inode state safely.
+
+If inode wasn’t dirty before:
+
+Adds it to bdi_writeback->b_dirty list (queue of inodes needing writeback).
+
+Records timestamp (inode->dirtied_when = jiffies).
+
+Ensures ordering: dirty inodes are written out in time order.
+
+If it’s the first dirty inode for this BDI → wakes up the writeback thread (wb_wakeup_delayed()).
+
+👉 This step ensures kernel knows which files need flushing.
+
+3. Page Fault Dirty Tracking
+📄 Figure 10-2 flow:
+
+When a write page fault occurs (writing to a mmap’ed file):
+
+handle_pte_fault()
+  └─ do_wp_page()          → copy-on-write
+     └─ wp_page_shared()
+         └─ fault_dirty_shared_page()
+         └─ balance_dirty_pages_ratelimited()
+  └─ do_page_mkwrite()     → prepare write to file-backed page
+     └─ vm_ops->page_mkwrite()
+        └─ filemap_page_mkwrite()
+            └─ folio_mark_dirty()
+            └─ __mark_inode_dirty()
+do_wp_page(): handles write-protect (copy-on-write).
+
+do_page_mkwrite(): called when a file-backed page is about to be written.
+
+filemap_page_mkwrite(): core function → marks folio dirty + waits stable.
+
+4. filemap_page_mkwrite()
+📄 Code shown in Listing 10-5.
+
+Steps:
+
+sb_start_pagefault() → get superblock lock to prevent filesystem freeze.
+
+file_update_time() → update inode timestamps (mtime, ctime).
+
+folio_lock() → lock page to prevent races.
+
+folio_mark_dirty() → mark folio + inode dirty.
+
+folio_wait_stable() → if device requires stable writes, wait for ongoing writeback to finish.
+
+sb_end_pagefault() → release superblock lock.
+
+👉 Ensures memory-mapped file writes are tracked + safe.
+
+5. folio_wait_stable()
+📄 Code: Listing 10-7.
+
+Used for filesystems/devices requiring stable page writes (NFS, some block devices).
+
+If inode has SB_I_STABLE_WRITES set → call folio_wait_writeback().
+
+This waits until ongoing writeback is done before allowing new writes.
+
+👉 Prevents torn writes:
+
+Example: Buffer = AAAAAA.
+
+Kernel flushes first 3 bytes → disk has AAA.
+
+User writes new BBBBBB to buffer before flush completes.
+
+Final flush gives AAABBB → corruption.
+
+With folio_wait_stable() → kernel waits until flush finishes before new writes.
+
+6. bdi_writeback / Dirty Inode Lists
+📄 Diagram (Figure 10-1).
+
+backing_dev_info (BDI) = represents backing device (disk/SSD).
+
+Each BDI has a bdi_writeback object.
+
+Dirty inodes tracked in bdi_writeback->b_dirty.
+
+Each inode with dirty folios is added here via inode_io_list_move_locked().
+
+Writeback thread wakes when needed → flushes these inodes’ pages.
+
+👉 This ties dirty data tracking to device bandwidth limits.
+
+🗂️ Textual Flow (Putting It All Together)
+User write (via write() or mmap fault)
+       |
+       v
+folio_mark_dirty()                -> marks folio dirty in page cache
+       |
+       v
+__mark_inode_dirty()              -> marks inode dirty, adds to bdi_writeback->b_dirty
+       |
+       v
+Background writeback thread       -> wakes based on thresholds or timers
+       |
+       v
+Writeback I/O issued              -> pages flushed to disk
+       |
+       v
+folio_wait_stable() (if needed)   -> prevents torn writes on stable-write devices
+⚠️ FAANG/Core Interview Takeaways
+Atomicity: Why folio_wait_stable() is critical for avoiding torn writes.
+
+Tracking efficiency: xarray tags for dirty folios (PAGECACHE_TAG_DIRTY).
+
+Inode vs folio dirtying: both metadata and data must be tracked.
+
+Writeback balancing: thresholds (dirty_ratio, dirty_background_ratio, timers).
+
+Concurrency handling: spinlocks, race avoidance (truncate, freeing inodes).
+
+Stability requirements: NFS, block devices may enforce stable writes.
+
+✅ So in short:
+
+folio_mark_dirty() → mark page dirty.
+
+__mark_inode_dirty() → put inode on writeback list.
+
+filemap_page_mkwrite() → invoked on mmap writes to do both safely.
+
+folio_wait_stable() → ensures no corruption when device requires stable pages.
+
+bdi_writeback → tracks dirty inodes per device, controls flushing.
+
+Do you want me to now trace a full mmap write flow (user writes → page fault → dirty tracking → writeback → disk) step by step in one clean diagram + explanation? That’ll consolidate all these listings into one execution story.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Great, you’ve brought in the file write dirtying + synchronisation path. Let’s decode this step by step, keeping it crisp but technically complete.
+
+🔑 Big Picture
+When a process calls write() (or writes via mmap), Linux:
+
+Copies data into the page cache folios.
+
+Marks the folio dirty (folio_mark_dirty) and the inode dirty (__mark_inode_dirty).
+
+Tracks dirty inodes in the BDI writeback lists.
+
+Later flushes dirty pages to disk (background writeback or fsync()/sync()).
+
+1. folio_mark_dirty()
+📄 Code: Listing 10-8
+
+Called when a folio is modified.
+
+Gets the address_space via folio_mapping().
+
+Handles special cases (readahead flags, reclaim race).
+
+Calls mapping->a_ops->dirty_folio() → filesystem-specific hook.
+
+For most filesystems → falls back to block_dirty_folio().
+
+👉 Ensures the folio is flagged dirty in the xarray (PAGECACHE_TAG_DIRTY).
+
+2. block_dirty_folio()
+📄 Code: Listing 10-9
+
+Handles buffer-head-based filesystems (ext2, etc.).
+
+Locks address_space->private_lock.
+
+Iterates all buffer_heads attached to folio → sets each dirty with set_buffer_dirty().
+
+Then:
+
+Calls __folio_mark_dirty() → tag page dirty in xarray.
+
+Calls __mark_inode_dirty() → add inode to BDI dirty list.
+
+Returns newly_dirty flag (true if page was first dirtied).
+
+👉 This links folio-level dirtying → inode-level writeback tracking.
+
+3. Generic File Write Path
+📄 Figure 10-3
+
+For a user write() system call:
+
+write() syscall
+  └─ ksys_write()
+      └─ vfs_write()
+          └─ new_sync_write()
+              └─ call_write_iter()
+                  └─ f_op->write_iter()
+                      └─ generic_file_write_iter()
+                          └─ __generic_file_write_iter()
+                              └─ generic_perform_write()
+Key Functions:
+generic_file_write_iter() / __generic_file_write_iter()
+
+Entry point for buffered writes.
+
+Updates inode timestamps (via file_update_time).
+
+Calls generic_perform_write().
+
+generic_perform_write()
+
+Loops through user buffer, writing into page cache.
+
+Uses a_ops->write_begin() → bring page into cache.
+
+copy_page_from_iter_atomic() → copy user data into page cache.
+
+a_ops->write_end() → mark page dirty.
+
+Calls balance_dirty_pages_ratelimited() → triggers background writeback if thresholds exceeded.
+
+4. grab_cache_page_write_begin()
+📄 Listing 10-13
+
+Ensures the target folio exists in the page cache.
+
+Uses flags:
+
+FGP_LOCK → lock the page.
+
+FGP_WRITE → writable.
+
+FGP_CREAT → create if missing.
+
+FGP_STABLE → wait for writeback if stable_writes required.
+
+Returns the locked folio.
+
+👉 Guarantees safe base page for write.
+
+5. block_write_begin() / block_write_end()
+📄 Listing 10-12 + 10-13
+
+Filesystem-specific, often delegated to generic helpers.
+
+block_write_begin() → sets up page cache, ensures partial blocks are up-to-date.
+
+block_write_end() → finalises write, dirties buffers, commits data.
+
+May call __block_commit_write().
+
+6. Dirty Tracking Chain
+When writing completes:
+
+mark_buffer_dirty() → marks buffer dirty (per-block).
+
+Calls __folio_mark_dirty() → tags folio in xarray.
+
+Calls __mark_inode_dirty() → adds inode to BDI’s dirty list (b_dirty).
+
+👉 Ensures both data + metadata are tracked.
+
+7. Balancing Dirty Pages
+balance_dirty_pages_ratelimited() invoked after writes.
+
+Checks dirty thresholds (vm.dirty_ratio, vm.dirty_bytes).
+
+If limits exceeded → slows writer or triggers background writeback.
+
+8. Synchronisation (fsync/sync)
+📄 Figure 10-4
+
+User may call:
+
+fsync(fd) → flushes specific file.
+
+fdatasync(fd) → flushes file data only.
+
+sync() → flushes all files.
+
+syncfs() → flushes all files on given filesystem.
+
+Path Example (fsync):
+fsync() syscall
+   └─ vfs_fsync()
+        └─ f_op->fsync()
+             └─ generic_file_fsync()
+                 └─ sync_inode_metadata()
+                 └─ sync_mapping_buffers()
+Eventually → filemap_write_and_wait() + file_write_and_wait_range() → write dirty folios to disk.
+
+May call block layer flushes (blkdev_issue_flush) for durability.
+
+🗂️ Textual Summary Flow
+User write() → generic_file_write_iter()
+    └─ __generic_file_write_iter()
+         └─ generic_perform_write()
+             ├─ write_begin() → grab folio into page cache
+             ├─ copy data → page cache
+             ├─ write_end() → mark dirty
+             │    ├─ mark_buffer_dirty()
+             │    ├─ __folio_mark_dirty()
+             │    └─ __mark_inode_dirty()
+             └─ balance_dirty_pages_ratelimited()
+
+Later…
+Background writeback thread OR fsync()
+    └─ scans bdi_writeback->b_dirty
+    └─ flushes dirty folios to block device
+    └─ optional stable_writes → folio_wait_stable()
+⚠️ FAANG / Core Team Caveats
+Atomicity: write may partially overlap with ongoing writeback → use folio_wait_stable() if stable writes required.
+
+Scalability: dirty folios tracked with xarray tags (PAGECACHE_TAG_DIRTY) → avoids scanning whole cache.
+
+Consistency: inode dirtying ensures both data + metadata are flushed.
+
+Filesystem control: callbacks a_ops->write_begin/write_end allow FS-specific behavior.
+
+Performance trade-off: write caching vs immediate flush; background writeback vs fsync().
+
+✅ In short:
+
+write() → copies data into page cache, dirties folios + inodes.
+
+Dirty tracking via folio_mark_dirty + __mark_inode_dirty.
+
+Background writeback thread flushes lazily; fsync() forces sync.
+
+folio_wait_stable() ensures no torn writes on devices needing stable pages.
+
+Do you want me to merge mmap-write path + write() path into one unified execution diagram (so you see both user write system call vs mmap page fault leading to dirty tracking)? That’ll give a complete one-shot picture.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve captured the sync/fsync family of functions plus the core writeback code path from Lorenzo’s book. Let me break it down step by step in simple but technically precise language.
+
+🔑 The Problem
+Dirty pages (modified in RAM) must eventually be written to disk.
+Userspace can request this explicitly via:
+
+sync() → sync everything (all filesystems).
+
+syncfs(fd) → sync only the filesystem containing fd.
+
+fsync(fd) → sync one file fully (data + metadata).
+
+fdatasync(fd) → sync only essential data + metadata (skip access/mod time updates).
+
+All of these sit on top of the same writeback machinery, which tracks dirty folios and dirty inodes.
+
+1. generic_write_sync()
+📄 Listing 10-14
+
+Called after a write if file was opened with O_SYNC/O_DSYNC or if application explicitly requests sync.
+
+Checks if the I/O control block (kiocb) is synchronous (iop_is_dsync).
+
+If yes → calls vfs_fsync_range() to flush the just-written range.
+
+Otherwise just returns.
+
+👉 Ensures synchronous writes flush data to disk immediately.
+
+2. sync() System Call
+📄 Listing 10-15
+
+SYSCALL_DEFINE0(sync)
+{
+    ksys_sync();
+    return 0;
+}
+This is the system call implementation — just calls ksys_sync().
+
+Equivalent to running sync command in shell.
+
+3. ksys_sync()
+📄 Listing 10-16
+
+Steps:
+
+Wake up flusher threads
+
+wakeup_flusher_threads(WB_REASON_SYNC) → submit pending dirty folios for writeback in parallel across devices.
+
+Synchronously writeback inodes + metadata
+
+iterate_supers(sync_inodes_one_sb, NULL) → flush all inodes for all mounted superblocks.
+
+iterate_supers(sync_fs_one_sb, &nowait) → flush FS metadata asynchronously.
+
+iterate_supers(sync_fs_one_sb, &wait) → flush FS metadata synchronously.
+
+Sync block devices
+
+sync_bdevs(false) → async flush of blockdev pages.
+
+sync_bdevs(true) → wait for them to finish.
+
+👉 So ksys_sync() submits all dirty data + metadata + blockdev buffers, then waits until complete.
+
+4. sync_filesystem() / syncfs()
+📄 Listing 10-17
+
+syncfs(fd) → operates only on the filesystem containing fd.
+
+Calls sync_filesystem(struct super_block *sb).
+
+Steps:
+
+writeback_inodes_sb(sb, WB_REASON_SYNC) → async writeback of dirty inodes.
+
+sb->s_op->sync_fs(sb, 0) → async sync of FS metadata.
+
+sync_blockdev_nowait(sb->s_bdev) → async flush of blockdev buffers.
+
+sync_inodes_sb(sb) → wait for inode folio writeback.
+
+sb->s_op->sync_fs(sb, 1) → wait for metadata writeback.
+
+sync_blockdev(sb->s_bdev) → wait for blockdev sync.
+
+👉 Same as sync(), but restricted to one filesystem.
+
+5. fsync() and fdatasync()
+📄 Listing 10-18
+
+do_fsync(fd, datasync) → main entrypoint.
+
+Grabs the file (fdget).
+
+Calls vfs_fsync(file, datasync).
+
+datasync=0 for fsync, datasync=1 for fdatasync.
+
+6. vfs_fsync_range()
+📄 Listing 10-19
+
+Dispatches the sync to the filesystem implementation:
+
+Calls file->f_op->fsync(file, start, end, datasync).
+
+If FS doesn’t implement fsync → returns -EINVAL.
+
+👉 Most filesystems use generic_file_fsync().
+
+7. generic_file_fsync()
+📄 Listing 10-20
+
+Steps:
+
+Calls __generic_file_fsync().
+
+After data+metadata sync, issues a block device flush with blkdev_issue_flush() to push hardware write caches to disk (important for durability).
+
+8. __generic_file_fsync()
+📄 Listing 10-21
+
+Steps:
+
+file_write_and_wait_range(file, start, end) → flush all dirty folios in the file’s mapping.
+
+Locks inode.
+
+sync_mapping_buffers(inode->i_mapping) → flush metadata buffers.
+
+If inode still marked dirty →
+
+sync_inode_metadata(inode, 1) → flush inode metadata.
+
+Unlock inode.
+
+file_check_and_advance_wb_err() → propagate any writeback errors.
+
+👉 Ensures both file data and metadata are flushed in correct order.
+
+9. bdi_writeback (Core Data Structure)
+📄 Listing 10-22
+
+struct bdi_writeback contains:
+
+b_dirty list → dirty inodes to flush.
+
+b_io / b_more_io lists → inodes parked for further I/O.
+
+writeback_inodes counter.
+
+Timestamps (dirtied_stamp, written_stamp) → track dirtying/writing activity.
+
+write_bandwidth, dirty_ratelimit → control dirty throttling per device.
+
+👉 Each backing device (disk/SSD) has its own bdi_writeback, controlling flush rate.
+
+10. Core Writeback Code Path
+📄 Figure 10-5
+
+do_writepages()
+   -> a_ops->writepages()
+      -> generic_writepages()
+         -> write_cache_pages()
+            -> __writepage()
+               -> a_ops->writepage()
+                  -> block_write_full_page()
+                     -> __block_write_full_page()
+Parallel path:
+
+set_page_writeback() → mark folio under writeback.
+
+folio_start_writeback() → set PG_writeback flag, clear DIRTY tag.
+
+Later, when I/O completes:
+
+end_page_writeback() / folio_end_writeback() → clear PG_writeback, clear WRITEBACK tag.
+
+👉 This transitions folio from dirty → writeback → clean.
+
+🗂️ Textual Summary Flow
+sync() syscall
+   └─ ksys_sync()
+       ├─ wakeup_flusher_threads()        -> async submit dirty folios
+       ├─ iterate_supers(sync_inodes)     -> sync inodes + data
+       ├─ iterate_supers(sync_fs_one_sb)  -> sync metadata
+       ├─ sync_bdevs(false)               -> async blockdev flush
+       └─ sync_bdevs(true)                -> wait blockdev flush done
+
+syncfs(fd)
+   └─ sync_filesystem(sb)
+       ├─ writeback_inodes_sb()
+       ├─ sb->s_op->sync_fs(..., 0)       -> async metadata sync
+       ├─ sync_blockdev_nowait()
+       ├─ sync_inodes_sb()                -> wait folio writeback
+       ├─ sb->s_op->sync_fs(..., 1)       -> wait metadata sync
+       └─ sync_blockdev()
+
+fsync(fd)
+   └─ do_fsync()
+       └─ vfs_fsync_range()
+           └─ generic_file_fsync()
+               └─ __generic_file_fsync()
+                   ├─ file_write_and_wait_range() -> flush folios
+                   ├─ sync_mapping_buffers()      -> flush metadata
+                   ├─ sync_inode_metadata()       -> flush inode
+                   └─ blkdev_issue_flush()        -> flush HW caches
+⚠️ FAANG / Core Team Interview Caveats
+Difference sync/fsync/fdatasync:
+
+sync → all FS + metadata + devices.
+
+syncfs → one FS.
+
+fsync → file + full metadata.
+
+fdatasync → file + minimal metadata (size, timestamps optional).
+
+Durability vs Performance:
+
+blkdev_issue_flush() ensures hardware cache flush (required for true durability, but costly).
+
+Concurrency:
+
+Writeback lists per-BDI throttle dirtying to device bandwidth.
+
+State transitions:
+
+Folio goes DIRTY → WRITEBACK → CLEAN.
+
+✅ In short:
+
+sync() = flush everything.
+
+syncfs() = flush filesystem of given fd.
+
+fsync() = flush single file fully.
+
+fdatasync() = flush single file (data only).
+
+All flow through dirty folio tracking → inode dirty lists → bdi_writeback → block device I/O.
+
+Do you want me to next merge everything (write path + mmap path + sync/fsync paths) into a single “life of a write” diagram, from user call → page cache → dirty marking → writeback → block flush? That would give you the ultimate one-shot reference.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these screenshots cover how Linux actually performs writeback of dirty pages using do_writepages() → write_cache_pages() → writepage(), and the supporting structures like bdi_writeback and writeback_control.
+Here’s a crisp but detailed explanation:
+
+🔹 1. struct bdi_writeback
+Defined in include/linux/backing-dev-defs.h.
+Each Backing Device (BDI) (disk, SSD, etc.) has one or more bdi_writeback objects that manage dirty inode lists and statistics.
+
+Key fields:
+
+b_dirty, b_io, b_more_io → Lists of dirty inodes:
+
+b_dirty: inodes needing writeback.
+
+b_io: scheduled for immediate writeback.
+
+b_more_io: parked for later.
+
+stat[] → per-CPU counters (# dirtied pages, # written pages).
+
+bw_time_stamp, write_bandwidth → track I/O speed for throttling.
+
+work_list, dwork → background flusher work items.
+
+👉 This allows tracking, scheduling, and throttling dirty writes.
+
+🔹 2. do_writepages()
+Defined in mm/page-writeback.c.
+Main entry point to write out all dirty pages of a mapping (file’s page cache).
+
+Steps:
+
+Get the bdi_writeback via inode_to_wb_wbc().
+
+Start bandwidth estimation (wb_bandwidth_estimate_start()).
+
+If FS defines a_ops->writepages() → use it.
+Otherwise → fallback to generic_writepages().
+
+Handle failures: if ENOMEM and WB_SYNC_ALL is set → throttle and retry.
+
+Update bandwidth statistics with wb_update_bandwidth().
+
+👉 Delegates actual write to FS-specific implementation.
+
+🔹 3. struct writeback_control
+Control block passed to do_writepages() and write_cache_pages().
+
+Fields:
+
+nr_to_write → How many pages to write.
+
+pages_skipped → Pages skipped during writeback.
+
+range_start, range_end → Byte range for selective writeback.
+
+sync_mode (enum writeback_sync_modes):
+
+WB_SYNC_NONE: async.
+
+WB_SYNC_ALL: wait for completion.
+
+Flags:
+
+for_kupdate → Periodic flush (vm.dirty_expire_centisecs).
+
+for_background → Triggered by background ratio.
+
+tagged_writepages → Avoid livelock by tagging pages.
+
+for_reclaim → Triggered during memory reclaim.
+
+for_sync → Full sync() writeback.
+
+👉 Tells kernel what kind of writeback is needed.
+
+🔹 4. write_cache_pages()
+Walks dirty pages of an address_space and writes them.
+
+Steps:
+
+Initial setup:
+
+Use pagevec (batch of up to 15 pages).
+
+Determine scan range:
+
+Cyclic mode → continue from last offset (mapping->writeback_index).
+
+Non-cyclic mode → use range_start..range_end.
+
+Decide whether to use PAGECACHE_TAG_DIRTY or PAGECACHE_TAG_TOWRITE (to avoid livelock).
+
+Core loop:
+
+Lookup pages with pagevec_lookup_range_tag().
+
+For each page:
+
+Lock it.
+
+Skip if truncated, not dirty, or already under writeback.
+
+If dirty:
+
+Clear dirty bit (clear_page_dirty_for_io()).
+
+Call FS writepage() → submits I/O.
+
+Mark with writeback flag (folio_start_writeback()).
+
+Unlock page.
+
+Handle errors differently:
+
+Background writeback → can skip errors.
+
+Integrity sync (fsync, sync) → must continue and report errors.
+
+Stop when:
+
+All pages written.
+
+Or nr_to_write exhausted.
+
+Or (non-sync mode) we can return early.
+
+🔹 5. Error & Sync Handling
+Background writeback: tolerate errors, just move past.
+
+Integrity sync (fsync/msync/sync): must process entire dirty set, wait for I/O completion, and return first error.
+
+Race handling:
+
+Pages may get redirtied during writeback → kernel retries later.
+
+Page faults on writeback pages → folio_wait_stable() ensures stability.
+
+🔹 6. Flow Summary
+Dirty page marked in page cache (PAGECACHE_TAG_DIRTY).
+
+Kernel decides to write (sync, fsync, background flush, reclaim).
+
+do_writepages() called.
+
+Delegates to FS ->writepages() or generic_writepages().
+
+write_cache_pages() scans dirty pages, locks them, clears dirty bit, and calls writepage().
+
+writepage() submits block I/O → sets PG_writeback.
+
+On completion → end_page_writeback() clears flags, page is clean.
+
+✅ In short:
+
+bdi_writeback tracks dirty inodes + bandwidth.
+
+do_writepages() kicks off writeback for a file.
+
+writeback_control defines scope + sync mode.
+
+write_cache_pages() scans + writes dirty pages.
+
+writepage() actually submits block I/O.
+
+Flags + throttling ensure fairness, correctness, and data integrity.
+
+Would you like me to now draw a clean textual flow diagram (step-by-step arrows) showing how a dirty page flows from page cache → disk through these functions? That would tie all the pieces together.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Great, these screenshots cover the core mechanics of Linux page writeback internals — from starting writeback on a folio, to clearing flags, to background flusher thread scheduling. I’ll break it down crisply but without losing technical details.
+
+🔑 Core Pieces
+1. __folio_start_writeback()
+Purpose: mark a folio as under writeback.
+
+What it does:
+
+Sets PAGECACHE_TAG_WRITEBACK in the xarray.
+
+Clears PAGECACHE_TAG_TOWRITE if set.
+
+If this is the first folio of the inode, call sb_mark_inode_writeback() to put inode on superblock’s writeback list.
+
+Effect: signals that I/O has been submitted for this folio.
+
+2. __folio_end_writeback()
+Purpose: undo the above when I/O completes.
+
+What it does:
+
+Clears folio’s writeback flag + removes PAGECACHE_TAG_WRITEBACK from xarray.
+
+If no more folios under writeback for this inode → sb_clear_inode_writeback() removes it from superblock’s list.
+
+Updates writeback bandwidth estimates in bdi_writeback->stat.
+
+3. folio_clear_dirty_for_io()
+Purpose: prepare a dirty folio to be written.
+
+Key steps:
+
+Uses reverse mapping to make all page table mappings read-only (folio_mkclean()).
+
+Ensures writes during I/O cause a page fault, which will re-dirty the folio safely.
+
+Clears folio’s dirty flag but keeps PAGECACHE_TAG_DIRTY in xarray until writeback starts.
+
+Effect: guarantees no writes are missed or “torn” during I/O.
+
+4. folio_clear_dirty_for_io() → Race Handling
+Prevents race between:
+
+Process writing via page tables.
+
+Kernel clearing dirty flag for I/O.
+
+Achieved by holding folio lock → serializes clearing and faults.
+
+5. default_bdi_init()
+Initializes the global writeback workqueue (bdi_wq).
+
+Flags:
+
+WQ_MEM_RECLAIM: usable even under memory pressure.
+
+WQ_UNBOUND: work can run on any CPU.
+
+Initially idle; gets work queued only when inodes are dirtied.
+
+6. wb_wakeup_delayed()
+Schedules background writeback after vm.dirty_writeback_centisecs (default 5s).
+
+Calls queue_delayed_work() to enqueue bdi_writeback->dwork.
+
+7. wb_wakeup()
+Immediate wakeup (no delay).
+
+Used when urgent (sync, fsync, dirty_ratio exceeded, etc.).
+
+Uses mod_delayed_work(..., 0) to queue instantly.
+
+8. wb_queue_work()
+Enqueues a specific wb_writeback_work item into bdi_writeback->work_list.
+
+Increments atomic counter if caller tracks completion.
+
+If BDI is registered, uses mod_delayed_work() to wake worker.
+
+If not registered (device unmounted, cgroup removed) → calls finish_writeback_work() directly.
+
+9. wakeup_flusher_threads()
+Wakes flusher threads system-wide when thresholds exceeded (dirty_ratio, dirty_bytes).
+
+Iterates all BDIs in bdi_list.
+
+Calls __wakeup_flusher_threads_bdi() on each.
+
+10. Writeback Lifecycle Summary
+Folio dirtied → marked dirty, inode added to bdi_writeback list.
+
+Trigger → threshold exceeded, timer, sync/fsync, or reclaim.
+
+Wakeup → wb_wakeup() (immediate) or wb_wakeup_delayed() (timer).
+
+Worker runs (wb_workfn):
+
+Picks dirty inodes from b_dirty.
+
+Moves to b_io.
+
+Calls do_writepages() per inode.
+
+do_writepages():
+
+Calls FS-specific ->writepages() or generic_writepages().
+
+Inside → write_cache_pages().
+
+For each dirty folio:
+
+folio_clear_dirty_for_io()
+
+__folio_start_writeback()
+
+Submit I/O via FS ->writepage().
+
+I/O completes:
+
+__folio_end_writeback() clears flags, updates stats.
+
+If all pages clean → inode removed from writeback list.
+
+📊 Textual Flow Diagram
+Dirtying (write/mmap fault)
+   ↓
+folio marked DIRTY in xarray
+inode added to bdi_writeback->b_dirty
+   ↓
+Trigger:
+   - vm.dirty_ratio exceeded
+   - vm.dirty_writeback_centisecs expired
+   - sync/fsync
+   - reclaim
+   ↓
+wb_wakeup() / wb_wakeup_delayed()
+   ↓
+wb_workfn() in flusher thread
+   ↓
+Pick inode from b_dirty → move to b_io
+   ↓
+do_writepages()
+   ↓
+write_cache_pages()
+   ↓
+for each folio:
+    folio_clear_dirty_for_io()
+    __folio_start_writeback()
+    FS ->writepage()
+   ↓
+I/O completes (block device)
+   ↓
+__folio_end_writeback()
+   ↓
+Update stats, clear tags
+   ↓
+If inode clean → removed from bdi_writeback
+✅ In short:
+
+Start: folio marked dirty.
+
+Trigger: thresholds, sync, or reclaim.
+
+Submit: flusher thread runs → clears dirty, marks writeback, submits I/O.
+
+Finish: on I/O complete, writeback flags cleared, inode cleaned up.
+
+Do you want me to now prepare a consolidated “end-to-end” path (dirty → clean) with actual kernel function call order in one neat numbered list (good for FAANG/Linux-core interviews)?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Got it 👍 — these screenshots cover the core orchestration of Linux writeback: how dirty inodes get scheduled, split into work items, executed by flusher threads, and drained. I’ll explain step by step, in simple but technically complete terms.
+
+🔑 Key Pieces
+1. __wakeup_flusher_threads_bdi()
+Iterates through all bdi_writeback objects attached to a backing device.
+
+Calls wb_start_writeback() if they have dirty I/O.
+
+Purpose: only wake up writeback threads when there is dirty work.
+
+2. wb_start_writeback()
+Checks: does this wb (per-BDI writeback instance) have dirty work (wb_has_dirty_io())?
+
+If not → return.
+
+Uses a flag WB_start_all to prevent duplicate global writeback requests.
+
+Ensures only one “write all dirty pages” request is inflight.
+
+Sets the reason (wb->start_all_reason) and calls wb_wakeup().
+
+Purpose: start writeback of all dirty pages (e.g., when thresholds exceeded, or sync()).
+
+3. struct wb_writeback_work
+Describes a unit of writeback work.
+
+Subset of writeback_control, with extra fields:
+
+nr_pages: how many pages to write.
+
+sb: target superblock (FS).
+
+sync_mode: sync type (WB_SYNC_NONE, WB_SYNC_ALL).
+
+Flags: for_kupdate, for_background, for_sync.
+
+reason: why writeback started.
+
+done: optional completion for synchronous waits.
+
+auto_free: if true, free when done.
+
+Purpose: package up a writeback request for the flusher thread.
+
+4. sync_inodes_sb()
+Used by sync()/syncfs().
+
+Creates a wb_writeback_work:
+
+nr_pages = LONG_MAX → write all pages.
+
+sync_mode = WB_SYNC_ALL.
+
+for_sync = 1.
+
+reason = WB_REASON_SYNC.
+
+Calls bdi_split_work_to_wbs() to distribute work.
+
+Waits for completion (wb_wait_for_completion()).
+
+Purpose: synchronous, write everything dirty in this superblock and wait.
+
+5. writeback_inodes_sb()
+Asynchronous version.
+
+Calculates nr_pages = get_nr_dirty_pages(sb).
+
+Calls writeback_inodes_sb_nr().
+
+6. writeback_inodes_sb_nr() / __writeback_inodes_sb_nr()
+Prepares a wb_writeback_work with:
+
+sync_mode = WB_SYNC_NONE (don’t wait).
+
+nr_pages = number requested.
+
+tagged_writepages = 1 (use tagged scan).
+
+Calls bdi_split_work_to_wbs() to actually queue.
+
+Purpose: schedule writeback for N pages, but don’t wait for it.
+
+7. bdi_split_work_to_wbs()
+Splits the wb_writeback_work across all bdi_writebacks of a BDI.
+
+If cgroups are enabled, each cgroup gets a portion.
+
+Distributes nr_pages based on write bandwidth of each wb.
+
+Allocates per-wb work objects (kmalloc(GFP_ATOMIC)), sets auto_free=1.
+
+If allocation fails → fallback to stack-allocated wb_writeback_work.
+
+Calls wb_queue_work(wb, work).
+
+Purpose: fairness across writeback contexts (BDI or cgroups).
+
+8. wb_queue_work()
+Puts wb_writeback_work into wb->work_list.
+
+Wakes flusher thread with wb_wakeup().
+
+Purpose: hand off work to the background thread.
+
+9. Flusher Thread: wb_workfn()
+This is the worker function run in kernel threads (kworker/u*:*:writeback).
+
+Steps:
+
+Grab wb from to_delayed_work.
+
+While wb->work_list not empty → call wb_do_writeback().
+
+Else if emergency thread (rescue) is running, fallback to writeback_inodes_wb().
+
+If work remains → wb_wakeup() again.
+
+Else schedule delayed wakeup (next periodic writeback).
+
+Purpose: central loop to process writeback jobs.
+
+10. Flow inside wb_workfn() (see Figure 10-8)
+wb_workfn()
+→ calls wb_do_writeback()
+
+wb_do_writeback() decides:
+
+wb_check_background_flush() (dirty_background_ratio).
+
+wb_check_old_data_flush() (expired dirty data).
+
+wb_check_start_all() (global writeback).
+
+Then calls wb_writeback().
+
+wb_writeback():
+
+Calls queue_io() → moves inodes from b_dirty → b_io.
+
+Writes them using writeback_sb_inodes() → __writeback_single_inode() → do_writepages().
+
+11. Rescuer Thread
+A special [writeback] kthread created with WQ_MEM_RECLAIM.
+
+Runs if system under memory pressure and workqueue threads can’t spawn.
+
+Ensures writeback always happens, even in OOM-like scenarios.
+
+Seen as kworker/u32:0-writeback etc.
+
+Purpose: guaranteed forward progress.
+
+📊 Simplified Lifecycle
+Page dirtied → inode on b_dirty
+   ↓
+Trigger: sync/fsync, background ratio, expiry, or reclaim
+   ↓
+__wakeup_flusher_threads_bdi()
+   ↓
+wb_start_writeback()
+   ↓
+wb_writeback_work prepared (sync or async)
+   ↓
+bdi_split_work_to_wbs() → wb_queue_work()
+   ↓
+Flusher thread (wb_workfn) runs
+   ↓
+wb_do_writeback()
+   ↓
+wb_writeback()
+   ↓
+queue_io() → move inodes b_dirty → b_io
+   ↓
+writeback_sb_inodes()
+   ↓
+__writeback_single_inode()
+   ↓
+do_writepages()
+   ↓
+→ generic_writepages()/FS writepages
+   ↓
+→ write_cache_pages() → ->writepage()
+   ↓
+Block I/O issued
+   ↓
+On completion: __folio_end_writeback()
+✅ In Short
+Wakeup: __wakeup_flusher_threads_bdi() finds dirty work.
+
+Work item: wb_writeback_work describes what to write.
+
+Distribution: bdi_split_work_to_wbs() splits across BDIs/cgroups.
+
+Execution: wb_workfn() runs in background threads, calls wb_do_writeback().
+
+I/O loop: inodes move from b_dirty → b_io, then do_writepages() writes pages.
+
+Completion: folios cleared, inode cleaned up.
+
+Rescuer thread: ensures progress even under memory stress.
+
+Would you like me to now merge this with the earlier explanations into a single end-to-end "life of dirty page" story (from write() → dirty page → flusher thread → disk)? That would give you the ultimate reference flow.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these screenshots go deep into how dirty inodes are moved between writeback lists, queued, and dispatched by flusher threads. Let me explain them step by step, simply but precisely, without skipping any technical detail.
+
+🔑 Background
+Every bdi_writeback keeps 3 lists of dirty inodes:
+
+b_dirty → freshly dirtied inodes (youngest → eldest).
+
+b_io → inodes ready to be written out in this cycle.
+
+b_more_io → inodes that couldn’t be written last cycle (bandwidth, FS limits, etc.), to be retried later.
+
+Inodes move b_dirty → b_io → (written or b_more_io).
+
+1. queue_io() (Listing 10-46)
+This function queues dirty inodes for I/O.
+
+Steps:
+
+Move all inodes from b_more_io to front of b_io (they get priority).
+
+list_splice_init(&wb->b_more_io, &wb->b_io);
+Call move_expired_inodes(b_dirty, b_io, dirtied_before).
+
+Picks inodes from b_dirty older than dirtied_before.
+
+Moves them to b_io.
+
+Younger inodes (dirtied recently) stay in b_dirty.
+
+Mark I/O lists populated (wb_io_lists_populated()).
+
+👉 Effect: b_io now contains all inodes that are either retries or old enough to be flushed.
+
+2. move_expired_inodes() (Listing 10-47)
+Moves inodes from b_dirty → b_io.
+
+Traverses b_dirty backwards (eldest first).
+
+Stops when it sees a recently dirtied inode (inode_dirtied_after() returns true).
+
+Each moved inode gets:
+
+I_SYNC_QUEUED flag set (means “queued for sync”).
+
+Moved under inode->i_lock.
+
+Groups inodes by superblock (sb) — because writeback later works per filesystem.
+
+👉 Result: b_io has eldest expired inodes, sorted by superblock.
+
+⚠️ Note: b_dirty is ordered youngest → eldest. That’s why we walk it backwards.
+
+3. Lifecycle Diagram (Figure 10-9)
+Three states:
+
+Dirtying: _mark_inode_dirty() adds inode to b_dirty.
+
+Queueing: queue_io() moves expired inodes → b_io.
+
+Submitting: writeback_sb_inodes() processes inodes in b_io, calls do_writepages().
+
+If writeback fails:
+
+requeue_io() → inode goes back to b_more_io or tail of b_dirty.
+
+If success:
+
+Inode removed from all lists (inode_cgwb_move_to_attached()).
+
+4. Requeueing
+If inode couldn’t be written (device busy, FS refused):
+
+requeue_inode() puts it in b_more_io for next cycle.
+
+Or moves it back to b_dirty (via redirty_tail_locked()).
+
+👉 Ensures retries but avoids livelock.
+
+5. Dequeueing
+If inode is successfully written:
+
+Removed from b_io completely.
+
+If all its pages are clean → inode no longer on any list.
+
+6. wb_io_lists_populated() (Listing 10-48)
+Returns true if this is the first inode on I/O lists.
+
+Sets flag WB_has_dirty_io (so writeback thread knows there’s work).
+
+Updates bandwidth stats (avg_write_bandwidth).
+
+👉 Prevents waking flusher thread unnecessarily if no dirty work.
+
+7. writeback_inodes_wb() (Listing 10-49)
+Emergency writeback (OOM/memory pressure).
+
+Creates wb_writeback_work with:
+
+nr_pages = requested.
+
+sync_mode = WB_SYNC_NONE (async).
+
+range_cyclic = 1 (cycle through address_space).
+
+Calls queue_io() unconditionally → moves all dirty inodes to b_io.
+
+Immediately runs __writeback_inodes_wb().
+
+👉 Forces immediate writeback to free memory.
+
+8. wb_do_writeback() (Listing 10-50)
+Main loop of writeback thread.
+
+Sets WB_writeback_running flag.
+
+While work items exist in wb->work_list:
+
+get_next_work_item() pops a wb_writeback_work.
+
+Runs wb_writeback(wb, work) → actual flushing.
+
+Calls finish_writeback_work() → free/notify completion.
+
+After explicit work done, checks periodic jobs:
+
+wb_check_start_all() (flush all request).
+
+wb_check_old_data_flush() (expired dirty pages).
+
+wb_check_background_flush() (background ratio exceeded).
+
+Clears WB_writeback_running.
+
+👉 Handles both explicit work (fsync, syncfs) and background flushes.
+
+9. get_next_work_item() (Listing 10-51)
+Pops work item from head of wb->work_list.
+
+wb_queue_work() put it on tail → FIFO behavior.
+
+👉 Makes work_list a real queue.
+
+10. wb_check_start_all() (Listing 10-52)
+Triggered by wb_start_writeback().
+
+Creates wb_writeback_work with nr_pages = get_nr_dirty_pages().
+
+Reason = wb->start_all_reason.
+
+Calls wb_writeback().
+
+Clears WB_start_all flag.
+
+👉 Used for sync() (flush everything).
+
+11. wb_check_background_flush() (Listing 10-53)
+Runs if background thresholds exceeded (wb_over_bg_thresh()).
+
+Creates work with:
+
+nr_pages = LONG_MAX.
+
+for_background = 1.
+
+Reason = WB_REASON_BACKGROUND.
+
+Calls wb_writeback().
+
+👉 Regular background flush when dirty pages exceed vm.dirty_background_ratio.
+
+12. wb_check_old_data_flush()
+(Not fully shown but next in book)
+
+Periodic flush of expired dirty inodes (vm.dirty_expire_centisecs).
+
+Moves old entries from b_dirty → b_io.
+
+🗂️ Textual Flow
+Inode dirtied → added to b_dirty (youngest → eldest)
+
+Flusher thread runs:
+   queue_io()
+      ├─ Move b_more_io → front of b_io
+      └─ move_expired_inodes(b_dirty → b_io, oldest first)
+
+b_io now has inodes to write
+   ↓
+writeback_sb_inodes() → do_writepages()
+   ↓
+If success: inode removed from b_io
+If fail: inode → b_more_io or redirty_tail(b_dirty)
+
+wb_do_writeback() loop:
+   ├─ Process explicit work items
+   ├─ wb_check_start_all() → flush all
+   ├─ wb_check_old_data_flush() → flush expired
+   └─ wb_check_background_flush() → flush if thresholds exceeded
+✅ In Short
+Dirtying: inode goes on b_dirty.
+
+Queueing: queue_io() moves old inodes → b_io.
+
+Submitting: writeback_sb_inodes() flushes b_io.
+
+Requeueing: failures go to b_more_io or back to b_dirty.
+
+Dequeueing: clean inodes removed from lists.
+
+Flusher thread (wb_do_writeback) orchestrates: explicit sync requests + periodic background flushes.
+
+Would you like me to now produce a single “end-to-end lifecycle diagram” (all lists, function calls, and transitions) that you can use as a one-glance reference for interviews?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve shared the core of the Linux writeback path. Let’s walk through it crisply but with all technical detail intact. I’ll break it into logical steps/functions with their purpose, flow, and key nuances.
+
+🔑 Linux Writeback Path (fs/fs-writeback.c)
+1. Dirty Inode Queues
+b_dirty → Newly dirtied inodes (ordered youngest → eldest).
+
+b_io → Inodes ready for writeback (queued for I/O).
+
+b_more_io → Inodes that couldn’t be processed (e.g., bandwidth/full queue) and must be retried later.
+
+➡️ Transition:
+b_dirty → b_io → (written) → removed
+or
+b_dirty → b_io → b_more_io → retried.
+
+2. queue_io()
+📍 Listing 10-46
+
+Purpose: Moves inodes from b_dirty/b_more_io → b_io.
+
+Uses move_expired_inodes() to move inodes dirtied before a timestamp (dirtied_before).
+
+Always handles b_more_io first, then pulls inodes from b_dirty.
+
+Preserves order by walking backwards (eldest first).
+
+Ends by calling wb_io_lists_populated().
+
+3. move_expired_inodes()
+📍 Listing 10-47
+
+Loops backwards through delaying_queue (usually b_dirty).
+
+Moves expired inodes to a temporary list → then to dispatch queue (b_io).
+
+Groups by superblock if multiple filesystems are involved.
+
+Marks inodes with I_SYNC_QUEUED (indicates: this inode is under writeback control).
+
+4. wb_io_lists_populated()
+📍 Listing 10-48
+
+Returns true if this was the first dirty inode → sets WB_has_dirty_io bit.
+
+Updates bandwidth stats (avg_write_bandwidth, tot_write_bandwidth).
+
+Acts as a hook for writeback throttling logic.
+
+Ensures flusher threads wake up if dirty work exists.
+
+5. writeback_inodes_wb()
+📍 Listing 10-49
+
+Emergency mode: when memory is under extreme pressure.
+
+Writes back all inodes in b_dirty, ignoring expiry.
+
+Calls queue_io() + __writeback_inodes_wb().
+
+Goal = reclaim space ASAP to satisfy allocation.
+
+6. wb_do_writeback()
+📍 Listing 10-50
+
+Main loop that processes writeback work (struct wb_writeback_work).
+
+Sets WB_writeback_running bit.
+
+Iterates over queued work items via get_next_work_item().
+
+Handles:
+
+Sync/fsync triggered flushes
+
+Background flush
+
+Old-data periodic flush
+
+7. get_next_work_item()
+📍 Listing 10-51
+
+Pops next wb_writeback_work from work_list.
+
+Uses list_del_init() → maintains a queue semantics (FIFO).
+
+Opposite of wb_queue_work() (which pushes at the tail).
+
+8. wb_check_start_all()
+📍 Listing 10-52
+
+Triggered if WB_start_all flag is set.
+
+Writes back all dirty pages, proportionally scaled (wb_split_bdi_pages()).
+
+Used for cgroup-specific forced writeback.
+
+9. wb_check_background_flush()
+📍 Listing 10-53
+
+Runs if background dirty threshold exceeded (wb_over_bg_thresh()).
+
+Flushes all dirty pages with reason = WB_REASON_BACKGROUND.
+
+Standard background writeback path.
+
+10. wb_check_old_data_flush()
+📍 Listing 10-54
+
+Periodic old-data flush.
+
+Checks dirty_writeback_interval & vm.dirty_expire_centisecs.
+
+Writes back inodes dirtied earlier than threshold (prevents very old dirty pages lingering forever).
+
+Equivalent to “kupdate-style” flush.
+
+11. wb_writeback()
+📍 Listing 10-55
+
+Core writeback loop.
+
+Iterates until:
+
+All pages written (nr_pages ≤ 0) OR
+
+Background work below threshold OR
+
+No progress possible.
+
+Calls __writeback_inodes_wb() or writeback_sb_inodes() depending on scope.
+
+12. __writeback_inodes_wb()
+📍 Listing 10-56
+
+Iterates b_io backwards.
+
+For each inode:
+
+Trylocks super_block->s_umount (avoid deadlocks).
+
+If fail → redirty inode (redirty_tail()).
+
+Otherwise → hand inode to writeback_sb_inodes().
+
+Ensures fairness (rate-limited to ~1/10s per loop).
+
+Leaves unprocessed inodes in b_io.
+
+13. writeback_sb_inodes()
+📍 Listing 10-57
+
+Processes all inodes of a given superblock.
+
+Core engine of writeback.
+
+Uses writeback_control struct (sync_mode, range, background flag, etc.).
+
+Walks backwards through b_io.
+
+Skips:
+
+New/freeing inodes
+
+Inodes already under I_SYNC
+
+Requeues/redirties where needed (redirty_tail, requeue_io).
+
+Eventually writes via filesystem’s writepages().
+
+14. writeback flow control
+📍 Listing 10-58 onward
+
+If inode locked/I_SYNC → wait or requeue.
+
+If no progress → inode goes to b_more_io.
+
+If all progress stalls → inode_sleep_on_writeback() waits until I_SYNC clears.
+
+Prevents livelocks & busy loops.
+
+15. Flowchart (Fig 10-10)
+Work Done? → Exit
+
+Kind of Work?
+
+Background → check thresholds
+
+kupdate → old-data expiry
+
+Sync/fsync → all inodes/pages
+
+Pending I/O?
+
+If none → queue_io()
+
+Superblock-specific?
+
+Yes → writeback_sb_inodes()
+
+No → __writeback_inodes_wb()
+
+Progress?
+
+Yes → loop again
+
+No → Check b_more_io
+
+If present → inode_sleep_on_writeback()
+
+If not → Exit
+
+⚡ Key Technical Points (don’t miss)
+Ordering: b_dirty = youngest → eldest. Writeback walks backwards (eldest first).
+
+Flags:
+
+I_SYNC → inode under writeback.
+
+I_SYNC_QUEUED → inode queued for writeback.
+
+Separation of Work:
+
+wb_do_writeback() = orchestrator.
+
+queue_io() = prepares b_io.
+
+writeback_sb_inodes() / __writeback_inodes_wb() = executors.
+
+Fairness & Safety:
+
+Avoid livelock by periodic expiry checks.
+
+Handle multi-superblock grouping.
+
+Retry via b_more_io.
+
+✅ In short:
+Linux writeback manages dirty data in three queues (b_dirty, b_io, b_more_io). It transitions inodes carefully via queueing, grouping, and flushing steps, orchestrated by wb_do_writeback() and executed by writeback_sb_inodes() or __writeback_inodes_wb(). Ordering, locking, and requeueing are all crucial to ensure correctness, fairness, and performance.
+
+Do you want me to now build you a single-page textual diagram (like a cheatsheet) showing the whole flow (b_dirty → queue_io → b_io → writeback_sb_inodes → b_more_io) with decision branches included?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Got it — this part of the book is diving deep into what happens when an inode cannot be written immediately and how it gets retried/requeued. I’ll explain everything crisply, keeping all technical detail intact but in plain language.
+
+🔑 Linux Writeback: Redirtying, Requeueing & Single Inode Writeback
+1. redirty_tail() & redirty_tail_locked()
+📍 Listing 10-59 & 10-60
+
+Purpose: When an inode cannot be written now (lock contention, congestion, sync in progress), instead of spinning on it, the kernel redirties it = moves it back to the dirty list.
+
+Mechanics:
+
+redirty_tail() → wrapper that locks inode, calls redirty_tail_locked().
+
+redirty_tail_locked():
+
+Updates inode’s ->dirtied_when timestamp if needed.
+
+Moves inode to the tail of the b_dirty list (conceptually the youngest position).
+
+Clears I_SYNC_QUEUED (since it’s no longer queued for I/O).
+
+➡️ Result: inode is postponed, but guaranteed to be retried later in age order.
+
+2. writeback_sb_inodes() core flow
+📍 Listings 10-57 → 10-63
+
+Steps when scanning b_io:
+
+Initial checks:
+
+Skip if inode belongs to another superblock (redirty_tail() it).
+
+Skip if inode is new, freeing, or already locked by another writer.
+
+Locking & sync:
+
+Acquire i_lock.
+
+If inode is being synced (I_SYNC) and WB_SYNC_NONE → requeue_io() (don’t wait, just retry later).
+
+If inode is I_SYNC and WB_SYNC_ALL → inode_sleep_on_writeback() (wait until ongoing writeback finishes).
+
+Prepare writeback:
+
+Set I_SYNC (pins inode, prevents eviction).
+
+Attach inode to wbc (wbc_attach_and_unlock_inode()).
+
+Decide chunk size (writeback_chunk_size()).
+
+Update work accounting (nr_to_write).
+
+Actual I/O:
+
+Call __writeback_single_inode() → which invokes do_writepages().
+
+Post-processing:
+
+requeue_inode() decides:
+
+If still dirty → requeue on b_io or b_dirty.
+
+If only partially written (pages_skipped, congestion, etc.) → redirty it (redirty_tail_locked()).
+
+If fully clean → remove from all lists (inode_cgwb_move_to_attached()).
+
+3. requeue_io()
+📍 Listing 10-61
+
+Simple: moves inode to b_more_io list for retry after the current scan.
+
+Used when I/O can’t proceed now but should be retried soon.
+
+4. inode_sleep_on_writeback()
+If inode has I_SYNC set and sync is required (e.g., fsync), the thread sleeps until the current writeback clears the flag.
+
+Prevents busy-wait spinning.
+
+5. requeue_inode()
+📍 Listings 10-64 & 10-65
+
+This is the decision hub after attempting to write an inode.
+
+Case 1: Inode is freeing (I_FREEING)
+→ do nothing (evictor will handle).
+
+Case 2: Sync update (WB_SYNC_ALL or tagged writepages)
+
+Update dirtied_when to now → avoids livelock (inode won’t be endlessly retried in same cycle).
+
+Case 3: Pages skipped (pages_skipped > 0)
+→ redirty_tail_locked() → retry later.
+
+Case 4: Inode still dirty (mapping_tagged(PAGECACHE_TAG_DIRTY))
+
+If write chunk exhausted (nr_to_write <= 0) → requeue_io() (retry in next pass).
+
+Else → redirty_tail_locked().
+
+Case 5: Inode fully clean
+→ Remove from all writeback lists via inode_cgwb_move_to_attached().
+
+➡️ Flowchart (Fig 10-11):
+
+I_FREEING? → Drop
+
+Sync update? → Update dirtied_when
+
+Skipped pages? → Redirty
+
+Still dirty? → Requeue/Redirty
+
+Else → Remove
+
+6. inode_cgwb_move_to_attached()
+📍 Listing 10-65
+
+Clears I_SYNC_QUEUED.
+
+Removes inode from writeback lists.
+
+If cgroup writeback is active, moves it to b_attached.
+
+Calls wb_io_lists_depopulated() if lists are now empty.
+
+7. wb_io_lists_depopulated()
+📍 Listing 10-66
+
+Opposite of wb_io_lists_populated().
+
+Clears WB_has_dirty_io bit if all three queues (b_dirty, b_io, b_more_io) are empty.
+
+Updates bandwidth stats (avg_write_bandwidth, tot_write_bandwidth).
+
+8. __writeback_single_inode()
+📍 Listing 10-67
+
+Core per-inode writeback:
+
+Calls filesystem’s do_writepages().
+
+Clears dirty flags from inode state.
+
+May move inode back to b_dirty if it becomes dirty again during writeback (e.g., delayed allocation).
+
+Keeps inode on relevant list until fully clean.
+
+⚡ Key Technical Points
+Redirtying: Defers hard-to-write inodes, avoids CPU spin & livelock.
+
+Requeueing: Ensures fair progress across all inodes (no starvation).
+
+Flags:
+
+I_SYNC → inode currently being written.
+
+I_SYNC_QUEUED → inode queued for writeback.
+
+I_DIRTY → inode has dirty pages/metadata.
+
+Fairness:
+
+Sync updates bump dirtied_when to avoid livelock.
+
+Pages skipped = inode retried later.
+
+Queues Interaction:
+
+b_dirty → source pool (ordered by age).
+
+b_io → active writeback set.
+
+b_more_io → retry set.
+
+b_attached → only in cgroup case.
+
+✅ In short:
+If writeback can’t finish an inode in one go, it either redirties it (pushes to b_dirty tail), requeues it (b_more_io), or removes it if clean. This machinery guarantees fairness, avoids livelocks, handles congestion, and ensures every dirty inode eventually gets written out safely.
+
+Do you want me to now merge this with the previous part (wb_writeback, queue_io, writeback_sb_inodes) into one giant unified textual diagram that shows the full dirty inode lifecycle from first dirtying → writeback → requeue/redirty → clean?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve captured the file-level writeback flow in Linux. I’ll break it down simply, step by step, but keep all the technical details intact so nothing is lost.
+
+🔑 File Writeback Path in Linux
+We now zoom in from inode-level writeback (__writeback_single_inode) to file-level synchronisation (fsync, fdatasync, msync, etc.).
+
+1. __writeback_single_inode()
+📍 Listing 10-67
+
+Called during inode writeback.
+
+Steps:
+
+If sync_mode == WB_SYNC_ALL → wait for all outstanding page writebacks via filemap_fdatawait().
+
+Clear dirty flags (I_DIRTY bits) under inode lock.
+
+Use smp_mb() memory barrier to sync with __mark_inode_dirty().
+
+If pagecache still has dirty pages (PAGECACHE_TAG_DIRTY), restore I_DIRTY_PAGES.
+
+If metadata-only dirty → call write_inode().
+
+Else → actual data pages handled by do_writepages().
+
+➡️ Ensures both data & inode metadata are written and inode flags are updated safely.
+
+2. File Writeback APIs
+Linux provides system calls for explicit syncing:
+
+fsync(fd) → sync file data + metadata.
+
+fdatasync(fd) → sync data only.
+
+msync() → sync mmap’d pages.
+
+sync_file_range() → range-based sync (dangerous, rarely used).
+
+All of them funnel down to two core functions:
+
+__filemap_fdatawrite_range() (start writeback)
+
+__filemap_fdatawait_range() (wait for writeback to finish)
+
+3. Core Call Stack (Figure 10-12)
+fsync(), fdatasync() → file_write_and_wait_range()
+syncfs() → filemap_flush()
+__writeback_single_inode() → filemap_fdatawait()
+Eventually all of these call:
+
+__filemap_fdatawrite_range() (initiate writeback)
+
+__filemap_fdatawait_range() (wait for pages to finish writing)
+
+4. filemap_flush() (Listing 10-68)
+Non-blocking flush of all dirty pages in mapping.
+
+Calls filemap_fdatawrite(WB_SYNC_NONE) → just kicks off writeback, doesn’t wait.
+
+Good for background flush, not for durability.
+
+5. filemap_fdatawrite() (Listing 10-69)
+Writes back entire file mapping.
+
+Defers to __filemap_fdatawrite_range(mapping, 0, LLONG_MAX, sync_mode).
+
+Covers whole file from byte 0 → end.
+
+6. filemap_write_and_wait() / filemap_write_and_wait_range()
+These add the waiting step after write.
+
+filemap_write_and_wait(mapping) = whole file.
+
+filemap_write_and_wait_range(mapping, start, end) = file subset.
+
+Flow:
+
+Call __filemap_fdatawrite_range(WB_SYNC_ALL) → write dirty pages.
+
+Then call __filemap_fdatawait_range() → wait for completion.
+
+Check for errors via filemap_check_errors().
+
+➡️ Ensures data is on disk before returning.
+
+7. __filemap_fdatawrite_range() (Listing 10-75)
+Core “kick off writeback” function.
+
+Builds struct writeback_control:
+
+.sync_mode = WB_SYNC_NONE / WB_SYNC_ALL
+
+.nr_to_write = LONG_MAX (write all)
+
+.range_start, .range_end = byte offsets
+
+Calls filemap_fdatawrite_wbc().
+
+8. filemap_fdatawrite_wbc() (Listing 10-76)
+Checks:
+
+mapping_can_writeback()? → skip if no cached pages.
+
+mapping_tagged(PAGECACHE_TAG_DIRTY)? → skip if nothing dirty.
+
+If work exists:
+
+Attach inode to wbc
+
+Call filesystem do_writepages(mapping, wbc)
+
+Detach inode
+
+➡️ Actually pushes pages to disk.
+
+9. filemap_fdatawait() (Listing 10-72)
+Waits for all outstanding writeback I/O on file to finish.
+
+Calls filemap_fdatawait_range(mapping, 0, LLONG_MAX).
+
+10. filemap_fdatawait_range() (Listing 10-73)
+Waits for dirty pages in the range [start, end] that were under writeback.
+
+Internally calls __filemap_fdatawait_range().
+
+Clears any errors and reports via filemap_check_errors().
+
+11. __filemap_fdatawait_range() (Listing 10-77)
+Walks pagecache in range using pagevec_lookup_range_tag() for pages tagged PAGECACHE_TAG_WRITEBACK.
+
+For each page:
+
+wait_on_page_writeback(page) → sleeps until page writeback completes.
+
+ClearPageError(page) → resets error state.
+
+Releases batches with pagevec_release() and reschedules (cond_resched()).
+
+➡️ Ensures all outstanding I/O is fully completed before returning.
+
+⚡ Key Technical Points
+Separation of concerns:
+
+fdatawrite = start writeback.
+
+fdatawait = wait for writeback.
+
+Flags:
+
+WB_SYNC_NONE = don’t wait.
+
+WB_SYNC_ALL = data integrity guarantee (wait until finished).
+
+Granularity:
+
+Works on whole file (LLONG_MAX) or subranges (start..end).
+
+Safety:
+
+Memory barriers (smp_mb()) ensure inode dirty state visible consistently.
+
+Metadata-only dirty inodes handled via write_inode().
+
+Error Handling:
+
+After waiting, errors are checked via filemap_check_errors() or file_check_and_advance_wb_err().
+
+✅ In short:
+File-level writeback in Linux always boils down to two steps:
+
+Kick off writeback → __filemap_fdatawrite_range() → do_writepages()
+
+Wait for completion → __filemap_fdatawait_range()
+
+System calls (fsync, fdatasync, msync, etc.) are just different wrappers deciding when to wait, what range to cover, and whether to include metadata.
+
+Would you like me to now merge this with the inode-level flow (b_dirty → b_io → __writeback_single_inode) into one unified lifecycle diagram — from dirtying a page → inode queues → do_writepages() → filemap fdatawrite/fdatawait → clean page?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Great set of pages 👍 These cover dirty throttling – i.e. how Linux slows down tasks that dirty memory (via writes) so that writeback keeps pace with available I/O bandwidth. Let’s go through everything step by step, simple but still technically precise.
+
+🔑 Concepts
+Dirty pages = cache pages modified but not yet written to disk.
+
+Too many dirty pages = memory pressure + risk of data loss.
+
+Dirty throttling = kernel slows down tasks generating dirty pages when they exceed safe thresholds.
+
+Goal: keep dirty rate ≈ writeback bandwidth.
+
+1. Global Dirty Limits
+📍 global_dirtyable_memory() (Listing 10-78)
+
+Calculates how many pages can be dirtied system-wide:
+
+Free pages
+Inactive file pages
+
+Active file pages
+
+Reserved pages (for kernel stability)
+
+Ensures kernel doesn’t count reserved memory as dirtyable.
+
+This value is the upper bound of dirty pages (vm.dirty_ratio, vm.dirty_bytes work off this).
+
+2. Dirty Scopes
+Freerun scope: Dirty pages below a “freerun ceiling”. No throttling.
+
+Global dirty control scope: Between freerun ceiling and dirty threshold. Threads may be paused.
+
+Above dirty threshold: Strong throttling until balance is restored.
+
+dirty_freerun_ceiling() (Listing 10-80) sets freerun ceiling halfway between background and dirty thresholds.
+
+3. Throttling Strategy
+Throttle earlier: Don’t wait until dirty threshold is exceeded. Begin slowing down beforehand.
+
+Scale threads: More a thread dirties → more it gets throttled.
+
+Track bandwidth: Each backing device (struct bdi_writeback) tracks pages/sec writeback rate.
+
+Per-thread rate limit: Each thread is assigned a dirties/sec quota ≈ (device bandwidth ÷ number of writers).
+
+Setpoint: Midpoint between background and dirty thresholds = equilibrium target.
+
+Pause scaling: Pause threads longer/shorter depending on how far dirty rate is from setpoint.
+
+Min/max pauses: Avoid micro-pauses (ineffective) or huge stalls (200ms cap).
+
+4. Dirty Throttling Entry Point
+📍 balance_dirty_pages_ratelimited() (Listing 10-79)
+
+Called after each page is dirtied (in file writes, mmap faults).
+
+Calls → balance_dirty_pages_ratelimited_flags(mapping, 0) (Listing 10-81).
+
+5. Rate-Limited Dirty Throttling
+📍 balance_dirty_pages_ratelimited_flags() (Listing 10-81)
+
+Steps:
+
+Check block device can writeback (BDI_CAP_WRITEBACK).
+
+Get the correct writeback structure (inode_to_bdi(), possibly cgroup-aware).
+
+Determine per-thread ratelimit (current->nr_dirtied_pause).
+
+How many pages this thread can dirty before being forced to throttle.
+
+Adjusted if dirty exceeded.
+
+Per-CPU checks:
+
+Prevent one CPU from dirtying too much without throttling.
+
+Use bdp_ratelimits per-CPU counters.
+
+Cap at 32 pages per CPU (ratelimit_pages) to force fairness.
+
+Compensate for exited tasks:
+
+If short-lived tasks (e.g. gcc) exit before throttling, their “unused dirty quota” is redistributed (dirty_throttle_leaks).
+
+Check dirty count vs ratelimit:
+
+If current->nr_dirtied >= ratelimit → call balance_dirty_pages() for actual throttling.
+
+6. balance_dirty_pages()
+(covered later in the book, but referenced here)
+
+Does the actual heavy lifting:
+
+Calculates global dirty state.
+
+Decides pause time for this thread.
+
+Sleeps (schedule_timeout()) if necessary.
+
+7. Dirty Throttle Statistics
+📍 Section 10.16
+
+Tracked in struct bdi_writeback and struct task_struct:
+
+Per-BDI stats:
+
+stats[WB_DIRTIED] → total pages dirtied.
+
+stats[WB_WRITTEN] → total pages written.
+
+dirtied_stamp, written_stamp → snapshots for comparisons.
+
+write_bandwidth → instantaneous pages/sec.
+
+avg_write_bandwidth → smoothed average.
+
+balanced_dirty_ratelimit → per-thread dirties/sec target, updated by balance_dirty_pages().
+
+dirty_ratelimit → smoothed version of above.
+
+bw_dwork → delayed work to refresh bandwidth (~200ms).
+
+completions → number of completed page writebacks.
+
+Per-task stats:
+
+nr_dirtied → how many pages dirtied since last throttle pause.
+
+dirty_paused_when → timestamp of last pause.
+
+nr_dirtied_pause → max pages allowed before pausing.
+
+8. Bandwidth Updates
+📍 __wb_update_bandwidth() (Listing 10-82)
+
+Periodically recalculates bandwidth per device.
+
+Uses WB_DIRTIED and WB_WRITTEN counters since last check.
+
+Updates:
+
+Global domain dirty limit (domain_update_dirty_limit()).
+
+Device’s per-thread dirty ratelimit (wb_update_dirty_ratelimit()).
+
+Updates smoothed averages for stability.
+
+9. Example Dirty Throttling (Fig 10-13)
+When threads dirty pages aggressively:
+
+Dirty pages shoot up until background threshold reached → writeback starts.
+
+But writeback isn’t fast enough, so dirty pages exceed freerun ceiling.
+
+Threads finally throttled, stabilising around the setpoint (midpoint).
+
+⚡ Key Technical Details (Crisp)
+Thresholds: background vs dirty vs freerun ceiling.
+
+Setpoint: equilibrium point where dirty rate ≈ writeback bandwidth.
+
+Thread scaling: each thread tracked individually by nr_dirtied, throttled accordingly.
+
+Fairness: per-CPU + per-thread rate limits avoid short-lived tasks escaping throttling.
+
+Pauses: bounded min/max; scaled based on distance from setpoint.
+
+Stats & bandwidth updates: ensure feedback loop converges to stable dirtying rate.
+
+✅ In short:
+Linux throttles writers before dirty pages exceed critical limits. Each thread gets a dynamic quota (nr_dirtied_pause) based on device bandwidth and global dirty state. If a thread exceeds it, it’s paused proportionally until equilibrium is restored. Bandwidth stats are constantly updated to keep the system balanced, fair, and responsive.
+
+Would you like me to now build you a single-page cheatsheet diagram showing:
+👉 thresholds (background, freerun, dirty),
+👉 thread quota (nr_dirtied_pause),
+👉 how balance_dirty_pages_ratelimited() enforces pauses,
+👉 and the feedback loop with bandwidth stats?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these screenshots go deep into the mathematics of dirty throttling (how Linux dynamically adjusts the rate at which tasks are allowed to dirty pages so that writeback bandwidth is not overwhelmed). Let me break it down crisply but fully technically accurate.
+
+🔑 1. struct dirty_throttle_control (Listing 10-84)
+A state object passed around dirty throttling functions.
+Fields:
+
+wb → backing device writeback structure.
+
+avail → total dirtyable pages (global_dirtyable_memory()).
+
+dirty → currently dirty pages (file_dirty + write + nfs).
+
+thresh → global dirty threshold.
+
+bg_thresh → background dirty threshold.
+
+wb_dirty, wb_thresh, wb_bg_thresh → per-bdi equivalents.
+
+pos_ratio → scaling factor that tells how much to speed up/slow down writers.
+
+🔑 2. Bandwidth Updates (wb_update_write_bandwidth(), Listing 10-85)
+Each bdi_writeback tracks how fast pages are being written.
+
+Steps:
+
+Compute elapsed time since last update.
+
+Calculate write bandwidth:
+
+bw = (pages_written - written_stamp) * HZ / elapsed
+→ pages per second.
+
+Apply smoothing:
+
+Rolling average over ~3s (avg_write_bandwidth).
+
+Filters out spikes.
+
+Update:
+
+wb->write_bandwidth (instantaneous).
+
+wb->avg_write_bandwidth (smoothed).
+
+wb->bdi->tot_write_bandwidth (global sum).
+
+👉 Keeps an updated “how fast this device can flush pages” metric.
+
+🔑 3. Position Control (wb_position_ratio(), Listing 10-86)
+Goal: compute pos_ratio ∈ [0, 2].
+
+=1.0 → balance point (setpoint).
+
+<1.0 → slow down writers.
+
+>1.0 → allow more dirtying (ramp up).
+
+Inputs:
+
+freerun = midway between background & dirty thresholds.
+
+limit = hard dirty limit.
+
+setpoint = (freerun + limit)/2.
+
+wb_thresh = per-device dirty threshold.
+
+Flow:
+
+If dirty >= limit → pos_ratio=0 (max throttle).
+
+Else compute pos_ratio = pos_ratio_polynom(setpoint, dirty, limit).
+
+Uses cubic polynomial to smooth scaling.
+
+Ensures fast response when far from setpoint, gentle oscillations near setpoint.
+
+Scale pos_ratio further using per-device state (wb_thresh, wb_dirty).
+
+Adjusts global balance to individual devices.
+
+Guards against very idle/slow devices.
+
+👉 This is the “control knob” of dirty throttling.
+
+🔑 4. Polynomial Function (pos_ratio_polynom(), Listing 10-87)
+Implements the cubic scaling:
+
+pos_ratio = 1 + ( (setpoint - dirty) / (limit - setpoint) )^3
+Properties:
+
+At freerun → pos_ratio=2.0 → ramp up dirtying fast.
+
+At setpoint → pos_ratio=1.0 → stable balance.
+
+At limit → pos_ratio=0.0 → hard stop.
+
+Negative feedback:
+
+If dirty > setpoint → ratio <1 → slow down.
+
+If dirty < setpoint → ratio >1 → speed up.
+
+🔑 5. Dirty Limits (domain_dirty_limits(), Listing 10-88)
+Computes global dirty thresholds.
+
+Steps:
+
+Fetch tunables:
+
+vm.dirty_bytes or vm.dirty_ratio.
+
+vm.dirty_background_bytes or vm.dirty_background_ratio.
+
+Convert to pages.
+
+Compute:
+
+thresh = max(vm.dirty_bytes, ratio*avail)
+bg_thresh = max(dirty_background_bytes, bg_ratio*avail)
+Ensure bg_thresh < thresh.
+
+Special handling: RT tasks get 25% higher thresholds (more leeway).
+
+👉 Gives global dirty limits for throttling calculations.
+
+🔑 6. Per-Device Dirty Limits (wb_dirty_limits(), Listing 10-89)
+Computes per-bdi dirty thresholds (wb_thresh, wb_bg_thresh).
+
+Not as hard as global thresh.
+
+Reasons:
+
+JBOD setups → per-device thresholds fluctuate.
+
+USB/HDD combos → device-specific limits must adapt.
+
+Essentially distributes the global threshold among devices.
+
+🔑 7. The Control Loop
+Putting it all together:
+
+Periodically update bandwidth (wb_update_write_bandwidth).
+
+Recompute thresholds (domain_dirty_limits, wb_dirty_limits).
+
+Compute control ratio (wb_position_ratio → pos_ratio_polynom).
+
+Adjust per-thread dirty quota (nr_dirtied_pause).
+
+In balance_dirty_pages():
+
+If thread exceeds quota → sleep proportional to 1/pos_ratio.
+
+Ensures global dirty rate ≈ writeback bandwidth.
+
+📊 Example (Figure 10-14: Position Control Ratio)
+Graph shows:
+
+X-axis = dirty pages.
+
+Y-axis = pos_ratio.
+
+At freerun → pos_ratio=2 (double dirty rate).
+
+At setpoint → pos_ratio=1 (stable).
+
+At limit → pos_ratio=0 (no more dirtying allowed).
+
+👉 Threads smoothly transition between free running, balanced, and throttled states.
+
+⚡ Key Technical Points (Crisp)
+dirty_throttle_control = carries global + per-bdi state.
+
+Bandwidth estimation = rolling avg of pages/sec written.
+
+pos_ratio = feedback control knob (0 → stop, 1 → balance, 2 → ramp).
+
+Cubic polynomial ensures stability near setpoint & fast correction when far.
+
+Global thresholds: domain_dirty_limits().
+
+Per-device thresholds: wb_dirty_limits().
+
+Thread throttling: implemented in balance_dirty_pages() via nr_dirtied_pause.
+
+✅ In short:
+Dirty throttling in Linux is a feedback control system:
+
+Measure writeback bandwidth.
+
+Compare current dirty pages to thresholds.
+
+Compute pos_ratio via a cubic curve.
+
+Scale per-thread dirtying rate accordingly.
+This keeps dirtying smooth, fair across devices, and always bounded by real disk bandwidth.
+
+Would you like me to now create a one-page “dirty throttling lifecycle diagram” showing:
+👉 thresholds,
+👉 bandwidth updates,
+👉 pos_ratio curve,
+👉 and how it feeds into balance_dirty_pages()?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve shared the next set of listings around dirty throttling, polling intervals, pause times, and rate limits in Linux’s writeback subsystem. I’ll break them down one by one, crisply, keeping technical accuracy intact.
+
+1. __wb_calc_thresh() (Listing 10-90)
+Purpose: Compute each bdi_writeback’s share of the global dirty threshold.
+
+Uses per-cpu fraction accounting (fprop_fraction_percpu) to divide global threshold among devices.
+
+Formula:
+
+wb_thresh = global_thresh × wb_completions / total_completions
+wb_completions: pages written by this device.
+
+total_completions: pages written system-wide.
+
+Then adjusted by min_ratio / max_ratio sysfs tunables (0–100%).
+
+Ensures fairness: fast devices get a larger dirty budget, slow devices smaller.
+
+2. dirty_poll_interval() (Listing 10-91)
+Purpose: Controls how often balance_dirty_pages() checks if throttling is needed.
+
+Idea: Don’t check every page → too expensive.
+
+Computes interval based on gap between thresh and current dirty:
+
+interval ≈ sqrt(thresh - dirty)
+If near dirty limit → interval small (frequent checks).
+
+If far from limit → interval large (rare checks).
+
+Prevents NUMA machines from calling global_zone_page_state() too often.
+
+3. wb_update_dirty_ratelimit() (Listings 10-92 → 10-94)
+Purpose: Compute per-bdi writeback dirty rate limit.
+
+Steps:
+
+Measure dirtying rate:
+
+dirty_rate = (dirtied - dirtied_stamp) × HZ / elapsed
+→ pages per second recently dirtied.
+
+Task rate limit:
+
+task_ratelimit = dirty_ratelimit × pos_ratio >> shift
+Each task’s dirtying budget.
+
+Scaled by pos_ratio (how close we are to setpoint).
+
+Balanced rate limit:
+
+balanced_dirty_ratelimit = (task_ratelimit × write_bw) / dirty_rate
+Ensures all tasks together ≈ write_bw / N.
+
+Refinement: Avoid wild swings.
+
+Uses relative error (pos_ratio - 1) × dirty_ratelimit.
+
+Step adjustments smoothed (no 100% chasing).
+
+Ensures stable rate, minimal oscillation.
+
+Final store:
+
+wb->dirty_ratelimit = max(dirty_ratelimit, 1)
+wb->balanced_dirty_ratelimit = balanced_dirty_ratelimit
+4. Pause Times
+Write throttling pauses tasks to slow them down.
+
+(a) wb_max_pause() (Listing 10-95)
+Prevents tasks from freezing too long.
+
+Formula:
+
+pause ≤ (wb_dirty / bw) × scaling factor
+Always capped by MAX_PAUSE = 200ms.
+
+Ensures devices don’t go idle.
+
+(b) wb_min_pause() (Listing 10-96)
+Sets baseline pause ≈ 10ms, scaled with # of concurrent threads (2^M).
+
+Formula ensures:
+
+Each thread gets chance to dirty.
+
+Scaling avoids flooding.
+
+Adjusts pauses dynamically depending on dirty_ratelimit, poll thresholds.
+
+🔑 Big Picture (All Together)
+Dirty throttling = feedback control system:
+
+Dirty thresholds (domain_dirty_limits, __wb_calc_thresh) set global + per-device limits.
+
+Position ratio (wb_position_ratio) computes pressure based on how full we are.
+
+Bandwidth (wb_update_write_bandwidth) tracks device’s actual speed.
+
+Rate limits (wb_update_dirty_ratelimit) decide how fast tasks can dirty memory.
+
+Poll intervals + pause times (dirty_poll_interval, wb_max_pause, wb_min_pause) implement pacing.
+
+⚙️ Outcome: The kernel keeps dirty pages just below danger level, avoids stalls, and spreads load fairly across devices and tasks.
+
+Would you like me to also make a visual flow diagram (textual) of the entire dirty throttling loop (thresholds → ratio → bandwidth → ratelimit → pauses), so you can see the control flow like a feedback system block diagram?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Great, now you’ve shared the core of dirty throttling → balance_dirty_pages() flow, plus writeback chunk size and background thresholds. I’ll keep it crisp, in order, but with full technical detail intact.
+
+1. balance_dirty_pages() Prelude (Listing 10-97)
+Entry point when tasks dirty pages.
+
+Sets up a dirty_throttle_control (gdtc): tracks dirty pages, thresholds, rate limits.
+
+Keeps track of:
+
+nr_reclaimable: pages that could be written back.
+
+dirty_ratelimit / task_ratelimit: per-device and per-task throttling limits.
+
+pause, max_pause, min_pause: how long to sleep tasks.
+
+Starts an infinite loop to repeatedly check dirty state until it’s safe to continue.
+
+2. Initial Checks (Listing 10-98)
+Reads global dirty state:
+
+nr_reclaimable = global_node_page_state(NR_FILE_DIRTY)
+dirty = reclaimable + NR_WRITEBACK
+thresh, bg_thresh = domain_dirty_limits()
+If not in laptop mode (special power-saving mode):
+
+When dirty > bg_thresh, and no writeback is active → start background writeback (wb_start_background_writeback).
+
+Laptop mode: delays background writeback until higher thresholds to save power.
+
+3. Gather Statistics (Listing 10-99)
+If still in “freerunning” state (dirty well below thresholds):
+
+Just compute next poll interval using dirty_poll_interval().
+
+Reset thread-local counters (nr_dirtied, dirty_paused_when).
+
+Exit loop early (no throttling needed).
+
+Otherwise:
+
+Compute per-bdi dirty limits (wb_dirty_limits()).
+
+Check if dirty pages exceeded threshold (dirty_exceeded).
+
+Compute position ratio (wb_position_ratio) → how far above/below setpoint.
+
+Update bandwidth estimates (__wb_update_bandwidth).
+
+Update dirty rate limits (wb_update_dirty_ratelimit).
+
+4. Thread Pausing (Listing 10-100)
+Core throttling logic.
+
+Compute:
+
+dirty_ratelimit (per-bdi)
+
+task_ratelimit = dirty_ratelimit × pos_ratio
+
+Determine max_pause (≤200ms) and min_pause (≈10ms scaled).
+
+If task_ratelimit == 0: force max_pause (hard stop).
+
+Otherwise:
+
+period = HZ * pages_dirtied / task_ratelimit
+pause  = period - (now - last_pause)
+→ how long to sleep based on how fast the task dirtied pages.
+
+Cases:
+
+If pause < min_pause → reset (light dirtying, freerun).
+
+If pause > max_pause → cap it.
+
+Actual pause:
+
+__set_current_state(TASK_KILLABLE)
+io_schedule_timeout(pause)
+→ put thread to sleep, but killable by SIGKILL.
+
+5. Suffix / Exit (Listing 10-101)
+After pausing, update:
+
+current->dirty_paused_when
+
+current->nr_dirtied_pause
+
+Exit conditions:
+
+task_ratelimit != 0 (we’re under control).
+
+dirty very low (wb_stat_error() says not enough to bother).
+
+Fatal signal pending → exit loop immediately.
+
+Otherwise, repeat loop until task dirtying is stable.
+
+6. Writeback Chunk Size (Listing 10-102)
+When flushing dirty pages, kernel must decide how many pages per batch:
+
+If WB_SYNC_ALL (e.g., sync()): → write everything (pages = LONG_MAX).
+
+Otherwise:
+
+pages = min(avg_bw/2, dirty_limit/8)
+pages = min(pages, work->nr_pages)
+pages = round_down(pages + MIN_WRITEBACK_PAGES, MIN_WRITEBACK_PAGES)
+Ensures:
+
+At most ½ second’s worth of bandwidth.
+
+At most ⅛ of total dirtyable memory.
+
+Limited by request size and rounded down to 4MB minimum granularity.
+
+Heuristic design: avoid tiny I/Os, avoid hogging entire bandwidth.
+
+7. Background Writeback Threshold (Listing 10-103)
+Function: wb_over_bg_thresh() → should we keep background writeback running?
+Steps:
+
+Build temporary dirty_throttle_control.
+
+Read avail = global_dirtyable_memory().
+
+Read dirty = NR_FILE_DIRTY.
+
+Compute thresholds (domain_dirty_limits()).
+
+If global dirty > background threshold → return true.
+
+Otherwise, compute per-bdi threshold (wb_calc_thresh).
+
+If reclaimable > threshold → return true.
+
+Else → return **false`.
+
+So → background writeback runs only while dirty pages exceed background thresholds.
+
+🔑 Big Picture (This Section)
+balance_dirty_pages() = heart of dirty throttling.
+
+Threads writing data may be forced to pause to avoid over-dirtying.
+
+Pauses are dynamically calculated from thresholds, bandwidth, and fairness logic.
+
+Writeback chunk size ensures flushing is done in sane, efficient batch sizes.
+
+Background thresholds decide when flusher threads should wake up and keep writing, preventing memory from filling with dirty pages.
+
+👉 In simple words:
+Linux dynamically balances three forces:
+
+Tasks dirtying pages (foreground producers).
+
+Writeback threads flushing them (background consumers).
+
+Memory + bandwidth limits (safety + fairness).
+
+The system adapts rates, pauses tasks, and starts/stops background writeback to keep everything in balance.
+
+Do you want me to now draw up a single consolidated textual diagram (feedback loop style: dirtying → thresholds → rate limit → pause → writeback → feedback) that ties together all the listings so far?
+
+You said:
+This also
+ChatGPT said:
+Perfect — this screenshot continues from the background writeback threshold check and introduces wb_calc_thresh() wrapper. I’ll explain both crisply without losing technical detail.
+
+1. wb_over_bg_thresh() (Listing 10-103)
+Purpose: Decide whether background writeback should continue for a given bdi_writeback.
+
+Steps:
+
+Create a temporary dirty_throttle_control (gdtc).
+
+Set:
+
+avail = global_dirtyable_memory() (total memory we can dirty).
+
+dirty = global_node_page_state(NR_FILE_DIRTY) (all dirty pages).
+
+Compute thresholds via domain_dirty_limits().
+
+If global dirty > global background threshold → return true (keep writing).
+
+Otherwise, check per-bdi threshold:
+
+thresh = wb_calc_thresh(gdtc->wb, gdtc->bg_thresh).
+
+If reclaimable pages > thresh → return true.
+
+If neither condition met → return false (background writeback can stop).
+
+👉 Essentially: “Do we still have more dirty pages than we’d like? If yes, keep flusher running.”
+
+2. wb_calc_thresh() (Listing 10-104)
+Purpose: Compute dirty threshold for a specific bdi_writeback, using global context.
+
+Wrapper around __wb_calc_thresh() (Listing 10-90, already discussed).
+
+Uses a local dirty_throttle_control object to pass state.
+
+Returns the per-bdi dirty threshold.
+
+Notes:
+
+Uses WB_RECLAIMABLE statistic (dirty pages that could be written back).
+
+If WB_RECLAIMABLE > threshold → considered “breached” → background writeback should continue.
+
+Otherwise, no need to flush further.
+
+🔑 Big Picture (with these two functions)
+wb_over_bg_thresh(): system-level + per-bdi check → “Should we keep background writeback active?”
+
+wb_calc_thresh(): per-bdi helper to decide its individual dirty threshold.
+
+Together:
+
+Keep flushing globally if dirty pages are high.
+
+Or, if not globally high, but one device (bdi) is over its share → keep flushing that one.
+
+Otherwise → background writeback can stop, avoiding unnecessary disk I/O.
+
+👉 In short:
+These functions ensure background writeback is demand-driven:
+
+It runs only if either the whole system or an individual device is “too dirty.”
+
+If everything is clean enough → let writeback threads sleep, saving CPU/disk activity.
+
+Do you want me to now consolidate everything (dirty tracking, balance loop, throttling, chunk sizing, and background threshold) into one textual flow diagram — like a closed feedback loop from page dirtying → thresholds → throttling → writeback → clean pages → repeat? That would give you the full mental map in one place.
+
+You said:
+Yes and Summarise everything exhaustively discussed here in this current discussion thread in detail
+ChatGPT said:
+Got it 👍 — I’ll now give you a single exhaustive summary of everything we’ve discussed in this thread, including all the listings you shared (writeback start/end, dirty tracking, throttling, chunk size, thresholds). I’ll also provide a big textual flow diagram at the end, so you have a complete mental model.
+
+📘 Exhaustive Summary of Linux Writeback & Dirty Throttling
+Linux must balance:
+
+Dirtying pages (foreground) → apps writing to page cache.
+
+Cleaning pages (background) → flusher threads writing them back to disk.
+
+Memory & bandwidth limits → avoid stalling, avoid I/O storms.
+
+This balance is achieved with the writeback + dirty throttling subsystem.
+
+1. Dirty Tracking
+When a page (folio) in page cache is modified → it’s marked dirty.
+
+Tracking mechanisms:
+
+PAGECACHE_TAG_DIRTY → tagged in inode’s xarray.
+
+Inode itself marked dirty → added to bdi_writeback->b_dirty list.
+
+If CONFIG_CGROUP_WRITEBACK is enabled → dirty pages are tracked per-cgroup as well.
+
+2. Writeback Lifecycle
+(a) Starting I/O
+folio_clear_dirty_for_io():
+
+Clears folio dirty flag.
+
+Makes PTEs read-only → new writes cause page faults (re-dirty safely).
+
+__folio_start_writeback():
+
+Marks folio under writeback (PAGECACHE_TAG_WRITEBACK).
+
+If first folio of inode → put inode on superblock’s writeback list.
+
+(b) Completing I/O
+__folio_end_writeback():
+
+Clears writeback flag, removes tags.
+
+If no more folios dirty for inode → inode removed from writeback list.
+
+Updates bandwidth stats for feedback control.
+
+3. Flusher Threads & Triggers
+Global writeback workqueue (bdi_wq) runs background flusher threads.
+
+Wakeups:
+
+wb_wakeup_delayed() → every vm.dirty_writeback_centisecs (default 5s).
+
+wb_wakeup() → immediate (e.g., sync/fsync, dirty_ratio exceeded).
+
+Tasks (wb_workfn):
+
+Move inodes from b_dirty → b_io.
+
+Call FS ->writepages() or generic_writepages().
+
+Process dirty folios via write_cache_pages().
+
+4. Dirty Balancing / Throttling
+(a) Dirty Thresholds
+Controlled by vm.dirty_ratio, vm.dirty_bytes (global caps).
+
+vm.dirty_background_ratio, vm.dirty_background_bytes: background flusher thresholds.
+
+domain_dirty_limits(): computes global + background thresholds.
+
+__wb_calc_thresh(): divides thresholds among backing devices (bdi) proportional to bandwidth.
+
+(b) balance_dirty_pages() (Listings 10-97 → 10-101)
+Core loop run by tasks that dirty pages:
+
+Setup dirty_throttle_control (gdtc) with current dirty stats.
+
+Initial checks:
+
+If dirty > bg_thresh and no writeback running → start background writeback.
+
+In laptop mode → delay until higher thresholds.
+
+Freerun case:
+
+If well below thresholds → compute dirty_poll_interval() and return quickly.
+
+Statistics gathering:
+
+Compute per-bdi limits (wb_dirty_limits).
+
+Set dirty_exceeded if global or bdi threshold breached.
+
+Compute pos_ratio → how close to threshold.
+
+Update bandwidth (__wb_update_bandwidth).
+
+Update dirty rate limit (wb_update_dirty_ratelimit).
+
+Throttling:
+
+Compute per-task dirtying rate limit (task_ratelimit).
+
+Determine pause time based on how many pages were dirtied.
+
+Clamp pause between min_pause (≈10ms) and max_pause (200ms).
+
+Put task to sleep with io_schedule_timeout().
+
+Update task-local fields (dirty_paused_when, nr_dirtied_pause).
+
+Exit:
+
+Exit if dirty below thresholds, or signal pending, or low activity.
+
+Otherwise loop again until balanced.
+
+(c) Rate Limiting Functions
+wb_update_dirty_ratelimit(): sets per-bdi and per-task dirtying speed.
+
+wb_max_pause() / wb_min_pause(): control sleep times.
+
+dirty_poll_interval(): avoids too-frequent global state checks.
+
+5. Writeback Chunk Size (Listing 10-102)
+Determines how many pages to flush in one batch:
+
+If WB_SYNC_ALL (e.g., sync): flush all dirty pages.
+
+Otherwise:
+
+≤ ½ second’s worth of device bandwidth.
+
+≤ ⅛ of dirtyable memory.
+
+Limited by work request size.
+
+Rounded to at least 4MB (MIN_WRITEBACK_PAGES).
+
+Goal: efficient batching, avoid both tiny writes and hogging.
+
+6. Background Writeback Threshold (Listing 10-103)
+wb_over_bg_thresh(): decides if background flusher should keep running.
+
+Checks:
+
+Global dirty pages > global background threshold → yes.
+
+Else, per-bdi dirty pages > bdi-specific background threshold → yes.
+
+Otherwise → stop background writeback.
+
+7. wb_calc_thresh() Wrapper (Listing 10-104)
+Thin wrapper around __wb_calc_thresh().
+
+Computes per-bdi dirty threshold using WB_RECLAIMABLE.
+
+If reclaimable > threshold → keep writeback running.
+
+📊 Big Picture Feedback Loop
+[App writes / mmap fault]
+         ↓
+Page cache folio marked DIRTY
+Inode added to bdi_writeback list
+         ↓
+[balance_dirty_pages()]
+  ├─ If dirty << threshold → freerun
+  ├─ If dirty ~ threshold → compute pos_ratio, ratelimits
+  └─ If dirty > threshold → throttle task (pause)
+         ↓
+[Background flusher threads]
+  ├─ Woken by timer or thresholds
+  ├─ Pick dirty inodes from bdi lists
+  ├─ write_cache_pages():
+  │     folio_clear_dirty_for_io()
+  │     __folio_start_writeback()
+  │     FS ->writepage()
+  ↓
+[I/O completes]
+  └─ __folio_end_writeback()
+       clears flags, updates stats
+         ↓
+[Thresholds re-evaluated]
+         ↓
+Loop continues (feedback control)
+✅ Key Takeaways
+Writeback lifecycle: dirty folio → start writeback → complete writeback.
+
+Flusher threads: background daemons, woken by thresholds/timers.
+
+Throttling loop (balance_dirty_pages): forces tasks to pause when too many pages dirty.
+
+Chunking: writeback in reasonable batch sizes.
+
+Threshold checks: global + per-bdi ensure fairness across devices.
+
+Feedback control system:
+
+Producers = apps dirtying pages.
+
+Consumers = flusher threads cleaning pages.
+
+Controller = throttling + thresholds + bandwidth estimation.
+
+⚙️ In essence, Linux writeback is a dynamic feedback loop that keeps dirty pages under control, balances foreground/background work, and avoids both stalls and overload.
+
+Do you want me to also prepare a FAANG/Apple/Arm interview–style condensed cheat sheet (just 1–2 pages, covering the critical flows + functions + caveats) so you can revise quickly before a core-kernel interview?
+
+You said:
+Yes covering everything we discussed here in thread with cavetas for faang core teams and apple arm uk
+ChatGPT said:
+Perfect 👍 — here’s your interview-oriented condensed cheat sheet on Linux writeback + dirty throttling, covering all the listings and flows we discussed in this thread. I’ll keep it compact but detailed enough for FAANG / Apple / Arm UK core kernel / virtualization / MM interviews. I’ll also add caveats where interviewers are likely to probe deeper.
+
+📝 Linux Writeback & Dirty Throttling — Interview Cheat Sheet
+1. Core Concepts
+Writeback = flushing dirty pages from page cache → block device.
+
+Dirty folios = pages modified but not yet persisted.
+
+Clean folios = pages in sync with disk.
+
+Key tension = maximize caching vs. avoid memory pressure / dirty explosion.
+
+Control model = feedback loop: dirtying apps vs. writeback daemons.
+
+2. Lifecycle
+Dirtying
+
+write() or mmap fault → folio_mark_dirty().
+
+Inode → bdi_writeback->b_dirty list.
+
+Folio → tagged PAGECACHE_TAG_DIRTY in xarray.
+
+Writeback Preparation
+
+folio_clear_dirty_for_io() → clear dirty flag, make PTEs RO.
+
+__folio_start_writeback() → set PAGECACHE_TAG_WRITEBACK, mark inode writeback.
+
+I/O Submission
+
+generic_writepages() or FS ->writepages() via write_cache_pages().
+
+I/O Completion
+
+__folio_end_writeback() → clear flags, update stats, possibly clear inode from lists.
+
+3. Background Flusher Threads
+Global bdi_wq workqueue.
+
+Wakeups:
+
+wb_wakeup_delayed() → timer (vm.dirty_writeback_centisecs).
+
+wb_wakeup() → immediate (sync, fsync, dirty_ratio exceeded).
+
+Worker (wb_workfn) moves inodes from b_dirty → b_io, calls do_writepages().
+
+4. Thresholds
+Global sysctls:
+
+vm.dirty_bytes / vm.dirty_ratio → hard cap.
+
+vm.dirty_background_bytes / vm.dirty_background_ratio → start background flushing.
+
+Functions:
+
+domain_dirty_limits() → compute global + background thresholds.
+
+__wb_calc_thresh() → split thresholds per-bdi, weighted by bandwidth.
+
+wb_calc_thresh() → wrapper using per-bdi reclaimable stats.
+
+⚠️ FAANG / Apple/Arm caveat: Expect to be asked about NUMA-awareness and why dirty_poll_interval() avoids global scans every page dirty event.
+
+5. Dirty Throttling (balance_dirty_pages)
+Runs in foreground tasks when dirtying.
+
+Flow:
+
+Gather dirty stats (NR_FILE_DIRTY, NR_WRITEBACK, global_dirtyable_memory).
+
+If dirty < bg_thresh → freerun (just set poll interval).
+
+Else:
+
+wb_dirty_limits() → per-bdi thresholds.
+
+Compute pos_ratio (how close to threshold).
+
+Update bandwidth (__wb_update_bandwidth).
+
+Update dirty rate limit (wb_update_dirty_ratelimit).
+
+Throttle:
+
+Compute task_ratelimit = dirty_ratelimit × pos_ratio.
+
+Compute pause period = HZ × pages_dirtied / task_ratelimit.
+
+Clamp between wb_min_pause() (~10ms) and wb_max_pause() (200ms).
+
+Sleep (io_schedule_timeout()).
+
+Loop until balanced.
+
+⚠️ Caveats:
+
+Interviewers often ask why 200ms max pause → to avoid stalling device idle.
+
+Laptop mode (vm.laptop_mode) delays background flushing until higher threshold → battery optimization.
+
+6. Writeback Chunk Size
+Function: writeback_chunk_size().
+
+If WB_SYNC_ALL (e.g., sync) → flush everything (LONG_MAX).
+
+Else:
+
+≤ ½ sec worth of avg bandwidth.
+
+≤ ⅛ of global dirtyable memory.
+
+≤ requested pages.
+
+Rounded to ≥ 4MB (MIN_WRITEBACK_PAGES).
+
+⚠️ Caveat: Expect “why not always flush all?” → to avoid livelocks and lock contention.
+
+7. Background Threshold Check
+wb_over_bg_thresh() → decides if background flushing continues.
+
+If global dirty > bg threshold → yes.
+
+Else if per-bdi reclaimable > bdi threshold → yes.
+
+Else → no.
+
+Ensures flusher threads stop when work is “clean enough.”
+
+8. Control Theory View (Feedback Loop)
+[App writes] ──→ Mark folio dirty
+      ↓
+Dirty stats ↑
+      ↓
+balance_dirty_pages()
+  ├─ freerun if below threshold
+  ├─ else compute pos_ratio, ratelimits
+  └─ throttle task (pause)
+      ↓
+[Flusher threads]
+  ├─ Wakeup on bg_thresh, timers, sync
+  ├─ write_cache_pages()
+  └─ Submit I/O
+      ↓
+[I/O completes]
+  ├─ Clear flags
+  └─ Update bandwidth stats
+      ↓
+Re-evaluate thresholds → feedback loop
+🎯 FAANG / Apple / Arm UK Interview Caveats
+Fairness & Multi-device:
+
+__wb_calc_thresh() divides dirty budgets proportional to bandwidth → prevents slow devices from blocking faster ones.
+
+Expect questions: “What happens if one device is much slower?”
+
+NUMA & Scalability:
+
+Global counters (global_node_page_state()) are expensive.
+
+Solution: dirty_poll_interval() reduces frequency of polling.
+
+Likely probe: “How does Linux scale dirty throttling on 1000-core NUMA?”
+
+Laptop Mode:
+
+Special: delays background writeback to conserve battery.
+
+Interview angle: trade-off between responsiveness vs. power saving.
+
+Edge Cases:
+
+task_ratelimit = 0: tasks forced to max_pause → extreme throttling.
+
+WB_SYNC_ALL: flush everything (can block).
+
+Unresponsive NFS server: dirty pages may stall forever → error handling with wb_stat_error().
+
+Design Trade-offs:
+
+Control loop avoids oscillation by smoothing ratelimit updates.
+
+Pauses capped to avoid total stalls.
+
+Writeback chunk size heuristic avoids both tiny and excessive I/O.
+
+✅ One-liner for interviews:
+“Linux writeback is a feedback control system — tasks that dirty pages are rate-limited (balance_dirty_pages) based on thresholds and bandwidth estimates, while background flusher threads opportunistically clean dirty pages in bounded chunks. Thresholds are divided per-device (__wb_calc_thresh) and dynamically tuned to keep dirty pages just below dangerous levels, ensuring fairness, responsiveness, and scalability.”
+
+Would you like me to also create a mock interview Q&A set (10–12 questions) tailored for FAANG/Apple/Arm kernel roles, based on all this content, so you can test yourself under pressure?
+
+
+
+
+
+
+No file chosenNo file chosen
+ChatGPT can make mistakes. Check important info. See Cookie Preferences.

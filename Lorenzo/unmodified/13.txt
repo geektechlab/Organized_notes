@@ -1,0 +1,1229 @@
+Skip to content
+Chat history
+
+You said:
+When we are unable to allocate memory due to zones
+dipping below their minimum watermark, memory re-
+serves are exhausted, and direct reclaim has failed we
+must take drastic action to avoid the system becom-
+ing unusable. At this stage the Out of Memory (OOM)
+Killer steps in, finds the biggest memory hog and kills
+the process and all associated threads. In this chapter
+we explore how this is implemented and the criteria
+the OOM killer uses to determine which process to
+eliminate.
+One of the central tenets of the Linux memory management subsystem
+is the disconnect between virtual memory mappings and the physical mem-
+ory which backs them.
+Ordinarily, a mapping performed by malloc() or mmap() will result in ab-
+solutely no physical memory being allocated. Instead, the struct mm_struct
+object describing a process’s address space object will have a new
+struct vm_area_struct (Virtual Memory Area or “VMA”) object assigned to
+it, describing the mapped range (see chapters 3 and 4 for an in-depth discus-
+sion). The actual allocation of memory is therefore only performed when a pro-
+cess attempts to access it, at which point a CPU hardware fault arises which
+is trapped by the kernel and processed as a “page fault” (see Chapter 6).
+On page fault, the faulting address is checked to determine whether it is
+address is within a valid VMA range. If so, memory is allocated as necessary,
+if not a segfault signal is sent to the process.
+As a result, it becomes entirely possible for a process to access a valid
+mapping that causes the kernel to attempt to allocate physical memory, only
+to find it is unable to do so.
+In this situation the kernel must do something in order to maintain system
+stability, as the mapping of the memory is a long-distant memory and there
+is no mechanism by which to indicate to the process which mapped it that
+the allocation could not be performed.
+N O T E It’s also important to note that, even if the mapping process could somehow be in-
+formed, it would most likely result in that process simply terminating, as it is rarely
+the case that an arbitrary allocation can simply be allowed to fail. Given that the
+process(es) which are causing the memory pressure might well be distinct from the one
+happening to fault, this wouldn’t even necessarily help relieve the underlying mem-
+ory pressure anyway.
+That something is the Out of Memory (OOM) killer, which resolves the
+situation by determining which process is using the most memory (subject
+to manual user adjustment via the /proc/oom_score_adj interface see Section
+13.2) and kills it, thus (hopefully) freeing sufficient memory to complete the
+failing allocation.
+The selection of a process to kill (the “victim”) and freeing it (“reaping”
+it) are two separate events, occurring at different times. The victim is se-
+lected as soon as the OOM killer event occurs, and then a kernel thread as-
+signed to reaping victim threads is woken to perform the actual freeing of
+memory.
+A failed allocation will be retried as long as forward progress is made
+in freeing up memory, and the selection of an OOM victim constitutes
+progress, thus the actual result of the killing will tell after it has been ini-
+tiated. See Section 13.4 below for a detailed examination of how this oc-
+curs and Chapter 11 for a detailed examination of how forward progress is
+utilised as a concept on reclaim.
+A manual invocation of the OOM killer can also be performed via the
+sysrq-f operation, see Section 13.1.2 for details.
+13.1 Causes of Out of Memory Conditions
+13.1.1 Memory Allocation
+As described in Chapter 2, in order to ensure that the system never reaches
+a point where memory is so critically low that the kernel might not be able
+to function, we must maintain minimum reserves and establish watermarks
+below which we start to attempt to free up memory. These watermarks are maintained per-zone, per-NUMA node (if NUMA
+is enabled) and determine the point at which reclaim occurs. Reclaim is the
+means by which the kernel frees up memory without killing any processes
+(see chapter 11 for a detailed exploration of reclaim).
+While this is covered in chapter 2, but briefly—a zone is simply a named
+physical memory range. For instance, the first 16 MiB of x86-64 machines
+is designated ZONE_DMA, as this is the only range of physical memory very old
+DMA devices could access. Each NUMA node further subdivides the physi-
+cal memory range, associating CPUs with the memory they are electronically
+local to. Nodes can span multiple zones.
+N O T E NUMA is an abbreviation for Non-Uniform Memory Access, and describes the mech-
+anism by which the kernel handles architectures which have memory which is not
+equally fast to access from all CPUs. Beyond the fundamentals around nodes and
+zones, this is out of scope for the book.
+For file-backed memory, reclaim can be as simple as dropping memory
+from the page cache (see chapter 9), for anonymous i.e. non-file backed
+memory this involves swapping memory out to disk. Kernel memory allo-
+cated using the slab allocator might also reduce cache sizes via shrinkers (the
+slab allocator is out of scope for the book).
+When physical memory is allocated, it ultimately originates from a spe-
+cific zone (see chapter 2 for the details as to how this is designated). When
+doing so, the zone watermarks are checked. There are three core water-
+marks – WMARK_MIN, WMARK_LOW and WMARK_HIGH (there’s also WMARK_PROMO, but this is
+used by NUMA for very specific purposes which are out of scope here).
+When the low watermark is reached, indirect reclaim is started in the
+form of the kswapd kernel thread (there is one process per NUMA node).
+This performs reclaim in the background until at least one zone which could
+serve the allocation reaches the high watermark, at which point it sleeps
+(again, see chapter 11 for more on reclaim).
+If the memory pressure is extreme, this might not be enough – in this
+instance, a zone might reach the minimum water mark at which point direct
+reclaim can occur – this is reclaim that the process must wait until before
+proceeding.
+Finally, if the direct reclaim cannot free up sufficient memory, we are
+left in a difficult position where we are simply unable to service a page fault,
+which renders the process unable to continue executing.
+The simplest solution to this would be to kill the faulting process causing
+the allocation, however this would be unfair – the disconnect between map-
+ping and backing of memory in linux means that a faulting process may have
+absolutely no relation to one which is using excessive memory.
+N O T E It’s actually possible to cause the kernel to kill the allocating process via the
+vm.oom_kill_allocating_task tunable. See Section 13.3 for details. Instead, we invoke the Out Of Memory killer to elect the most appropri-
+ate victim to kill whose memory we can immediately free. This maintains
+system stability even in the face of extreme memory pressure.
+It’s worth reflecting on how we might end up in this situation in the first
+place – how can a process allocate more memory than the system has avail-
+able? The answer is overcommit – by default, the kernel does not constrain
+memory mapping such that it must fit in available physical memory, rather it
+simply disallows any one mapping which exceeds available physical and swap
+memory (see Chapter 4 for more details on this).
+13.1.2 sysrq-f
+The sysrq interface is a means by which users can perform actions using a
+special key combination (typically alt + the sysrq/print screen key + a letter
+to indicate the task to perform).
+This may not even be enabled by your kernel (you can determine this by
+examining the kernel.sysrq tunable which masks out various available sysrq
+operations). Even if unavailable from the command line, it’s possible to trig-
+ger sysrq events by writing to the /proc/sysrq-trigger procfs interface.
+An OOM killer-relevant operation exposed by this interface is sysrq-f,
+which causes the out of memory killer to be unconditionally invoked and to
+kill the process using the most resources as if an allocation had failed.
+This will not result in a kernel panic no matter the outcome of the OOM
+killer invocation, it will simply perform the kernel’s process selection logic
+and terminate the selected process.
+See Section 13.4 for a detailed analysis as to how this actually imple-
+mented within the kernel.
+13.2 OOM Killer Score Adjustment
+It is possible to adjust the likelihood of a process being selected for termina-
+tion via the OOM killer score adjustment interface as exposed per-process
+via procfs in /proc/$pid/oom_score_adj (there is also an /proc/$pid/oom_adj inter-
+face, however this is deprecated and simply used to calculate a value to set
+oom_score_adj to so we disregard it).
+The score is standardised to a range of -1000 to 1000, and defaults to 0. At
+0, the process is as likely as any other (unadjusted) process to be selected by
+the OOM killer. At -1000 the process will never be killed by the OOM killer,
+and at 1000 the process will almost certainly be selected (unless an alterna-
+tive process which also has a very high adjustment score assigned uses more
+memory).
+When the OOM killer considers a process for termination, it does so by
+determining how much resident memory it is utilising and compares it to all
+the other processes in the system, selecting the one that is using the most
+resident memory.
+ChatGPT said:
+Got it 👍 — let me break this down for you in clear, crisp, but still technically accurate terms, so you don’t lose any detail.
+
+🔑 Core Idea
+When Linux runs out of memory (OOM), the OOM Killer steps in to save the system from hanging or becoming unusable.
+It does this by choosing a process to kill (the "victim") to free up memory.
+
+📌 Why OOM Happens
+Virtual vs Physical memory disconnect
+
+malloc() / mmap() only create virtual mappings, not physical allocations.
+
+Real physical pages are only allocated when accessed, which triggers a page fault.
+
+If kernel can’t allocate at page fault → problem arises.
+
+Zones and watermarks
+
+Memory is divided into zones (e.g., ZONE_DMA, ZONE_NORMAL).
+
+Each zone has watermarks:
+
+WMARK_HIGH: normal, safe
+
+WMARK_LOW: start background reclaim (kswapd)
+
+WMARK_MIN: too low → process must wait for direct reclaim
+
+If even direct reclaim can’t free enough → OOM Killer is triggered.
+
+Why not just kill the faulting process?
+
+Faulting process may not be the real hog.
+
+Linux separates mapping from actual use, so the real culprit might be different.
+
+Overcommit
+
+Linux allows more virtual memory to be allocated than physically available (default policy).
+
+This makes OOM possible when commitments can’t be honored.
+
+📌 How OOM Killer Works
+When triggered:
+
+Selects a victim process (based on memory usage + adjustments).
+
+Marks it for termination.
+
+A kernel thread reaps it (frees memory).
+
+Allocation is retried → progress is made.
+
+Manual trigger:
+
+SysRq+F (or echo f > /proc/sysrq-trigger) → immediately invokes OOM killer.
+
+📌 Victim Selection
+By default: process using the most resident memory is chosen.
+
+Tunable: /proc/$pid/oom_score_adj
+
+Range: -1000 → 1000
+
+-1000: process is immune (never killed).
+
+0: normal chance.
+
+1000: almost guaranteed victim.
+
+Example: You’d set -1000 for critical daemons (e.g., systemd, sshd).
+
+📌 What Happens After OOM Kill
+Victim’s memory freed.
+
+Allocation retried.
+
+If system keeps struggling, OOM may repeat until stability restored.
+
+⚠️ Caveats for FAANG Core / Apple ARM UK Teams
+Kernel internals mastery expected:
+Not just theory, but ability to read/modify mm/oom_kill.c, mm/page_alloc.c.
+
+NUMA complexity: Victim selection & watermarks differ per-node. FAANG/Apple interviewers often test NUMA + OOM knowledge.
+
+Real-world tradeoffs:
+
+Protecting daemons vs killing big batch jobs.
+
+Tuning /proc/sys/vm/overcommit_memory, /proc/sys/vm/panic_on_oom.
+
+Performance-critical systems: OOM kill → catastrophic. FAANG/Apple teams want designs that avoid hitting OOM through cgroups, memory limits, proactive reclaim.
+
+✅ Summary in One Line:
+When Linux runs out of memory despite reclaim, the OOM Killer picks the biggest (or tuned) memory hog, kills it, frees memory, and retries allocations — ensuring the system stays alive.
+
+Do you want me to also diagram the flow (from allocation → watermark checks → reclaim → OOM kill) so you can visually lock this into memory?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve shared multiple pages from Lorenzo Stoakes’ The Linux Memory Manager (Early Access) covering OOM killer internals. I’ll explain them step by step, in crisp but complete technical detail without oversimplifying.
+
+🔥 OOM Killer Internals (Explained Simply)
+1. Why OOM Killer Exists
+When Linux runs out of memory, normal reclaim fails (dropping cache, swapping, shrinking slabs).
+
+At that point, the kernel must kill a process to free memory, otherwise the system deadlocks.
+
+The OOM killer chooses which process to kill and frees its memory.
+
+2. Scoring: How Processes are Chosen
+Each process has a score (oom_score) that reflects how much memory it uses compared to the system’s total memory.
+
+This score can be adjusted with /proc/$pid/oom_score_adj:
+
+Range: -1000 → 1000
+
+-1000 → immune (never killed)
+
+0 → default, neutral chance
+
+1000 → almost guaranteed to be killed
+
+Internally:
+
+The adjustment is in 0.1% of total RAM+swap.
+
+Example: oom_score_adj=-400 → process treated as if it used 40% less memory.
+
+Example: oom_score_adj=20 → treated as if it used 2% more memory.
+
+This way, critical daemons (e.g., systemd) can be protected, while non-essential hogs are more likely killed.
+
+3. Score Normalization
+Linux converts oom_score_adj into a normalized 0–2000 range (internally).
+
+Why?
+
+Because historically, userland tools expected scores in that range.
+
+Formula:
+
+Offset + scale (by 2/3) to fit in range.
+
+Maximum value = 2000.
+
+4. When OOM is Triggered
+OOM happens after multiple fallback attempts fail:
+
+Allocate from PCP lists (fast path).
+
+If fail → allocate from zones but don’t drop below low watermark.
+
+If fail → enter slow path reclaim (__alloc_pages_slowpath).
+
+If fail → direct reclaim.
+
+If still fail → last attempt with very high watermark, no direct reclaim.
+
+If still fail → invoke OOM Killer (__alloc_pages_may_oom → out_of_memory()).
+
+So OOM killer is last resort after all reclaim has failed.
+
+5. The Kernel Structures
+Main struct: struct oom_control
+Contains:
+
+zonelist: memory zones considered.
+
+nodemask: NUMA restrictions if policy applies.
+
+memcg: memory cgroup (if OOM is within cgroup).
+
+gfp_mask: allocation flags that triggered OOM.
+
+order: allocation order (e.g., higher-order pages).
+
+Internal:
+
+totalpages: total system pages.
+
+chosen: process picked as victim.
+
+chosen_points: badness score of chosen process.
+
+constraint: info about policy/cgroup constraints.
+
+This struct carries all context about why OOM occurred and how to select the victim.
+
+6. Manual OOM Trigger (sysrq-f)
+User can manually invoke OOM killer:
+
+Press Alt+SysRq+F (if enabled).
+
+Or: echo f > /proc/sysrq-trigger.
+
+In this case:
+
+oom_control.order = -1 marks it as manual.
+
+The kernel avoids panic-on-OOM and behaves differently.
+
+If no task can be killed → prints info but doesn’t panic.
+
+7. OOM Killer Core Flow
+From the diagram (Fig 13-1):
+
+__alloc_pages_may_oom() → calls out_of_memory().
+
+Inside out_of_memory():
+
+Check if OOM killer disabled.
+
+If current process already dying, just reap it.
+
+If sysctl_oom_kill_allocating_task=1, kill the allocating task directly.
+
+Otherwise, run badness heuristic (oom_badness()) to select worst process.
+
+Mark it (mark_oom_victim()).
+
+Queue oom_reaper kernel thread to free memory.
+
+If no process is found:
+
+If sysrq invoked → just return.
+
+If real OOM with no killable process → panic (deadlocked system).
+
+8. Alternative Behaviours
+Two important sysctls:
+
+vm.panic_on_oom
+
+If set → kernel panics instead of killing.
+
+Used in environments where killing is unacceptable.
+
+vm.oom_kill_allocating_task
+
+If set → kill the allocating process (the one that triggered OOM).
+
+Default = off, since faulting process may not be real hog.
+
+9. Code Flow Example
+Allocation fails → enters __alloc_pages_may_oom().
+
+Tries fallback: get_page_from_freelist().
+
+If still fails → builds oom_control object.
+
+Calls out_of_memory(&oc).
+
+Selects victim → oom_kill_process().
+
+Sends SIGKILL → memory reaped.
+
+✅ Final Summary
+Linux OOM killer is a last resort mechanism.
+
+Triggered when reclaim & reserves fail.
+
+Victim chosen by memory usage + oom_score_adj.
+
+oom_score_adj lets admins protect or bias processes.
+
+Controlled via oom_control struct inside kernel.
+
+Can be manually triggered (sysrq-f).
+
+Alternative behaviours: panic (vm.panic_on_oom) or kill allocating task (vm.oom_kill_allocating_task).
+
+If no process can be killed → system panics (deadlocked).
+
+Would you like me to also give you a visual flowchart (textual diagram) of the entire OOM path — from failed allocation → reclaim attempts → OOM selection → kill → reaping? This will lock it in your memory.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve shared the core code path of how the Linux OOM Killer actually picks a victim (functions like oom_badness(), oom_evaluate_task(), oom_unkillable_task(), etc.). Let’s go through it step by step, crisp but still technical:
+
+🔥 OOM Victim Selection Internals (Explained)
+1. oom_badness() — The Scoring Function
+Purpose: Assign a “badness score” to a task. Higher = more likely to be killed.
+
+Inputs:
+
+task_struct *p → the process being considered.
+
+totalpages → total RAM + swap available.
+
+Steps:
+
+Skip if task is unkillable (init, kernel threads, or explicitly protected).
+
+Lock task’s mm_struct (address space). If task has no mm (already exiting), skip.
+
+Skip if:
+
+It’s already been reaped, or
+
+It’s in vfork, or
+
+oom_score_adj = -1000 (immune).
+
+Compute baseline score = process’s memory usage:
+
+RSS (resident set size)
+
+swap usage
+
+page tables (in pages)
+
+Normalize score to fraction of total memory.
+
+Add oom_score_adj (scaled by totalpages/1000).
+
+👉 Result: A process with huge resident memory and high oom_score_adj = very high badness.
+
+2. oom_unkillable_task()
+Checks if a task is immune:
+
+Global init process (PID 1).
+
+Kernel threads (PF_KTHREAD).
+
+If yes → never killed.
+
+3. find_lock_task_mm()
+Ensures we can safely reference the task’s mm_struct (address space).
+
+Process may be partly exiting, but a sub-thread may still hold mm.
+
+If found, lock it → safe to proceed. If none → return NULL (skip).
+
+4. task_will_free_mem()
+Before killing, check if the task will exit soon anyway:
+
+Already has SIGKILL pending.
+
+In process of exiting (PF_EXITING).
+
+All threads in group marked for exit.
+
+If yes → just mark as victim and let it free memory naturally.
+
+5. process_shares_mm()
+Iterates through all threads in a thread group.
+
+Checks if they share the same mm_struct (address space).
+
+Needed because if one thread exits, all must exit for memory to be freed.
+
+6. task_will_free_mem() wrapper
+Wraps the above checks with extra edge cases:
+
+Skip tasks already drained by the OOM reaper.
+
+Skip tasks marked MMF_OOM_SKIP (not useful to kill).
+
+If only one user left of mm_struct (mm_users <= 1), assume memory will be freed soon.
+
+Ensures all threads sharing mm are also dying, otherwise memory won’t be freed.
+
+👉 Ensures OOM doesn’t waste time killing processes that won’t release memory.
+
+7. oom_evaluate_task()
+Evaluates each candidate task:
+
+Skip if unkillable.
+
+Skip if already victim.
+
+If this task is the origin of OOM (i.e. triggered allocation failure), give it LONG_MAX score (kill immediately).
+
+Otherwise → call oom_badness() for real score.
+
+Compare against current best (stored in oc->chosen_points).
+
+If better, replace chosen victim.
+
+8. select_bad_process()
+Core loop:
+
+Iterates over all processes.
+
+Calls oom_evaluate_task() for each.
+
+Keeps track of highest badness score.
+
+Final result stored in struct oom_control:
+
+chosen → the victim process.
+
+chosen_points → its score.
+
+9. out_of_memory()
+Orchestrates everything:
+
+Check if OOM disabled.
+
+Check if current task will free memory (skip kill).
+
+If vm.oom_kill_allocating_task=1 and current is valid → kill allocating task.
+
+Otherwise → run select_bad_process().
+
+If no process found:
+
+If sysrq-f → return.
+
+Else → panic (system deadlocked).
+
+Kill chosen process via oom_kill_process().
+
+Queue reaper thread to free its memory.
+
+✅ Summary (Crisp)
+Scoring (oom_badness) = based on RSS, swap, page tables, + adjusted with oom_score_adj.
+
+Unkillable processes: init, kernel threads, oom_score_adj=-1000.
+
+Special handling:
+
+Already dying tasks just marked victim.
+
+Allocating task killed first if oom_kill_allocating_task=1.
+
+sysrq-f manually triggers global OOM.
+
+Victim selection = process with highest badness score after skipping protected/unhelpful ones.
+
+Final kill = send SIGKILL, queue OOM reaper, free memory.
+
+👉 So the OOM killer is basically a fair, predictable heuristic: kill the task using the most memory, unless rules (unkillable, dying, manual sysrq, tunables) override it.
+
+Would you like me to draw a textual flow diagram of this full OOM victim selection (like decision tree: allocation fail → out_of_memory → select_bad_process → oom_badness → kill)? That’ll cement it visually.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve shared the OOM Killer’s execution phase: from victim marking → SIGKILL → queuing → reaping → freeing memory. Let me explain everything step by step, crisp but full technical depth.
+
+🔥 OOM Killer Execution Flow (Explained Simply)
+1. dump_header()
+Prints debug info when OOM occurs:
+
+Free memory (via show_mem())
+
+Slab usage (dump_unreclaimable_slab())
+
+Task list (if sysctl_oom_dump_tasks=1)
+
+Victim details (via dump_oom_summary())
+
+Helps sysadmins debug why OOM happened.
+
+2. oom_kill_process()
+High-level function: kills the chosen victim.
+
+Steps:
+
+Rate-limits log output (avoid spamming).
+
+Locks the victim task.
+
+Checks if victim will free memory anyway (task_will_free_mem()):
+
+If yes → just mark victim, queue reaper, unlock, return.
+
+If not → call __oom_kill_process() to actually kill.
+
+3. __oom_kill_process()
+The heavy lifter.
+
+Steps:
+
+find_lock_task_mm() → ensures victim has valid mm_struct.
+
+If task already exiting → skip.
+
+Get reference to mm (mmgrab()) so it doesn’t vanish mid-operation.
+
+Send SIGKILL (do_send_sig_info()) to victim.
+
+Must be before granting memory reserves → avoids hogging.
+
+Mark as victim (mark_oom_victim()).
+
+Print kill info: PID, memory usage (anon/file/shmem RSS, pgtable size, UID, oom_score_adj).
+
+Release locks, decrement references.
+
+4. mark_oom_victim()
+Marks the process as official OOM victim.
+
+Details:
+
+Uses tsk->signal->oom_mm to track the victim’s mm_struct.
+
+Atomically sets MMF_OOM_VICTIM flag.
+
+Increments mm refcount (mmgrab()).
+
+Increments global counter oom_victims.
+
+This ensures:
+
+Victim has access to memory reserves (to exit cleanly).
+
+Kernel won’t kill same process twice.
+
+5. Killing Threads Sharing mm
+All threads or processes sharing the same mm_struct (address space) must be handled.
+
+Loop (for_each_process()):
+
+Skip if not sharing mm.
+
+Skip if same thread group (already killed).
+
+Skip if PID 1 (init → unkillable).
+
+Skip kernel threads (PF_KTHREAD).
+
+Otherwise → send SIGKILL.
+
+Ensures no stray threads keep victim’s memory pinned.
+
+6. queue_oom_reaper()
+After marking victim → queue it for reaping.
+
+Logic:
+
+Set MMF_OOM_REAP_QUEUED flag (prevents double-queueing).
+
+get_task_struct() → keep ref to victim.
+
+Set up timer (tsk->oom_reaper_timer) to call wake_oom_reaper().
+
+Timer expires after 2 seconds (OOM_REAPER_DELAY).
+
+Purpose: gives victim a short chance to die naturally before force-reap.
+
+7. wake_oom_reaper()
+Triggered by the timer.
+
+Adds victim to global oom_reaper_list.
+
+Wakes up oom_reaper kernel thread via wake_up(oom_reaper_wait).
+
+Skips if victim already exited and set MMF_OOM_SKIP.
+
+8. oom_reaper() Thread
+Dedicated kernel thread that frees victim memory.
+
+Loop:
+
+Sleep until oom_reaper_wait is signaled.
+
+Take next victim from oom_reaper_list.
+
+Call __oom_reap_task_mm():
+
+Unmap victim’s anonymous memory regions.
+
+Free as many pages as possible.
+
+Set MMF_OOM_SKIP → skip future reaping.
+
+👉 This is the real freeing stage: ensures system immediately reclaims memory from the dying task.
+
+9. exit_mmap() Integration
+When victim finally exits normally:
+
+exit_mmap() releases all its VMAs.
+
+If mm_is_oom_victim(mm) true → manually reaps and sets MMF_OOM_SKIP.
+
+Prevents double reaping (exit + reaper thread).
+
+✅ Final Flow (Crisp)
+Victim chosen (oom_badness).
+
+oom_kill_process():
+
+Lock task → check → mark victim.
+
+Send SIGKILL.
+
+Queue oom_reaper.
+
+mark_oom_victim(): set flags, allow reserve access.
+
+Kill all threads sharing mm.
+
+queue_oom_reaper() → delay 2s.
+
+wake_oom_reaper() → wake reaper thread.
+
+oom_reaper() → forcibly unmap victim’s memory.
+
+exit_mmap() → final cleanup when process exits.
+
+👉 Net result: victim is killed, memory is reclaimed fast, and system recovers.
+
+Would you like me to now create a textual diagram / decision tree (allocation fail → victim selection → kill → reaper → reclaim) that visually maps the entire OOM killer lifecycle end-to-end? That way you’ll have a one-glance reference.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these snippets show the guts of how the OOM reaper reclaims memory after the OOM killer picks a victim. I’ll walk you through it step by step, crisp but complete.
+
+🔑 Big Picture
+OOM Killer chooses a victim → sends SIGKILL.
+
+But processes don’t always exit quickly (they might be stuck in uninterruptible sleep or kernel code).
+
+To avoid the system hanging, the OOM reaper kernel thread comes in to forcibly free the victim’s memory.
+
+The code you shared shows exactly how this happens.
+
+📌 Functions Explained
+1. oom_reap_task_mm() (Listing 13-26, 13-27)
+Purpose: Try to reclaim victim’s memory mappings (VMAs).
+
+Steps:
+
+Check MMF_OOM_SKIP → If set, skip (means mm already cleaned/skipped).
+
+Try __oom_reap_task_mm() → actually unmap victim’s memory.
+
+Log memory freed (anon-rss, file-rss, shmem-rss).
+
+Release mmap_lock.
+
+👉 Details of __oom_reap_task_mm():
+
+Sets MMF_UNSTABLE: marks address space unstable → any new access faults with SIGBUS.
+
+Walks the process’s VMAs:
+
+Skips hugetlb and special kernel mappings (VM_HUGETLB / VM_PFNMAP).
+
+Only reaps:
+
+Anonymous memory (heap, stack, malloc’d pages).
+
+Private mappings (not shared).
+
+Uses tlb_gather_mmu() + unmap_page_range() to unmap pages and flush TLB.
+
+⚠️ File-backed pages are skipped because they can be reclaimed by normal mechanisms; reaper only focuses on quickly freeable anonymous pages.
+
+2. oom_reap_task() (Listing 13-25, 13-24)
+Called by the OOM reaper thread.
+
+Logic:
+
+Retry reaping up to MAX_OOM_REAP_RETRIES (~10) with small delays (HZ/10).
+
+Each retry calls oom_reap_task_mm().
+
+If fails repeatedly → mark MMF_OOM_SKIP to stop retrying.
+
+Logs debug info if it fails (debug_show_all_locks() etc.).
+
+Ensures the mm is removed from further OOM reaper work.
+
+3. queue_oom_reaper() (Listing 13-21, 13-22)
+Schedules the victim for reaping.
+
+Uses a delayed timer (OOM_REAPER_DELAY = 2s).
+
+Purpose: Give process 2 seconds to exit gracefully after SIGKILL.
+If it doesn’t, then reaper takes over.
+
+Adds victim to oom_reaper_list and wakes reaper thread.
+
+4. oom_reaper() (Listing 13-24)
+Dedicated kernel thread (started in oom_init()).
+
+Runs forever in loop:
+
+Waits on oom_reaper_wait queue.
+
+When woken, takes victim from oom_reaper_list.
+
+Calls oom_reap_task() → which does the reclaim attempts.
+
+This is the actual worker that reaps memory aggressively.
+
+5. exit_mmap() (Listing 13-23 reference)
+When process exits normally, it calls exit_mmap() to release memory.
+
+If process was OOM victim:
+
+It manually reaps mappings early.
+
+Sets MMF_OOM_SKIP to tell OOM reaper not to bother anymore.
+
+📌 Key Flags
+MMF_OOM_SKIP → skip this mm, already handled or not worth reaping.
+
+MMF_UNSTABLE → mm is unstable; future accesses will SIGBUS.
+
+MMF_OOM_REAP_QUEUED → already queued for reaping.
+
+⚙️ Flow in Simple Steps
+OOM killer picks victim, sends SIGKILL.
+
+Victim is marked with mark_oom_victim().
+
+Victim is queued for reaping (queue_oom_reaper()).
+
+Waits 2s for graceful exit.
+
+If victim doesn’t die → OOM reaper thread (oom_reaper) runs.
+
+oom_reap_task() → repeatedly calls oom_reap_task_mm().
+
+__oom_reap_task_mm() → walks VMAs, unmaps anonymous memory, flushes TLB.
+
+Freed memory becomes available to allocator.
+
+If reaping fails too many times → set MMF_OOM_SKIP to stop retrying.
+
+Process eventually exits or is completely reaped.
+
+✅ Summary in One Line
+The OOM reaper is a dedicated kernel thread that forcefully unmaps anonymous pages of OOM-killed processes if they don’t exit quickly, ensuring memory is freed and the system survives, using flags (MMF_UNSTABLE, MMF_OOM_SKIP) and retries with careful locking around mmap_lock.
+
+Would you like me to also draw a crisp textual diagram (step arrows with flags and functions) so you can visualize the whole OOM killer + reaper pipeline in one shot?
+
+You said:
+Yes and Summarise everything exhaustively discussed here in this current discussion thread in detail
+ChatGPT said:
+Perfect 👍 — let’s build a complete summary of everything in this thread about the Linux OOM Killer + OOM Reaper.
+I’ll make it structured, exhaustive, and crisp, but without losing any technical detail.
+
+🧠 Full Summary: Linux OOM Killer & Reaper Internals
+1. Why OOM Happens
+Virtual vs Physical memory mismatch
+
+malloc()/mmap() only reserve virtual space.
+
+Physical pages allocated lazily (on access).
+
+If no memory available at page fault → OOM.
+
+Zones & Watermarks
+
+Memory split into zones (DMA, NORMAL, etc.).
+
+Watermarks:
+
+WMARK_HIGH = healthy
+
+WMARK_LOW = background reclaim (kswapd)
+
+WMARK_MIN = allocations must reclaim directly
+
+If even direct reclaim fails → OOM.
+
+Overcommit
+
+Linux allows allocating more virtual memory than available physical (/proc/sys/vm/overcommit_memory).
+
+When commitments can’t be fulfilled → OOM.
+
+2. OOM Killer Trigger
+Triggered when kernel can’t satisfy allocations and reclaim fails.
+
+Manual trigger: SysRq+F or echo f > /proc/sysrq-trigger.
+
+3. Victim Selection
+Done in oom_badness():
+
+Score = proportional to resident memory usage.
+
+Adjusted by /proc/$pid/oom_score_adj (range -1000 to +1000).
+
+-1000: never kill
+
+1000: always kill
+
+Edge cases:
+
+Already exiting tasks skipped.
+
+MMF_OOM_SKIP set → skipped.
+
+vfork children skipped (no independent mm).
+
+oom_score_adj = OOM_SCORE_ADJ_MIN → immune.
+
+4. Victim Killing
+Happens in oom_kill_process():
+
+Lock task.
+
+If task will free memory → mark victim (mark_oom_victim()), queue for reaping (queue_oom_reaper()), unlock.
+
+Send SIGKILL via do_send_sig_info().
+
+Log details: RSS, anon/file/shmem usage, UID, oom_score_adj.
+
+Unlock + release references.
+
+mark_oom_victim():
+
+Marks victim with MMF_OOM_VICTIM.
+
+Increments mm_count.
+
+Updates oom_victims counter.
+
+Ensures only one victim per mm.
+
+5. OOM Reaper Role
+Problem: killed tasks may not exit quickly (e.g., stuck in kernel).
+
+Solution: dedicated kernel thread (oom_reaper) forcibly frees victim’s memory.
+
+Benefits: ensures allocator makes progress, prevents deadlock.
+
+6. OOM Reaper Internals
+Thread init: started in oom_init() as kernel thread.
+
+queue_oom_reaper():
+
+Adds victim to oom_reaper_list.
+
+Uses OOM_REAPER_DELAY (2s) → lets victim exit gracefully before reaping.
+
+Sets MMF_OOM_REAP_QUEUED.
+
+wake_oom_reaper(): wakes reaper thread from wait queue.
+
+oom_reaper() loop:
+
+Waits until victim queued.
+
+Calls oom_reap_task().
+
+7. oom_reap_task()
+Tries to reclaim victim’s address space:
+
+Up to MAX_OOM_REAP_RETRIES (10).
+
+Sleeps 0.1s between retries.
+
+Calls oom_reap_task_mm() each time.
+
+If fails consistently → sets MMF_OOM_SKIP.
+
+Removes mm from list → no more reaping.
+
+8. oom_reap_task_mm()
+Wrapper for actual reclaim:
+
+Acquire mmap_read_trylock() (non-blocking).
+
+Check MMF_OOM_SKIP again.
+
+Call __oom_reap_task_mm() if ok.
+
+Log memory freed (anon-rss, file-rss, shmem-rss).
+
+Release lock.
+
+9. __oom_reap_task_mm()
+Core of reaping logic:
+
+Set MMF_UNSTABLE → marks mm unstable (future accesses SIGBUS).
+
+Iterate victim’s VMAs:
+
+Skip hugetlb (VM_HUGETLB) and PFNMAP mappings (special).
+
+Only reap anonymous private pages.
+
+File-backed pages skipped (already reclaimable).
+
+Use tlb_gather_mmu() + unmap_page_range() + tlb_finish_mmu() to unmap + flush TLB.
+
+Free pages immediately.
+
+10. exit_mmap() and OOM
+When process exits normally:
+
+exit_mmap() releases mappings.
+
+If OOM victim: also sets MMF_OOM_SKIP.
+
+Ensures OOM reaper won’t touch it anymore.
+
+11. Key Flags Recap
+MMF_OOM_VICTIM → process marked as OOM victim.
+
+MMF_OOM_SKIP → skip this mm (already handled or unreapable).
+
+MMF_UNSTABLE → mm unstable; accesses cause SIGBUS.
+
+MMF_OOM_REAP_QUEUED → queued for reaping.
+
+12. Flow Diagram (Textual)
+Allocation fails
+   ↓
+Reclaim fails
+   ↓
+OOM Killer triggered
+   ↓
+Select victim (oom_badness)
+   ↓
+Send SIGKILL → mark_oom_victim()
+   ↓
+Queue victim for OOM reaper (2s delay)
+   ↓
+Victim exits normally?
+   ├─ Yes → exit_mmap() cleans, set OOM_SKIP
+   └─ No  → oom_reaper wakes
+             ↓
+         oom_reap_task()
+             ↓
+   tries __oom_reap_task_mm() up to 10 times
+             ↓
+   Unmap anon pages, flush TLB, free memory
+             ↓
+   Success → allocator gets memory back
+   Fail    → set OOM_SKIP (stop retrying)
+13. FAANG / Apple ARM UK Caveats
+NUMA-aware OOM: victim chosen per-node, more complex than single-node.
+
+cgroups: OOM can happen per-cgroup, not just system-wide (important in containerized environments).
+
+Performance focus: OOM killer/reaper is last resort. Production systems (Google, Apple, Meta) emphasize:
+
+cgroup memory limits
+
+proactive reclaim
+
+avoiding OOM entirely (OOM = catastrophic).
+
+Debugging skills: expected to trace mm/oom_kill.c, mm/mmap.c, handle real-world debugging with oom_score_adj, systemd configs, and kernel logs.
+
+✅ One-Line Summary
+The Linux OOM subsystem ensures system survival when memory runs out: the OOM killer picks and SIGKILLs a victim, and if it doesn’t exit quickly, the OOM reaper forcefully unmaps its anonymous pages, freeing memory, all coordinated with careful locks and flags (OOM_VICTIM, OOM_SKIP, UNSTABLE) to guarantee progress.
+
+Do you also want me to make a tabular cheat-sheet (function → purpose → key flags → effect), so you can recall each function instantly during FAANG/Apple interviews?
+
+You said:
+Yes and covering everything we discussed here in thread with cavetas for faang core teams and apple arm uk
+ChatGPT said:
+Got it 👍
+Here’s a tabular cheat-sheet of the OOM Killer + OOM Reaper internals, covering everything from this thread and also with caveats for FAANG core teams & Apple ARM UK.
+
+🧾 OOM Killer & Reaper Cheat-Sheet (with FAANG/Apple caveats)
+Function / Concept	Purpose	Key Flags / Data	Effect	FAANG / Apple ARM UK Caveat
+oom_badness()	Compute “badness score” of each process	oom_score_adj, resident memory, vfork checks, MMF_OOM_SKIP	Selects best victim	FAANG teams emphasize NUMA-aware scoring and cgroup limits over global badness; containerization complicates victim choice.
+oom_kill_process()	Orchestrates victim killing	Calls __oom_kill_process()	Sends SIGKILL, logs info, queues for reaping	Apple/Meta expect you to know rate-limiting logs (DEFINE_RATELIMIT_STATE) to avoid kernel spam in prod.
+__oom_kill_process()	Actually handles killing	Task locking, mmgrab, SIGKILL, mark_oom_victim()	Ensures references safe, initiates victim termination	Interviewers may probe on task refcounts (get_task_struct/put_task_struct) and why they prevent use-after-free.
+mark_oom_victim()	Marks victim & pins mm	Sets MMF_OOM_VICTIM, increments mm_count, oom_victims++	Allows reaper to reap mm safely	ARM UK cares about multi-threaded mm sharing edge cases (threads vs processes).
+queue_oom_reaper()	Add victim to reaper queue	Sets MMF_OOM_REAP_QUEUED, schedules wake timer (2s)	Defers reaping, hoping task exits	FAANG prod: Delay tuning (OOM_REAPER_DELAY) affects latency; too low = premature reaping, too high = stalls.
+wake_oom_reaper()	Wakes OOM reaper thread	Checks MMF_OOM_SKIP	Adds to oom_reaper_list & wakes thread	Ensures non-blocking behavior → key in multi-tenant workloads.
+oom_reaper()	Kernel thread doing reaping	Loops on oom_reaper_wait	Calls oom_reap_task()	At FAANG scale, OOM reaper must not deadlock on mmap_lock (non-blocking trylock).
+oom_reap_task()	Reap memory from victim	Retries up to MAX_OOM_REAP_RETRIES (10) with 100ms sleep	Calls oom_reap_task_mm()	Retry logic prevents livelocks; FAANG expect deep knowledge of HZ timing granularity.
+oom_reap_task_mm()	Wrapper for mm reaping	mmap_read_trylock(), MMF_OOM_SKIP	Controls safe entry into __oom_reap_task_mm()	Apple ARM interviewers expect insight into TLB shootdown cost at scale (per-core flush).
+__oom_reap_task_mm()	Actual page freeing	Sets MMF_UNSTABLE; iterates VMAs; skips VM_HUGETLB, VM_PFNMAP; reaps only anon private pages	Immediate freeing of anonymous memory via unmap_page_range() + TLB flush	FAANG caveat: In containers, page cache reclaim preferred; reaping file-backed pages deferred to VFS reclaim.
+exit_mmap()	Normal cleanup of mm	On OOM victim sets MMF_OOM_SKIP	Signals reaper to ignore this mm (already cleaned)	FAANG prod: exit_mmap() performance is critical in large heaps (Java, ML training).
+dump_header(), dump_tasks()	Logs system OOM state	Memory state, scores, victims	Sysadmin debugging	At FAANG, log spam = expensive; use rate-limiting & structured tracing (ftrace).
+Flags Recap	Control flow in OOM	MMF_OOM_VICTIM, MMF_OOM_SKIP, MMF_UNSTABLE, MMF_OOM_REAP_QUEUED	Synchronize victim state	Apple/FAANG emphasis: correctness across NUMA + cgroups + SMP concurrency.
+🔑 Key Takeaways
+Why OOM Killer exists
+
+Reclaim sometimes can’t save us → OOM killer ensures forward progress.
+
+Victim selection
+
+Score-based with oom_score_adj.
+
+Must consider NUMA + cgroups (FAANG production reality).
+
+Separation of concerns
+
+Victim marking (SIGKILL + flags) vs Victim reaping (forceful freeing by kernel thread).
+
+OOM Reaper
+
+Special kernel thread that unmaps anonymous private pages only.
+
+Uses non-blocking locks to avoid livelocks.
+
+Ensures system continues even if victim stalls.
+
+Flags are critical
+
+Prevent double handling, races, and signal ordering issues.
+
+FAANG teams often probe how you’d debug a case where OOM victim doesn’t die quickly.
+
+🏢 FAANG & Apple ARM UK Specific Caveats
+NUMA-Aware Behavior
+
+OOM killer runs per-node; FAANG/Apple expect deep knowledge of local vs remote node memory pressure.
+
+Bad victim choice in NUMA can cripple performance.
+
+cgroup OOMs
+
+In containerized environments, OOMs are per-cgroup.
+
+FAANG infra relies heavily on memory cgroups v2; victim scoring inside cgroup differs from system-wide.
+
+ARM-Specific (Apple UK)
+
+TLB shootdowns costlier on big.LITTLE; careful about cross-cluster invalidation during reaping.
+
+unmap_page_range() and page table walks optimized differently than x86.
+
+Production Philosophy
+
+At FAANG scale: OOM is failure of capacity planning.
+
+Engineers are expected to tune reclaim knobs, cgroup limits, swap policies to avoid OOM altogether.
+
+Still, knowing internals is tested for debugging rare kernel-level crashes.
+
+✅ In short:
+
+OOM Killer = picks a process.
+
+OOM Reaper = forcefully frees its memory.
+
+Together: guarantee progress when memory is exhausted.
+
+At FAANG/Apple scale: you must reason in terms of NUMA, cgroups, SMP concurrency, and production safety.
+
+Would you like me to now also create a “debugging playbook” (step-by-step commands/logs you’d check in real systems at FAANG/Apple when OOM strikes) — so you’re ready for practical interview scenarios?
+
+
+
+
+
+
+No file chosenNo file chosen
+ChatGPT can make mistakes. Check important info. See Cookie Preferences.

@@ -1,0 +1,3655 @@
+Skip to content
+Chat history
+
+You said:
+By default all file accesses in Linux are mediated by a
+transparent cache that sits between userspace and the
+underlying disk known as the page cache. This signifi-
+cantly boosts performance when reading from/writing
+to files as accessing memory is far faster than accessing
+a disk. In this chapter we will examine how this func-
+tions in detail.
+Accessing data stored on permanent storage is significantly slower than
+accessing it in memory (except, perhaps, in specific memory-like storage sys-
+tems or others this book has yet to anticipate), ranging from greater than 4
+times slower when accessing data on an SSD to greater than 80 times slower
+when accessing data on a traditional hard drive.
+It is therefore sensible to cache this data and hold on to it as long as pos-
+sible. This is known as the ‘page cache’, and all file access other than that
+specifically intended to bypass it (for instance direct I/O or direct access
+(DAX), however both are out of the scope of this book) retrieves and places
+data into this cache rather than accessing it directly.
+This also simplifies the kernel’s handling of files—any action that would
+read data from or write data to disk needs to use a buffer in which to main-
+tain this data—the page cache provides this buffer. Reading from a file therefore becomes a matter of looking it up in the
+page cache and, if not present, performing the required I/O to put it there
+while the requesting process sleeps.
+See Sections 9.3 and 9.4 below for details of how we read data from the
+page cache via the read() and memory-mapped page faults respectively.
+Writing to files is rather more complicated, however hardware support
+in the Memory Management Unit (MMU) makes life easier—this allows us to
+map pages read-only, generating a page fault when written to (see Section
+6.9), which we can use to notify the file system that a file is about to be writ-
+ten in a process termed dirty tracking.
+We refer to this process as ‘dirty tracking’ as a page which has had data
+modified is termed dirty (see Section 10.1 for more on dirty tracking in gen-
+eral and Section 10.12 for more on page fault dirty tracking).
+This ‘dirty’ data is synchronised to disk in a process known as writeback
+which can be triggered directly (e.g. via fsync(), msync() or munmap()) or indi-
+rectly as a kernel background task which periodically writes data back to disk
+according to system configuration (we will examine how this is performed
+later). We will examine the details of this in the dedicated writeback chapter.
+Once the data is synchronised to disk, it is mapped read-only once again
+and is therefore termed clean as this point. This is performed by utilising the
+reverse mapping (see Chapter 7) to look up what maps the memory pages
+and then updating all of the mappings.
+N O T E RAM-backed file systems such as tmpfs or abstract file systems like hugetlbfs, whose
+entries in the page cache constitute the entirety of their state, of course do not require
+dirty tracking. Theoretically, due to the flexibility of the VFS a file system which ac-
+tually writes to a permanent medium could eschew dirty tracking as a mechanism for
+writeback tracking, however it wouldn’t be very sensible to do so.
+We have briefly touched upon writeback here, however as it is such a
+large topic, we defer discussion of it to the dedicated chapter on the subject.
+There are a number of questions that immediately spring to mind re-
+garding the page cache – where is it stored? How is it accounted for? How is
+it accessed and updated?
+We will find answers for each of these, however to provide meaningful
+answers, we must first step back and examine the Virtual File System (VFS)
+which provides the generalised kernel file abstraction. The kernel supports a huge variety of different file systems by abstracting
+them through an interface termed the Virtual File System (VFS). Understand-
+ing how this operates is key to understanding how the page cache operates.
+Discussion of the VFS and file systems as a whole is a broad topic, so we
+will provide a brief overview of the fundamentals before focusing upon the
+specifics of the page cache.
+The key entity associated with any file in a Linux file system is an inode.
+This is an object containing the metadata associated with a file (noting that directories are considered special kinds of files in Linux) and is described by
+the struct inode kernel data type.
+N O T E There is debate as to the meaning of the ‘i’, but it is generally accepted to be an abbre-
+viation of ‘index’.
+Every file and directory is described by an inode, each indexed by an in-
+ode number (you can examine these by running ls -i in a shell) maintained in
+struct inode->i_ino.
+Userland processes typically don’t interact with inodes directly, but
+rather with a file descriptor (fd) obtained by open()ing a file. Each of a pro-
+cess’s open files is tracked by the kernel in a struct file object, which refer-
+ences the opened inode via their f_inode field, the current offset within the
+file via f_pos, the mode in which the file is opened via f_mode, file path and
+other metadata.
+N O T E Of course the open() process might be abstracted by something like fopen() or another
+library function, underlying it however is the same open system call.
+As a result, multiple struct file objects may existing referencing the
+same underlying file, each representing a mapping of that file.
+Each object within the page cache is uniquely described by a
+struct address_space object, to which each file-backed struct folio (and
+equally struct page) refers in their mapping field, as well as struct inode objects
+via their i_mapping field and struct file objects via their f_mapping fields.
+N O T E From the perspective of the memory management subsystem, the
+struct address_space object is the most important metadata for a file or other
+cachable entity – it represents an entry in the page cache itself.
+Each instance of a mounted filesystem has its core metadata described
+by a super block object, struct super_block, under which all inodes are main-
+tained in the s_inodes linked list.
+Each of these objects have customised functions associated with them
+which permits a file system to provide its own custom functionality:
+• struct inode->i_op specifies the functions the file system provides for
+inode operations in an struct inode_operations object. This is typically set
+when a new inode is first initialised.
+• struct file->f_op specifies the functions the file system provides for file
+operations in an struct file_operations object. This is obtained from
+each inode’s struct inode->i_fop field on file open in do_dentry_open().
+The i_fop field is typically set on inode or super block initialisation.
+• struct address_space->a_ops specifies the functions the file system pro-
+vides for address space operations in a struct address_space_operations
+object. This, like struct inode->i_op, is typically set on inode initialisa-
+tion. struct super_block->s_op specifies the functions the file system provides
+for super block operations in a struct super_operations object. This is set
+on super block initialisation.
+• struct vm_area_struct->vm_ops specifies the functions the file sys-
+tem provides for VMA operations when the region described by
+the VMA is memory-mapped. These callbacks are wrapped in a
+struct vm_operations_struct type.
+This is set when the struct file_operations->mmap callback is invoked
+when the VMA is first mapped.
+ChatGPT said:
+Got it 👍
+Let me break this whole excerpt into a clear, structured explanation without losing technical depth:
+
+📌 Linux Page Cache & VFS — Simplified but Detailed
+1. Why Page Cache Exists
+Disk access is much slower than memory:
+
+SSD: ~4× slower
+
+HDD: ~80× slower
+
+To hide this latency, Linux keeps a cache of file contents in RAM → the page cache.
+
+Almost all file accesses go through the page cache (unless explicitly bypassed with direct I/O or DAX).
+
+2. How Page Cache Works
+Reads:
+
+Kernel first looks in the page cache.
+
+If page exists → return immediately.
+
+If not → do I/O to fetch from disk → place in cache → process sleeps until ready.
+
+Writes:
+
+MMU can map cached pages as read-only.
+
+When a process writes → page fault occurs → kernel marks page dirty.
+
+Dirty pages are eventually written back to disk (writeback).
+
+Once synced, page is marked clean again.
+
+⚡ Dirty tracking = mechanism to detect and track modified pages.
+⚡ Writeback = syncing dirty pages to permanent storage (can be explicit via fsync()/msync()/munmap() or automatic via kernel background threads).
+
+3. Exceptions
+tmpfs / hugetlbfs → entirely RAM-backed → page cache is the actual data store.
+
+A disk-backed filesystem could skip dirty tracking, but it would be impractical.
+
+4. Where Page Cache Fits in Kernel
+To understand where page cache lives, we need to understand the Virtual File System (VFS) abstraction.
+
+Key Kernel Structures
+struct inode
+
+Describes metadata of a file/directory.
+
+Each file has a unique inode number (i_ino).
+
+struct file
+
+Represents an open file descriptor.
+
+Points to inode via f_inode.
+
+Tracks file offset (f_pos), mode (f_mode), etc.
+
+Multiple struct file objects can reference the same inode.
+
+struct address_space
+
+Critical for page cache.
+
+Represents the cache for a given file.
+
+Linked from:
+
+inode->i_mapping
+
+file->f_mapping
+
+Pages (folio->mapping)
+
+struct super_block
+
+Represents a mounted filesystem.
+
+Holds global FS info + list of inodes (s_inodes).
+
+5. Customisation Points (Ops Tables)
+Each structure has a table of function pointers so that each filesystem can plug in its own logic:
+
+inode->i_op → struct inode_operations (inode-specific ops).
+
+file->f_op → struct file_operations (file descriptor-level ops).
+
+address_space->a_ops → struct address_space_operations (page cache ops: readpage, writepage, etc.).
+
+super_block->s_op → struct super_operations (filesystem-level ops).
+
+vm_area_struct->vm_ops → struct vm_operations_struct (for memory-mapped files, set during mmap).
+
+6. Summary (Key Flow)
+Process opens a file → kernel creates struct file → points to inode (f_inode) + mapping (f_mapping).
+
+File content caching → handled by struct address_space.
+
+Read path: check page cache → if miss, do I/O → populate cache.
+
+Write path: MMU enforces CoW-like protection → page fault on write → mark page dirty → later flushed to disk.
+
+Filesystem glue: different FSs implement custom ops via VFS function tables.
+
+Superblock ties all inodes of a mounted FS together.
+
+✅ So in essence:
+The page cache is not just a performance hack, it’s the core buffer layer Linux uses for all file I/O, abstracted via VFS structures (inode, file, address_space, super_block).
+
+Do you want me to next give you a visual diagram (ASCII/textual) showing how file → inode → file struct → address_space → page cache → disk connects? That way you’ll be able to recall it quickly in interviews (FAANG/ARM/Linux kernel teams).
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve shared the Linux Memory Manager (Early Access) sections about xarray and its use in the page cache. Let me give you a crisp but detailed walkthrough, so you get all the technical depth without confusion.
+
+📌 Xarray in Linux (Simple but Detailed)
+1. What is an Xarray?
+Xarray = eXtensible Array → replacement for radix trees.
+
+It maps indices (unsigned long) → to either pointers (e.g. struct page) or values (integers).
+
+Used heavily in page cache (struct address_space->i_pages).
+
+Why Xarray?
+Cache-friendly: traversing adjacent indices is fast (better than linked lists/trees).
+
+Expands/contracts efficiently.
+
+Supports:
+
+Lockless reads (via RCU).
+
+Auto-locking on writes.
+
+Mapping ranges of indices.
+
+Marks for fast categorization.
+
+Internal error encoding.
+
+2. Core Structures
+struct xarray
+struct xarray {
+    spinlock_t xa_lock;  // protects writes
+    gfp_t xa_flags;      // allocation flags
+    void __rcu *xa_head; // root entry: NULL, single entry, or node pointer
+};
+xa_lock: for writes; reads often use RCU.
+
+xa_head:
+
+NULL → empty.
+
+Single entry → stored directly.
+
+Non-NULL node → pointer to struct xa_node.
+
+struct xa_node
+struct xa_node {
+    unsigned char shift;     // how many bits this node covers
+    unsigned char offset;    // index offset in parent
+    unsigned char count;     // non-NULL entries
+    unsigned char nr_values; // number of value entries
+    struct xa_node __rcu *parent;
+    struct xarray *array;
+    void __rcu *slots[XA_CHUNK_SIZE]; // 64 slots (x86-64)
+    unsigned long tags[XA_MAX_MARKS][XA_MARK_LONGS];
+    unsigned long marks[XA_MAX_MARKS][XA_MARK_LONGS];
+};
+Node = array chunk of 64 slots (on x86-64).
+
+Each slot → value or pointer to another xa_node.
+
+Tree expands dynamically as more indices are used.
+
+shift encodes how many index bits belong to this level.
+
+3. Entry Types
+The lowest 2 bits of an entry decide its type:
+
+00 → Pointer entry (to another node).
+
+10 → Internal entry (special markers, errors).
+
+x1 → Value entry / tagged pointer.
+
+Internal entries:
+Used for:
+
+Sibling entry (0–62).
+
+Retry entry (256).
+
+Zero entry (257 = represents NULL).
+
+Errors (negative values up to -4095).
+
+4. Helper Functions (from your screenshots)
+Value-related
+xa_is_value(entry)   // check if entry is a value
+xa_to_value(entry)   // extract integer value
+xa_mk_value(v)       // create entry from integer
+Values = encoded in pointer by shifting and tagging bit 1.
+
+Internal-related
+xa_is_internal(entry)  // check if entry is internal
+xa_to_internal(entry)  // extract internal value
+xa_mk_internal(v)      // create internal entry
+Internal entries use tag 2.
+
+Error-related
+xa_is_err(entry)  // check if entry encodes an error
+xa_err(entry)     // extract errno
+Errors are stored as negative values encoded into internal entries.
+
+Node-related
+xa_is_node(entry)       // is entry pointing to xa_node?
+xa_to_node(entry)       // convert to struct xa_node*
+xa_mk_node(node)        // encode xa_node* as entry
+Node pointers are tagged as internal.
+
+5. Example Expansion
+Start: xa_head = NULL → empty.
+
+Insert one element → stored directly in xa_head.
+
+Insert more → promote xa_head into a struct xa_node with slots.
+
+Each node handles 64 entries; tree grows upward if indices exceed range.
+
+6. Why is This Important for Page Cache?
+Page cache stores struct page* per index (index = file offset / PAGE_SIZE).
+
+address_space->i_pages = struct xarray.
+
+So:
+
+Key = page index in file.
+
+Value = pointer to struct page.
+
+Efficient lookups, insertions, and writeback tracking rely on xarray.
+
+✅ Quick Summary
+Xarray = dynamic, cache-friendly tree-like array.
+
+Stores pages or values, used in page cache (address_space->i_pages).
+
+Entries classified by low 2 bits:
+
+Pointer, Value, or Internal (special markers/errors).
+
+Helpers (xa_is_value, xa_to_value, xa_is_internal, xa_err, etc.) manage encoding/decoding.
+
+Tree expands as needed via xa_node chunks.
+
+Core to Linux VFS + page cache.
+
+Do you want me to also draw a step-by-step ASCII diagram showing how:
+file offset → xarray index → xa_node → struct page
+is resolved in the page cache lookup path?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect 👌 — you’ve now shared the xarray expansion, API, xa_state helpers, and file read example. Let me explain crisply, step by step, without losing technical depth:
+
+📌 Xarray Expansion & API (with File Read Context)
+1. Xarray Growth (Figures 9-2, 9-3, 9-4)
+Start:
+If only 1 entry → stored directly in xarray.xa_head.
+
+First expansion:
+Once more entries are inserted, xa_head becomes a pointer to a struct xa_node with shift = 0.
+
+Each xa_node has XA_CHUNK_SIZE = 64 slots (x86-64).
+
+Each slot stores either a value or another node pointer.
+
+When full (64 elements):
+A new parent node is allocated with shift = 6 (covers 2⁶ = 64 entries).
+
+The old node is placed as child.
+
+A second node is created for the new 65th entry.
+
+Next expansion (64² = 4096 entries):
+Add another parent node with shift = 12, children at shift 6, etc.
+→ Like a radix tree, but chunked.
+
+✅ Takeaway: xarray grows just enough — first a node, then promotes into multi-level hierarchy.
+
+2. XA_CHUNK_SIZE and Marks
+#define XA_CHUNK_SHIFT 6
+#define XA_CHUNK_SIZE  (1UL << XA_CHUNK_SHIFT) // = 64
+#define XA_CHUNK_MASK  (XA_CHUNK_SIZE - 1)     // = 63
+#define XA_MAX_MARKS   3
+Each node = 64 slots.
+
+Marks & tags: extra metadata arrays in nodes, used to:
+
+Mark entries dirty/writeback (page cache use).
+
+Allow efficient search for “only marked” pages.
+
+3. API Basics
+Two APIs exist:
+
+Normal API: simple, auto-locking.
+
+Advanced API: more flexible, caller must manage locking and traversal state.
+
+Example: xa_store()
+void *xa_store(struct xarray *xa, unsigned long index,
+               void *entry, gfp_t gfp)
+{
+    void *curr;
+    xa_lock(xa);
+    curr = __xa_store(xa, index, entry, gfp);
+    xa_unlock(xa);
+    return curr;
+}
+Stores entry at index.
+
+Returns the old entry if replaced.
+
+Takes and releases xa_lock.
+
+Internal: __xa_store()
+Uses XA_STATE iterator to walk tree.
+
+Asserts entry is valid.
+
+Calls xas_store().
+
+Retries if memory allocation needed.
+
+4. struct xa_state
+Iterator state for advanced API:
+
+struct xa_state {
+    struct xarray *xa;   // array we’re working on
+    unsigned long xa_index;  // target index
+    unsigned char xa_shift;  // level in tree
+    unsigned char xa_sibs;   // sibling count (multi-index entries)
+    unsigned char xa_offset; // offset inside node
+    struct xa_node *xa_node; // current node
+    ...
+};
+Maintains traversal state during operations.
+
+Initialised by macros:
+
+XA_STATE(name, array, index) → for normal entries.
+
+XA_STATE_ORDER(name, array, index, order) → for higher-order entries spanning multiple indices.
+
+5. Special States
+XAS_RESTART → iterator not in sync, restart traversal.
+
+XAS_ERROR → error encountered.
+
+XAS_BOUNDS → ran past available indices.
+
+6. File Read Example (Listing 9-23)
+fd = open("test.txt", O_RDONLY);
+read(fd, buf, size);
+Flow inside kernel:
+
+read() syscall → ksys_read().
+
+Gets struct fd (wraps struct file).
+
+Uses file->f_pos for current offset.
+
+Protected by f_pos_lock if multiple threads.
+
+Since Linux 3.14, FMODE_ATOMIC_POS auto-enables this.
+
+Calls vfs_read(), which eventually calls file->f_op->read().
+
+Reads from page cache (via xarray lookup in inode->i_mapping->i_pages).
+
+If page not present → load from disk → insert into xarray.
+
+✅ So every read → goes through page cache → implemented via xarray.
+
+🔑 Crisp Takeaways
+Xarray = hierarchical chunked array, powering page cache (address_space->i_pages).
+
+Growth: inline entry → 1 node (64 slots) → multi-level tree.
+
+Entries: tagged in low 2 bits → pointer / value / internal.
+
+API:
+
+xa_load(), xa_store(), xa_erase(), xa_find().
+
+Advanced API uses xa_state.
+
+File I/O path: read() → vfs_read() → page cache lookup in xarray.
+
+👉 Do you want me to now draw a combined ASCII diagram showing:
+file offset → struct file → address_space.i_pages (xarray) → xa_node → struct page
+so you can use it as a single-page mental map for interviews (FAANG/ARM/Linux kernel)?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — you’ve given me the file read path (via read() syscall) into the page cache including the VFS indirection, ext4’s forwarding, and finally filemap_read() internals. Let’s go step by step, crisp but detailed:
+
+📌 Linux File Read Path (via Page Cache)
+1. Syscall Entry
+Userspace calls:
+
+fd = open("foo", O_RDONLY);
+read(fd, buf, len);
+Kernel entry:
+
+read() syscall → ksys_read() → vfs_read().
+
+2. VFS Dispatch
+vfs_read() looks at struct file->f_op:
+
+If read_iter exists → use it.
+
+Else fall back to read.
+
+👉 This allows each filesystem to override I/O ops, but most forward to common helpers.
+
+3. Example: ext4
+ext4_file_read_iter():
+
+Does a quick forced-shutdown or no-op check.
+
+Otherwise just calls → generic_file_read_iter().
+
+👉 This shows most filesystems don’t reinvent logic; they delegate to generic kernel page cache helpers.
+
+4. Generic Read Path
+generic_file_read_iter():
+
+Validates iterator.
+
+Then calls → filemap_read() (heavy lifting).
+
+So the real work happens in mm/filemap.c:filemap_read().
+
+5. filemap_read() Steps
+a) Setup
+Extracts:
+
+struct file *filp (from kiocb).
+
+struct address_space *mapping = filp->f_mapping (points to page cache xarray).
+
+struct inode *inode = mapping->host.
+
+Allocates a folio batch (struct folio_batch fbatch) to gather cache pages.
+
+Checks file size limit (i_sb->s_maxbytes) and request size.
+
+b) Main Loop
+Loop until request satisfied or error:
+
+Get folios from page cache
+
+filemap_get_pages() finds or loads them into fbatch.
+
+Reference count incremented (pinned).
+
+Post-processing checks
+
+Re-check i_size_read() after page load (file might have been truncated/extended).
+
+Compute end_offset (don’t read past EOF).
+
+Mark folios accessed
+
+First folio sometimes skipped (sequential read special-case).
+
+Others marked via folio_mark_accessed() (affects LRU reclaim).
+
+Copy data to user
+
+Uses copy_folio_to_iter(folio, offset, bytes, iter).
+
+Copies correct range of bytes.
+
+Updates iobc->ki_pos (file offset).
+
+Track readahead
+
+Updates ra->prev_pos for next sequential access.
+
+c) Error Handling
+If copy fails (copied < bytes):
+
+Sets -EFAULT and breaks.
+
+Otherwise loop continues until done.
+
+d) Cleanup
+put_folios() decrements refcounts.
+
+folio_batch_init() resets batch.
+
+Updates file’s access time (file_accessed()).
+
+Returns:
+
+already_read if bytes copied.
+
+Error code otherwise.
+
+6. File-Backed Page Faults (via mmap)
+If a file is memory-mapped and a process dereferences it:
+
+Page fault triggers.
+
+Filesystem’s vm_ops->fault is called.
+
+For ext4 → ext4_file_vm_ops->fault → filemap_fault().
+
+Works similar to filemap_read() but one folio at a time, not a batch.
+
+Uses the same page cache machinery.
+
+7. Important Technical Points
+kiocb (kernel I/O control block):
+Carries state through the read (file, offset, flags).
+
+iov_iter:
+Describes user buffer(s), abstracts iovec.
+
+Folio:
+New abstraction over struct page, can represent larger-than-page chunks.
+
+filemap_get_pages():
+The real page cache lookup. Uses xarray (address_space->i_pages) to fetch cached folios or trigger I/O.
+
+folio_mark_accessed():
+Updates LRU to reflect recent usage.
+
+Access time (atime):
+Updated via touch_atime(), but often disabled (relatime mount option).
+
+✅ Summary (Crisp Flow)
+read() syscall → ksys_read() → vfs_read().
+
+VFS dispatches → filesystem-specific read_iter (e.g., ext4_file_read_iter).
+
+FS usually forwards → generic_file_read_iter().
+
+That calls → filemap_read():
+
+Uses filemap_get_pages() to look up page cache.
+
+If missing → page-in from disk.
+
+Copies folio contents into user buffer.
+
+Marks folios for LRU, updates offsets.
+
+Cleans up and returns bytes read.
+
+👉 So all file reads in Linux go through the page cache (xarray lookup), unless using direct I/O or DAX.
+
+Would you like me to also sketch the ASCII diagram for this entire chain:
+
+read() syscall → vfs_read() → ext4_file_read_iter() → generic_file_read_iter() → filemap_read() → filemap_get_pages() → xarray (page cache) → folio → copy to user
+
+So you’ll have a one-glance map for interviews?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — let’s crisply unpack everything shown in these images about file-backed page faults (filemap_fault) step by step, without losing technical depth.
+
+🔑 Core Idea
+When a process accesses a memory-mapped file (mmap()), the kernel may need to fetch data from disk into RAM. This is handled via the page cache and the filemap_fault() path. It ensures:
+
+The faulting virtual address maps to the correct folio (page/block of memory).
+
+Data is loaded (if not already in cache).
+
+Proper locks and races are handled.
+
+Errors (e.g., invalid offsets, truncations, OOM) are gracefully managed.
+
+📍 Step-by-Step Flow
+1. Fault Entry (filemap_fault)
+Triggered when accessing a file-backed VMA.
+
+Takes the mmap_lock initially (read/write semaphore).
+
+Uses struct vm_fault (details of the fault: address, VMA, offset, flags).
+
+First checks:
+
+Valid offset? (not past end-of-file).
+
+If invalid → send SIGBUS to process.
+
+2. Cache Lookup
+Calls filemap_get_folio(mapping, index):
+
+If folio exists in cache → minor fault.
+
+If not → major fault (requires disk I/O).
+
+If found folio:
+
+Check if uptodate (PG_uptodate flag set):
+
+If yes → proceed.
+
+If no → need to explicitly read it (filemap_read_folio()).
+
+3. Read-Ahead
+Minor fault case: trigger asynchronous readahead (do_async_mmap_readahead) so future reads are faster.
+
+Major fault case: do synchronous readahead (do_sync_mmap_readahead) — block until at least this folio is fetched.
+
+Caveat: If user set MADV_RANDOM → disables readahead.
+
+4. Locking & Race Handling
+After readahead, we lock the folio via lock_folio_maybe_drop_mmap():
+
+Ensures no concurrent writeback/truncation.
+
+Might drop mmap_lock if needed → then retry.
+
+Acquire invalidate_lock (mapping->invalidate_lock) before inserting/allocating folios to avoid races with truncation or invalidation.
+
+5. Folio Creation (if missing)
+Calls __filemap_get_folio() with FGP_CREAT:
+
+If folio not in cache, allocate a new one.
+
+Add it to page cache.
+
+Pin with reference count.
+
+If allocation fails → return VM_FAULT_OOM.
+
+6. Post-Processing & Validations
+Once folio is locked:
+
+Check truncation (folio->mapping must still match).
+
+Check index validity (not beyond file size).
+
+If invalid → SIGBUS.
+
+Verify uptodate:
+
+If not → go fetch from disk (filemap_read_folio).
+
+If still not possible → retry or fail.
+
+If all good → mark success (VM_FAULT_LOCKED).
+
+⚖️ Error/Edge Cases
+SIGBUS vs SIGSEGV:
+
+SIGSEGV: Invalid address (no mapping, no perms).
+
+SIGBUS: Valid but bad file offset (past EOF, truncated, corrupted, or not backed).
+
+VM_FAULT_RETRY: If lock dropped, retry fault path.
+
+VM_FAULT_OOM: Out of memory during folio creation.
+
+VM_FAULT_LOCKED: Success, folio is locked.
+
+📊 Major vs Minor Fault
+Major fault: Folio not present at all (needs I/O).
+
+Minor fault: Folio already present but needs mapping/validation.
+
+Counters:
+
+pgfault → all faults.
+
+pgmajfault → major subset.
+
+User-visible via /proc/vmstat, /proc/[pid]/stat, getrusage(), etc.
+
+📌 Flow Summary (Simplified)
+Process touches mapped file page → filemap_fault.
+
+Validate offset → else SIGBUS.
+
+Try get folio from cache:
+
+Found + uptodate → done.
+
+Found but not uptodate → fetch from disk.
+
+Not found → allocate folio + read from disk.
+
+Apply readahead optimizations.
+
+Lock folio, check truncation, validity, uptodate.
+
+Return success or error (SIGBUS, OOM, RETRY).
+
+✅ This is the precise, step-wise flow of file-backed page fault handling in Linux.
+
+Would you like me to now contrast this flow with the read() syscall path (which also hits filemap_read()) so you can see exactly where mmap page faulting differs from explicit read()?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Got it 👍 — these pages cover filemap_fault() page fault handling and then dive into page cache lookup helpers (find_get_entries, find_lock_entries, filemap_get_folios, filemap_get_pages). I’ll keep it simple, crisp, but complete.
+
+🔑 Filemap Fault Handling (when a process mmap()s a file and touches memory)
+1. Normal Path
+A memory access triggers a page fault.
+
+Kernel checks:
+
+Valid offset?
+If out-of-bounds → SIGBUS.
+
+Then tries to get folio from page cache:
+
+If present → good.
+
+If absent → may allocate (FGP_CREAT) + read from disk.
+
+2. Readahead & Uptodate Check
+If folio present but not marked PG_uptodate:
+
+Need to read from disk via filemap_read_folio().
+
+Readahead strategies:
+
+Async readahead: prefetch nearby folios opportunistically.
+
+Sync readahead: blocking fetch (for major faults).
+
+Disabled if user hinted MADV_RANDOM.
+
+3. Locking & Races
+Must hold invalidate_lock to avoid conflicts with truncation/invalidation.
+
+Lock folio with lock_folio_maybe_drop_mmap():
+
+May drop the mmap_lock and retry fault if contention occurs.
+
+If allocation fails → return VM_FAULT_OOM.
+
+4. Error Paths
+Page not uptodate:
+
+Retry direct disk read (filemap_read_folio()).
+
+If truncated/error → SIGBUS.
+
+Dropped mmap_lock:
+
+Must retry (VM_FAULT_RETRY).
+
+Still invalid:
+
+SIGBUS.
+
+Success:
+
+Return VM_FAULT_LOCKED.
+
+5. Outcomes
+VM_FAULT_RETRY → redo fault handling.
+
+VM_FAULT_OOM → out of memory.
+
+VM_FAULT_SIGBUS → invalid/unmapped file region.
+
+VM_FAULT_LOCKED → folio locked and usable.
+
+📊 Page Cache Lookup Helpers
+These functions manage finding/creating folios in address_space->i_pages (xarray).
+
+1. find_get_entries(mapping, start, end, fbatch, indices)
+Collects a batch of folios in [start, end] range if already present.
+
+Uses xarray walk (xas_find).
+
+Adds folios to fbatch and their indices to indices.
+
+Returns number found.
+
+Doesn’t create new folios, just finds present ones.
+
+Runs under RCU lock for concurrency.
+
+2. find_get_entry(xas, max, mark)
+Lower-level helper.
+
+Finds one folio at xas position.
+
+Can find:
+
+Present folio.
+
+Shadow entries (recently evicted pages).
+
+Swap/DAX entries.
+
+Uses retry loops with xas_retry if races occur.
+
+Increments folio refcount safely (folio_try_get_rcu).
+
+3. find_lock_entries(mapping, start, end, fbatch, indices)
+Like find_get_entries but also tries to lock each folio.
+
+Skips folios:
+
+Under writeback.
+
+Locked by another thread.
+
+Not fully inside range.
+
+Ensures folio->mapping is still valid.
+
+More expensive, used when caller needs stable folios.
+
+4. filemap_get_folios(mapping, start, end, fbatch)
+Higher-level API:
+
+Returns a batch of folios in [start, end].
+
+Updates start for iteration across multiple calls.
+
+Allows gaps (skips missing folios).
+
+Returns folios with elevated refcount.
+
+Doesn’t guarantee they are uptodate → caller must check.
+
+5. filemap_get_pages(iocb, iter, fbatch)
+Used in filemap_read() (read syscall path).
+
+Retrieves folios covering the requested read range.
+
+Steps:
+
+Call filemap_get_read_batch to gather cached folios.
+
+If none:
+
+Maybe do readahead (page_cache_sync_readahead).
+
+Allocate new folio (filemap_create_folio).
+
+Once folio obtained:
+
+If marked readahead candidate → run filemap_readahead.
+
+If not uptodate → issue disk read (filemap_update_page).
+
+Returns ready folios for copying to user.
+
+✅ Big Picture
+filemap_fault() → handles mmap() page faults.
+
+Uses page cache helpers.
+
+Deals with locking, retries, truncation, SIGBUS/OOM handling.
+
+filemap_get_*() family → provides ways to fetch folios from page cache:
+
+find_get_entries → find batch (present only).
+
+find_lock_entries → find + lock batch.
+
+filemap_get_folios → iterate range, collect folios.
+
+filemap_get_pages → main read path (handles I/O + readahead).
+
+👉 In simple words:
+
+Fault path (filemap_fault) = “demand load a folio into memory for mmap.”
+
+Read path (filemap_get_pages) = “gather folios for a read() syscall, pulling from cache or disk.”
+
+Helpers (find_*, filemap_get_*) = the “xarray walkers” that make both work.
+
+Do you want me to now give you a side-by-side comparison table of read() vs mmap() fault paths, showing exactly where they share page-cache logic and where they diverge? That’ll be golden for FAANG/ARM interviews.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these pages dive deeper into how read() pulls data via the page cache, and the helper routines that actually allocate, read, and update folios. I’ll unpack everything simply but precisely.
+
+🔑 Big Picture
+When a process calls read():
+
+Kernel must gather data from the page cache.
+
+If missing, it must allocate a folio, read from disk, and insert it.
+
+Helpers (filemap_get_pages, filemap_create_folio, filemap_update_page, filemap_get_read_batch, filemap_get_folio, __filemap_get_folio) implement this.
+
+📍 Functions Explained
+1. filemap_get_pages()
+Entry point for read().
+
+Determines which folios cover the requested file range:
+
+Uses kiocb->ki_pos (current file offset).
+
+Shifts by PAGE_SHIFT → base page index.
+
+Uses iter->count to compute upper bound.
+
+Steps:
+
+Call filemap_get_read_batch() to gather cached folios.
+
+If none:
+
+Try synchronous readahead (page_cache_sync_readahead).
+
+Retry batch fetch.
+
+If still none:
+
+Allocate new folio (filemap_create_folio).
+
+For last folio in batch:
+
+If readahead flag set → trigger filemap_readahead.
+
+If not uptodate → run filemap_update_page to read from disk.
+
+Errors handled:
+
+-EINTR if fatal signal pending.
+
+-EAGAIN if I/O not permitted (e.g., IOCB_NOWAIT).
+
+-ENOMEM if allocation fails.
+
+2. filemap_create_folio()
+Called when no suitable folio in cache.
+
+Steps:
+
+Allocate folio (filemap_alloc_folio).
+
+Uses GFP flags from mapping (controls reclaim, filesystem access).
+
+If fails → return -ENOMEM.
+
+Grab invalidate_lock to protect against truncate/hole-punch.
+
+Insert folio into page cache (filemap_add_folio).
+
+If another thread already inserted same folio:
+
+Return AOP_TRUNCATED_PAGE → must retry.
+
+Read data from disk into folio (filemap_read_folio()).
+
+Unlock invalidate_lock, return folio.
+
+3. filemap_update_page()
+Used when folio exists but not uptodate.
+
+Steps:
+
+Lock invalidate_lock.
+
+Try locking folio:
+
+If already locked → wait (folio_put_wait_locked) → return AOP_TRUNCATED_PAGE.
+
+Verify folio mapping is still valid (not truncated).
+
+If folio already uptodate (filemap_range_uptodate) → success.
+
+Otherwise → call filemap_read_folio() to fill from disk.
+
+Unlock and return.
+
+4. filemap_get_read_batch()
+Collects a batch of contiguous folios from page cache.
+
+Uses xarray walk (xas_load, xas_next) on mapping->i_pages.
+
+Adds valid folios to folio_batch.
+
+Handles races:
+
+Retry if xarray changed (xas_retry).
+
+Skip evicted folios (exceptional entries).
+
+Verify folio still mapped.
+
+If folio changed during walk → retry.
+
+Ensures batch only contains contiguous valid folios.
+
+Marks readahead/uptodate flags so caller knows next steps.
+
+5. filemap_get_folio(mapping, index)
+Simplest API: find single folio at given index.
+
+Wraps __filemap_get_folio(mapping, index, 0, 0) (no allocation).
+
+If folio present → increment refcount and return.
+
+If absent → return NULL.
+
+6. __filemap_get_folio(mapping, index, fgp_flags, gfp)
+Core implementation.
+
+Options controlled by FGP (Find Get Page) flags:
+
+FGP_ACCESSED → mark folio accessed.
+
+FGP_LOCK → return folio locked.
+
+FGP_ENTRY → return exceptional entries too.
+
+FGP_CREAT → if not present, allocate new folio.
+
+FGP_FOR_MMAP → return unlocked (used in mmap() faults).
+
+FGP_WRITE → allocate folio for writing (uses __GFP_WRITE).
+
+FGP_NOFS → don’t recurse into filesystem during allocation.
+
+FGP_NOWAIT → don’t wait for locks, return NULL if locked.
+
+FGP_STABLE → ensure folio is not under writeback.
+
+Also takes GFP mask for memory allocation control.
+
+Safely retries if:
+
+Folio was truncated.
+
+Races occurred during insertion.
+
+✅ Simplified Flow
+For read():
+
+filemap_get_pages() → gather folios from cache or disk.
+
+If not present → filemap_create_folio() allocates + reads.
+
+If present but stale → filemap_update_page() reloads.
+
+All of these use:
+
+filemap_get_read_batch() for batch cache lookup.
+
+filemap_get_folio() / __filemap_get_folio() for individual lookup.
+
+📊 Key Differences
+filemap_fault() (mmap): driven by page faults, returns VM_FAULT_* codes, integrates with mmap_lock.
+
+filemap_get_pages() (read): driven by read syscall, works with kiocb iterator, returns 0/-ERRNO.
+
+Both share folio allocation, insertion, disk read, and xarray lookup logic.
+
+👉 In short:
+
+read() walks cache in batches (filemap_get_pages, filemap_get_read_batch).
+
+mmap() faults bring in one folio at a time (filemap_fault).
+
+Both rely on __filemap_get_folio + filemap_read_folio()` for the heavy lifting.
+
+Would you like me to now build a comparison table (mmap vs read path) showing function calls and decisions side by side? That would make it interview-ready.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Excellent — these pages are the deep internals of reading a single folio into the page cache. Let’s make it crisp, structured, and simple while keeping all technical details intact.
+
+🔑 Big Picture
+When a process does read() or touches an mmap()ed file, the kernel needs to fetch a folio from the page cache.
+
+If present: just use it.
+
+If absent: allocate a folio, insert it, and read from disk.
+
+If races happen (e.g., truncation, concurrent allocation), retry safely.
+
+The functions here implement this flow.
+
+📍 Key Functions & Concepts
+1. Lockless Page Cache Protocol (Listing 9-51)
+Page cache lookups are done under an RCU read lock.
+
+Steps:
+
+Load folio from address_space->i_pages (xarray).
+
+If refcount > 0, increment it.
+
+If race occurs (folio removed), retry with xas_reload().
+
+👉 Prevents use-after-free by temporarily boosting folio refcount.
+
+2. __filemap_get_folio() (Listing 9-50)
+Core routine to fetch a folio, possibly creating one.
+
+Logic:
+
+If folio missing and FGP_CREAT set → allocate folio.
+
+Allocation via filemap_alloc_folio() (uses alloc_pages).
+
+Adjust GFP flags:
+
+FGP_WRITE → allow write.
+
+FGP_NOFS → avoid filesystem recursion.
+
+FGP_NOWAIT → non-blocking.
+
+Insert folio into xarray via filemap_add_folio().
+
+Handle races (-EEXIST if someone else added folio).
+
+For mmap (FGP_FOR_MMAP), unlock folio before returning.
+
+👉 Safely ensures either you get an existing folio or create one.
+
+3. mapping_get_entry() (Listing 9-52)
+Like filemap_get_read_batch() but retrieves a single folio/entry.
+
+Steps:
+
+Load entry via xas_load().
+
+If exceptional entry (swap entry, shadow entry after eviction) → return it.
+
+Else increment refcount via folio_try_get_rcu().
+
+Recheck with xas_reload() to handle races.
+
+Returns folio (with refcount), or NULL if not found.
+
+4. do_read_cache_folio() (Listing 9-53)
+The workhorse for reading a folio into cache.
+
+Flow:
+
+Try filemap_get_folio() (look up in cache).
+
+If missing → allocate folio + insert (filemap_add_folio).
+
+If folio present but not uptodate → must read from disk.
+
+Lock folio (folio_trylock). If locked by someone else → wait.
+
+Recheck mapping to avoid truncation races.
+
+Call filemap_read_folio() (filesystem-provided callback, e.g., ext4).
+
+On success → mark accessed (folio_mark_accessed).
+
+👉 Handles races (concurrent reads/writes, truncation) with retries.
+
+5. filemap_add_folio() (Listing 9-54)
+Inserts allocated folio into page cache.
+
+Flow:
+
+Lock folio (__folio_set_locked).
+
+Call __filemap_add_folio() for heavy lifting.
+
+If success → put folio on LRU list via folio_add_lru().
+
+6. __filemap_add_folio() (Listing 9-55)
+Actual insertion into the xarray (mapping->i_pages).
+
+Details:
+
+Set folio order (supports large folios).
+
+Add refcount for all constituent pages.
+
+Store folio at correct index (xas_store).
+
+Handle shadow entries (recently evicted folios tracked in xarray).
+
+If conflict (-EEXIST), return error.
+
+Update mapping->nrpages (total cached pages).
+
+On success → folio is now officially in page cache.
+
+📊 Call Graph (Simplified)
+read()/mmap → need folio
+    ↓
+do_read_cache_folio()
+    ↓ (cache hit)
+ filemap_get_folio() → return folio
+
+    ↓ (cache miss)
+ filemap_alloc_folio() → new folio
+ filemap_add_folio() → insert into xarray
+    ↓
+ filemap_read_folio() (FS callback) → read from disk
+    ↓
+ folio_mark_accessed()
+ return folio
+✅ Key Technical Points
+RCU lock → lockless, but safe lookups.
+
+Shadow entries → track recently evicted folios for readahead/reclaim.
+
+FGP flags → fine-grained control (create, lock, write, mmap, no-wait).
+
+Retries everywhere → must handle concurrent truncation, writeback, or allocation.
+
+Filesystem involvement → actual disk I/O done by mapping->a_ops->read_folio().
+
+Final step → folio goes to LRU list for reclaim.
+
+👉 In one line:
+These functions implement the kernel’s safe, lockless, race-free mechanism for fetching/allocating folios in the page cache, inserting them into the xarray, reading from disk if necessary, and returning them ready for use.
+
+Would you like me to now give you a unified diagram comparing both paths:
+
+read() path (uses do_read_cache_folio)
+
+mmap() page fault path (uses filemap_fault)
+
+So you’ll have a single visual map for both ways the kernel pulls file-backed folios?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these pages you shared cover how Linux reads folios from disk and the readahead subsystem (both sync & async). I’ll explain crisply, step by step, without dropping technical depth.
+
+🔑 1. Reading Folios From Disk
+When needed
+Happens in two main cases:
+
+read() → via filemap_get_pages().
+
+mmap() page fault → via filemap_fault().
+
+Both eventually call do_read_cache_folio() → filemap_read_folio().
+
+filemap_read_folio() (Listing 9-56)
+static int filemap_read_folio(struct file *file, filler_t filler, struct folio *folio)
+Prepares folio for disk I/O.
+
+Steps:
+
+Clear any previous error (folio_clear_error()).
+
+Call filesystem filler callback (filler(file, folio)).
+
+FS-specific, e.g. ext4 calls ext4_read_folio.
+
+Starts disk I/O and unlocks folio once done.
+
+Wait for folio lock release (folio_wait_locked_killable).
+
+If folio marked uptodate → success.
+
+Else shrink readahead window (shrink_readahead_size_eio) → return -EIO.
+
+👉 Essentially: Ask FS to load data → wait until folio uptodate or error.
+
+filler_t (Listing 9-57)
+typedef int filler_t(struct file *, struct folio *);
+Abstracts the filesystem read function.
+
+Each filesystem (ext4, xfs, etc.) provides one.
+
+page_endio() (Listing 9-58)
+void page_endio(struct page *page, bool is_write, int err)
+Called when disk I/O finishes.
+
+If read:
+
+On success → set PG_uptodate.
+
+On error → clear PG_uptodate, set PG_error.
+
+If write:
+
+Always clear PG_writeback.
+
+Set PG_error if failure.
+
+Also notify mapping (mapping_set_error).
+
+Unlocks the page/folio.
+
+👉 This is the completion handler for I/O.
+
+🔑 2. Readahead
+Readahead = prefetch extra folios beyond what was asked.
+Goal: hide disk latency for sequential access.
+
+Modes (Table 9-1)
+Random Access
+
+madvise(MADV_RANDOM) / posix_fadvise(POSIX_FADV_RANDOM) / VM_RAND_READ.
+
+Disables readahead.
+
+Normal Access
+
+Default. Small readahead.
+
+Sequential Access
+
+madvise(MADV_SEQUENTIAL) / posix_fadvise(POSIX_FADV_SEQUENTIAL) / VM_SEQ_READ.
+
+Aggressive readahead.
+
+Types
+Synchronous readahead
+
+Triggered on major fault (folio missing).
+
+Block until first folio is loaded.
+
+Kick off async prefetch of more folios.
+
+Asynchronous readahead
+
+Triggered on minor fault (folio present in cache but not mapped).
+
+If folio has PG_readahead flag → start fetching next batch.
+
+Non-blocking.
+
+Call Paths (Fig 9-10)
+read() path: filemap_get_pages() → filemap_readahead() → readahead functions.
+
+mmap() fault path: filemap_fault() → do_sync_mmap_readahead() (major) or do_async_mmap_readahead() (minor).
+
+Both lead to → page_cache_sync_ra() / page_cache_async_ra() → read_pages() → FS → disk.
+
+struct readahead_control (Listing 9-59)
+Describes one readahead request:
+
+struct readahead_control {
+    struct file *file;              // file being read
+    struct address_space *mapping;  // page cache
+    struct file_ra_state *ra;       // file’s readahead state
+    pgoff_t _index;                 // starting page index
+    unsigned int _nr_pages;         // number of pages requested
+    unsigned int _batch_count;      // last batch size
+};
+Created via DEFINE_READAHEAD() macro.
+
+Passed through readahead functions.
+
+struct file_ra_state (Listing 9-61)
+Tracks per-file readahead history:
+
+struct file_ra_state {
+    pgoff_t start;       // start index of last readahead
+    unsigned int size;   // size of last readahead
+    unsigned int async_size; // async window size
+    unsigned int ra_pages;   // max readahead pages (from BDI)
+    unsigned int mmap_miss;  // count of cache misses
+    loff_t prev_pos;     // last read position
+};
+ra_pages = max readahead size from backing device (e.g. 128KB).
+
+mmap_miss used to disable readahead after too many misses (>100).
+
+async_size ensures overlap between sync & async readahead.
+
+Example: do_sync_mmap_readahead() (Listing 9-63)
+Called on major fault.
+
+Steps:
+
+If random access (VM_RAND_READ) → skip.
+
+If device doesn’t support readahead (ra_pages=0) → skip.
+
+If VM_SEQ_READ → trigger **page_cache_sync_ra()`.
+
+Else check mmap_miss:
+
+Too many misses → disable readahead.
+
+Else → perform read-around:
+
+Fetch some pages before + after faulting index.
+
+Set async window.
+
+Call page_cache_ra_order().
+
+👉 Ensures we prefetch optimally, but back off if access is random.
+
+✅ Summary (Crisp)
+filemap_read_folio(): orchestrates reading one folio from disk via FS filler.
+
+page_endio(): I/O completion handler, sets PG_uptodate or PG_error.
+
+Readahead:
+
+Improves sequential I/O.
+
+Two kinds: sync (major fault) & async (minor fault).
+
+Controlled by hints (madvise, fadvise, VMA flags, FS).
+
+Structures:
+
+readahead_control: describes a request.
+
+file_ra_state: tracks per-file readahead stats (size, misses, async window).
+
+Key functions:
+
+do_sync_mmap_readahead() (major fault).
+
+do_async_mmap_readahead() (minor fault).
+
+Both eventually → read_pages() → FS → disk.
+
+👉 In one line: Linux hides disk latency by always reading via page cache, and for sequential access, it preemptively fetches extra folios (readahead) using smart heuristics, with sync on cache misses and async on hits.
+
+Would you like me to now combine everything we’ve covered (read path + mmap faults + readahead) into a single master diagram + comparison table so you have the whole picture on one page?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — let’s unpack these pages step by step, crisply but with all technical details intact.
+These sections are about Linux page cache readahead: how the kernel preloads data into memory to avoid repeated disk I/O during sequential access.
+
+🔑 Core Idea of Readahead
+When you read from disk, the kernel guesses you’ll want nearby data too.
+
+It proactively loads folios (groups of pages) into the page cache.
+
+Done to reduce major page faults (slow disk access).
+
+Two main styles:
+
+Synchronous readahead → triggered on a major fault.
+
+Asynchronous readahead → triggered on a minor fault when folio is already present but not yet mapped.
+
+📌 Key Data Structures
+struct readahead_control
+Tracks a readahead request:
+
+file *file → file being read.
+
+address_space *mapping → page cache object for file.
+
+file_ra_state *ra → per-file readahead state.
+
+_index → first page index of the request.
+
+_nr_pages → number of pages requested.
+
+_batch_count → number of pages in last batch.
+
+Created with DEFINE_READAHEAD().
+
+struct file_ra_state
+Tracks readahead state for each file:
+
+start → where last readahead started.
+
+size → number of pages in last readahead.
+
+async_size → pages to read asynchronously (¼ of last range).
+
+ra_pages → max pages allowed for readahead (from bdi->ra_pages).
+
+mmap_miss → how many major faults happened because readahead failed.
+
+prev_pos → last byte offset read.
+
+⚙️ Key Functions
+1. filemap_read_folio()
+Called when reading a folio from disk.
+
+Clears old error (folio_clear_error()).
+
+Calls filler() (filesystem-specific disk read).
+
+Waits for folio lock (folio_wait_locked_killable()).
+
+If successful → returns 0, else shrinks readahead window.
+
+2. page_endio()
+Invoked after disk I/O completes.
+
+Updates flags:
+
+On read success: SetPageUptodate().
+
+On read fail: SetPageError().
+
+Clears lock on folio (unlock_page()).
+
+Updates mapping error if needed.
+
+3. Readahead Modes
+Sequential Page Fault Read
+
+Triggered when access is sequential (VM_SEQ_READ).
+
+Kernel submits readahead for ra_pages size.
+
+Example: read 1 page → load 4 extra.
+
+mmap Readaround
+
+Triggered during mmap faults.
+
+Reads around the faulting folio (before + after).
+
+Helps if user scans both directions.
+
+Tracks failures via ra->mmap_miss (stop readahead if > 100 misses).
+
+Forced Readahead
+
+If normal readahead is disabled (e.g., FMODE_RANDOM set).
+
+Still fetches data in 2MB chunks (do_page_cache_ra()).
+
+4. Synchronous Path
+Example: do_sync_mmap_readahead()
+
+Drops mmap_lock if needed for I/O.
+
+Calls page_cache_sync_ra().
+
+page_cache_sync_ra():
+
+If readahead disabled or congested → skip.
+
+Otherwise calls force_page_cache_ra() or ondemand_readahead().
+
+5. Asynchronous Path
+Example: do_async_mmap_readahead()
+
+Triggered on minor fault if folio has PG_readahead flag.
+
+Updates mmap_miss counter.
+
+Calls page_cache_async_ra().
+
+page_cache_async_ra():
+
+Ensures folio is not under writeback.
+
+Clears PG_readahead.
+
+Defers to ondemand_readahead().
+
+6. ondemand_readahead()
+Core function: heuristic readahead algorithm.
+
+Steps:
+
+Start from index of faulting folio.
+
+Decide maximum readahead (ra_pages, bdi->io_pages).
+
+If sequential access detected:
+
+Double readahead size (4 → 8 → 16 → 32 pages).
+
+Place PG_readahead flag on last folio of batch.
+
+Trigger next asynchronous readahead when that folio is faulted.
+
+📊 Example Flow (Sequential Reads)
+Process reads 1 page → synchronous readahead loads 4 pages.
+
+Kernel sees sequential pattern → next async readahead loads 8.
+
+Next fault → 16 pages.
+
+Next fault → 32 pages (default max).
+
+Keeps window full, avoids major faults entirely.
+
+⚠️ Limits & Caveats
+MMAP_LOTSAMISS = 100: if >100 readahead failures, kernel stops readahead for that file.
+
+VM_RAND_READ flag: disables readahead (random access pattern).
+
+Block device limit (bdi->io_pages): caps readahead per I/O.
+
+Writeback conflict: readahead aborted if folio under writeback.
+
+Forced mode: still tries minimal readahead (2MB chunks).
+
+✅ In simple terms:
+Readahead is Linux’s way of saying “if you touched this, you’ll probably touch the next few — so I’ll fetch them early.”
+It dynamically adapts: starts small, doubles on sequential reads, stops if access looks random or if too many misses happen.
+
+Would you like me to now draw a complete one-page diagram/flowchart showing all readahead paths (sync, async, forced, ondemand) with triggers and outcomes? That’ll make it instantly interview-ready.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Great — you’ve reached the deep internals of Linux readahead heuristics and execution path. Let’s simplify all these listings and explanations while keeping the technical depth intact.
+
+📌 Linux Readahead Heuristics & Execution Path
+1. Heuristic Entry Point → ondemand_readahead()
+This function decides when and how much to readahead.
+
+Key checks:
+Start of file? (index == 0) → trigger initial readahead.
+
+Sequential access?
+If current index matches expected sequence (next after last window) → ramp up readahead size.
+
+Interleaved / irregular access?
+Query history (page_cache_next_miss() / count_history_pages()) → guess if still sequential.
+
+Oversized request?
+If requested > max, clamp to max.
+
+Fallback random read?
+If nothing looks sequential, just read current request only.
+
+2. Size Growth Functions
+Readahead window grows heuristically:
+
+get_next_ra_size()
+If current < 1/16 max → ×4.
+
+Else if < 1/2 max → ×2.
+
+Else → set to max.
+
+get_init_ra_size()
+For first readahead window:
+
+Round request size up to next power of 2, then square it.
+
+Then scale:
+
+≤ 1/32 max → ×4
+
+≤ 1/4 max → ×2
+
+Else → max.
+
+👉 This ensures small reads grow aggressively but large reads are capped.
+
+3. Context-based Heuristic → try_context_readahead()
+Uses count_history_pages() to check how many contiguous pages exist before current index.
+
+If too few → treat as random read.
+
+If a lot (≥ current index) → treat as whole-file sequential scan.
+
+Doubles readahead if strong sequential pattern.
+
+count_history_pages()
+Walks backwards in page cache (xarray) from current index.
+
+Finds last gap (prev miss).
+
+Difference gives length of sequential run.
+
+4. Execution Functions
+page_cache_ra_order()
+Core function to allocate & schedule folios.
+
+Works in chunks of power-of-2 (orders).
+
+Steps:
+
+Get index & readahead limit.
+
+Align with page boundaries.
+
+Allocate folios (ra_alloc_folio()).
+
+Submit I/O via read_pages().
+
+do_page_cache_ra()
+Fallback/forced path.
+
+Reads a fixed chunk (nr_to_read).
+
+Caps by file size (don’t read past EOF).
+
+Defers to page_cache_ra_unbounded().
+
+page_cache_ra_unbounded()
+Lower-level raw loop.
+
+Pre-allocates folios and inserts into page cache.
+
+If folio already present → skip to next.
+
+Calls read_pages() to submit I/O.
+
+Uses GFP masks to avoid reclaim deadlocks.
+
+5. Flow Example
+🔹 Suppose process does sequential reads from start:
+
+First page fault → initial readahead (small window, e.g., 4 pages).
+
+Next fault → ondemand_readahead() sees sequential pattern → window doubles: 8 → 16 → 32 (until ra_pages limit).
+
+Async readahead ensures that by the time process touches next page, it’s already cached (avoiding major faults).
+
+If pattern breaks (random seek) → readahead stops.
+
+If readahead misses exceed threshold (MMAP_LOTSAMISS) → disable for that file.
+
+6. Important Technical Details (don’t lose these!)
+PG_readahead flag marks folio that should trigger next async readahead.
+
+mmap_miss counter tracks failures; capped at 100 × 10.
+
+ra->async_size = quarter of readahead window, used to stagger async fetches.
+
+Alignment logic: order ensures allocation matches hardware IO size.
+
+EOF handling: never readahead past file’s end page.
+
+Deadlock prevention: _GFP_NOFS avoids reclaiming FS pages during allocation.
+
+🔑 One-Line Summary
+The kernel’s readahead logic is a smart adaptive heuristic:
+
+Starts small,
+
+Expands aggressively if sequential,
+
+Falls back gracefully if random,
+
+Uses markers (PG_readahead, mmap_miss) and history (count_history_pages) to decide future reads,
+
+Executes via page_cache_ra_order() and do_page_cache_ra() which allocate folios and submit disk I/O.
+
+Would you like me to now condense all of this into a single-page flow diagram (ASCII/text) that shows:
+
+👉 trigger (page fault/read) → heuristic (sequential? random? oversize?) → chosen readahead size → execution function → folios in cache?
+
+That diagram will make this whole chapter interview-ready.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these pages are about Linux “fault-around” + mapping cached pages.
+This is the bridge between page fault handling and page cache readahead.
+Let’s break it down in crisp steps, without losing the internals.
+
+📌 Fault-Around & Mapping Pages
+1. Fault-Around Concept
+Goal: Reduce repeated minor faults.
+
+When a process faults on one page, the kernel maps a small window of nearby pages that are already in the page cache.
+
+Only minor faults (pages already loaded in cache but not mapped yet).
+
+Skips anything that requires actual disk I/O → avoids major fault cost.
+
+Configurable by /sys/kernel/debug/fault_around_bytes (default ~64 KiB → 16 pages @ 4 KiB).
+
+2. do_fault_around()
+Called during a fault to map several nearby pages.
+
+Steps:
+
+Calculate start/end pgoff based on fault_around_bytes.
+
+Clamp to VMA + page table bounds (don’t cross regions).
+
+Preallocate PTE if needed.
+
+Call vma->vm_ops->map_pages() (typically filemap_map_pages()).
+
+If OOM on PTE allocation → return VM_FAULT_OOM.
+
+3. filemap_map_pages()
+This does the heavy lifting: maps cached folios into the page tables.
+
+Key pieces:
+
+Setup:
+
+mapping = file->f_mapping
+
+Get first_map_page() → first valid cached folio in range.
+
+Track mmap_miss counter (used for readahead tuning).
+
+Loop:
+
+For each folio:
+
+Compute virtual address.
+
+Lock PTE (pte_offset_map_lock()).
+
+Get page via folio_file_page().
+
+If PTE empty → install it (do_set_pte()).
+
+Update MMU cache (update_mmu_cache()).
+
+Unlock folio and move to next (next_map_page()).
+
+On errors: unlock & skip.
+
+Updates file->f_ra.mmap_miss at end.
+
+4. Page Iteration Helpers
+These walk the xarray of cached pages.
+
+first_map_page()
+
+Find first up-to-date folio in range.
+
+Uses xas_find().
+
+next_map_page()
+
+Find next one.
+
+Uses xas_next_entry().
+
+next_uptodate_page()
+
+More strict: ensures folio is:
+
+Present in cache,
+
+Uptodate,
+
+Locked and stable.
+
+Skips folios if:
+
+Being reclaimed,
+
+Split/moved,
+
+Not uptodate.
+
+👉 This is “best-effort” optimization: don’t stall if lock unavailable.
+
+5. Edge Handling
+Only maps pages up to EOF.
+
+If VMA remapped (mremap), still safe (uses vm_pgoff).
+
+If target address already mapped → return VM_FAULT_NOPAGE.
+
+Avoids crossing PTE boundaries by aligning mapping window.
+
+🔑 One-Line Summary
+Fault-around = kernel optimization that, on a minor fault, preemptively maps a batch of nearby cached pages into the process’s page tables.
+do_fault_around() sets the window → filemap_map_pages() actually installs PTEs using helpers (first_map_page, next_map_page, next_uptodate_page).
+This reduces the number of minor faults, but never causes disk I/O — it only works if data is already cached.
+
+Would you like me to combine this with the earlier readahead path into one unified diagram that shows:
+
+major fault (triggers readahead) vs
+
+minor fault (triggers fault-around)
+
+👉 so you’ll have a full fault → cache → mapping pipeline view, perfect for FAANG/ARM interviews?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these pages are about the removal of folios (pages) from the Linux page cache during truncation, hole-punching, or inode teardown.
+Let’s go through step by step, crisp but detailed.
+
+🔑 1. Why Remove Folios?
+When a file shrinks (truncate), is hole-punched, or deleted (inode eviction), any cached folios beyond the new size must be removed.
+
+Removal must be safe: unmapped from processes’ page tables, accounted in stats, and filesystem notified.
+
+🔑 2. Removing a Single Folio
+filemap_remove_folio(struct folio *folio)
+High-level entry to remove one folio.
+
+Requires folio locked.
+
+Steps:
+
+Take locks on inode (i_lock) and mapping’s xarray (i_pages).
+
+Call __filemap_remove_folio().
+
+Call filemap_free_folio() → invokes FS-specific free hook (a_ops->free_folio).
+
+__filemap_remove_folio(struct folio *folio, void *shadow)
+Lower-level removal.
+
+Steps:
+
+Update accounting (filemap_unaccount_folio()).
+
+Call page_cache_delete() to delete entry from mapping->i_pages.
+
+page_cache_delete()
+Actually removes folio from the xarray.
+
+Steps:
+
+Replace xarray entry with shadow (NULL in this case).
+
+Clear marks (dirty/writeback).
+
+Set folio->mapping = NULL (marks folio as truncated).
+
+Decrement mapping->nrpages.
+
+👉 Now the folio is completely detached from page cache.
+
+🔑 3. Batch Removal
+delete_from_page_cache_batch(struct address_space *mapping, struct folio_batch *fbatch)
+Removes multiple folios at once (for performance).
+
+Locks once, iterates over batch.
+
+For each folio:
+
+Update accounting (filemap_unaccount_folio).
+
+Call page_cache_delete_batch() to remove from xarray.
+
+Free folio (filemap_free_folio).
+
+page_cache_delete_batch()
+Iterates over folios in the batch.
+
+Handles race conditions:
+
+Skips if folio replaced with swap/dax/shadow entry.
+
+Skips if folio already removed.
+
+For each valid folio:
+
+Set folio->mapping = NULL.
+
+xas_store(&xas, NULL) → remove from xarray.
+
+Update mapping->nrpages.
+
+🔑 4. Truncation Path
+When file size shrinks, kernel truncates cache.
+
+truncate_setsize(inode, newsize)
+Updates inode size (i_size).
+
+If shrinking → call truncate_pagecache().
+
+truncate_pagecache(inode, newsize)
+Removes folios beyond newsize.
+
+Steps:
+
+Round up new size to page boundary.
+
+Call unmap_mapping_range() twice:
+
+First: pre-unmap for efficiency (reduce per-page unmaps).
+
+Second: correctness (handle CoW private pages).
+
+Call truncate_inode_pages(mapping, newsize).
+
+truncate_inode_pages(mapping, lstart)
+Truncate pages from offset lstart to EOF.
+
+Calls truncate_inode_pages_range(mapping, lstart, -1).
+
+truncate_inode_pages_final(mapping)
+Called at inode teardown (before inode dies).
+
+Marks mapping as “exiting” (mapping_set_exiting()).
+
+Calls truncate_inode_pages(mapping, 0).
+
+truncate_pagecache_range(inode, lstart, lend)
+Used for hole punching (remove a middle range).
+
+Steps:
+
+Round lstart up and lend down to page boundaries.
+
+Call unmap_mapping_range(mapping, unmap_start, unmap_end, 0).
+
+Call truncate_inode_pages_range(mapping, lstart, lend).
+
+truncate_inode_pages_range(mapping, start, end)
+Core function to remove a range of folios.
+
+Two-pass algorithm:
+
+Non-blocking pass → remove as many folios as possible, skip locked/writeback folios.
+
+Blocking pass → retry and wait for locks/writeback to finish.
+
+Ensures minimal I/O stalls.
+
+🔑 5. Supporting Function: unmap_mapping_range()
+Unmaps folios from process page tables before deletion.
+
+Prevents stale PTEs pointing to freed cache pages.
+
+Called:
+
+Before truncation (efficiency).
+
+After truncation (correctness).
+
+🔑 6. Control Flow Overview
+📌 Diagram (simplified):
+
+truncate_setsize()
+   └── truncate_pagecache()
+         ├── unmap_mapping_range()
+         ├── truncate_inode_pages()
+         │      └── truncate_inode_pages_range()
+         │              ├── delete_from_page_cache_batch()
+         │              └── __filemap_remove_folio()
+         └── unmap_mapping_range()
+✅ Summary
+Single folio removal: filemap_remove_folio → __filemap_remove_folio → page_cache_delete.
+
+Batch removal: delete_from_page_cache_batch → page_cache_delete_batch.
+
+File shrink (truncate): truncate_setsize → truncate_pagecache → truncate_inode_pages.
+
+Inode teardown: truncate_inode_pages_final.
+
+Hole punching: truncate_pagecache_range.
+
+Safety:
+
+Always unmap PTEs first (unmap_mapping_range).
+
+Always mark folio->mapping = NULL.
+
+Two-pass truncation avoids blocking too early.
+
+👉 In simple terms: Linux carefully evicts folios from page cache when files shrink or are removed, ensuring no stale mappings, no data corruption, and efficient batch handling.
+
+Would you like me to now merge this with the earlier “read + readahead + fault-around” explanations into one complete Page Cache lifecycle flow (Load → Map → Use → Evict) so you get the big picture in one place?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Got it 👍 — these pages are the deep dive into truncation and unmapping folios from page cache. Let’s break them into crisp steps, simple wording, but keep all technical details intact.
+
+🔑 1. Truncating Ranges in Page Cache
+truncate_inode_pages_range(mapping, lstart, lend)
+Removes folios covering [lstart, lend] (bytes).
+
+Works in two passes:
+
+First pass (non-blocking)
+
+Uses find_lock_entries() to gather folios in batches.
+
+Skips locked or truncated folios.
+
+For each folio:
+
+truncate_cleanup_folio() → unmap + invalidate private data + cancel dirty.
+
+delete_from_page_cache_batch() → remove from xarray.
+
+Unlock and release folios.
+
+Second pass (blocking)
+
+Uses find_get_entries() to retry.
+
+Locks folios (blocking), waits for writeback, then calls truncate_inode_folio().
+
+Guarantees no folios left.
+
+👉 Ensures speed (1st pass) + completeness (2nd pass).
+
+🔑 2. Partial Folio Truncation
+truncate_inode_partial_folio(folio, start, end)
+Handles folios that only partially overlap the truncation range.
+
+Steps:
+
+Calculate offset & length inside folio.
+
+Wait for writeback (folio_wait_writeback()).
+
+If the whole folio is covered → call truncate_inode_folio().
+
+Else → zero the relevant bytes (folio_zero_range()).
+
+If folio has private FS state → call folio_invalidate().
+
+If not large folio → return success.
+
+👉 Full folios are dropped; partial ones are zeroed, not removed.
+
+🔑 3. Truncating a Folio
+truncate_inode_folio(mapping, folio)
+Ensures folio still belongs to mapping.
+
+Calls:
+
+truncate_cleanup_folio(folio)
+
+filemap_remove_folio(folio)
+
+truncate_cleanup_folio(folio)
+Steps:
+
+If mapped → unmap_mapping_folio() (zap PTEs).
+
+If has private FS state → folio_invalidate().
+
+Cancel dirty bit (folio_cancel_dirty()).
+
+Clear PG_mappedtodisk flag.
+
+👉 Leaves folio safe to free.
+
+🔑 4. Unmapping (Disconnecting from PTEs)
+When folio is truncated, must remove it from user processes’ page tables.
+
+unmap_mapping_range(mapping, holebegin, holelen, even_cows)
+Unmaps range of bytes in all VMAs mapping the file.
+
+Converts [holebegin, holelen] to page indices.
+
+Calls unmap_mapping_pages().
+
+unmap_mapping_folio(folio)
+Unmaps single folio from all VMAs.
+
+Sets ZAP_FLAG_DROP_MARKER (means “zap fully”).
+
+Calls unmap_mapping_range_tree().
+
+unmap_mapping_pages(mapping, start, nr, even_cows)
+Unmaps [start, start+nr) pages.
+
+If nr = 0 → unmap till EOF.
+
+Uses unmap_mapping_range_tree() internally.
+
+🔑 5. Reverse Mapping Walk
+unmap_mapping_range_tree(root, first, last, details)
+Walks VMAs that map this inode (via vma_interval_tree_foreach).
+
+For each VMA: calls unmap_mapping_range_vma().
+
+unmap_mapping_range_vma(vma, start, end, details)
+Actually zaps PTEs from process page tables for [start, end] in this VMA.
+
+Uses zap_details:
+
+even_cows → also zap private CoW pages if truncating.
+
+single_folio → zap only one folio if requested.
+
+zap_flags → e.g., ZAP_FLAG_DROP_MARKER.
+
+✅ Big Picture Summary
+truncate_inode_pages_range()
+
+1st pass: remove as much as possible (non-blocking).
+
+Handle partial folios (zeroing).
+
+2nd pass: retry with blocking locks.
+
+truncate_inode_folio()
+
+For full folios: cleanup (unmap, invalidate, cancel dirty) + remove from cache.
+
+truncate_inode_partial_folio()
+
+For partial folios: zero data + invalidate private state.
+
+Unmapping
+
+Ensures no process PTE points to removed folios.
+
+unmap_mapping_range / unmap_mapping_folio → unmap from all VMAs.
+
+Walks reverse mapping tree (vma_interval_tree_foreach) → zap PTEs.
+
+👉 In short: Linux truncation = unmap from processes → clean folio state → remove or zero folios → retry if necessary. Safe, efficient, and race-aware.
+
+Would you like me to now make a one-page diagram showing the entire truncate path (full folio, partial folio, unmapping, two-pass cleanup) so you can recall the whole flow at a glance?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Excellent — these pages cover dropping caches and transition into buffer heads. I’ll keep it crisp and simple while preserving all the technical depth.
+
+🔑 Dropping Caches (vm.drop_caches)
+1. What it does
+vm.drop_caches is a sysctl knob to free clean page cache and optionally slab caches.
+
+Usage:
+
+echo 1 | sudo tee /proc/sys/vm/drop_caches
+sudo sysctl vm.drop_caches=1
+Only for testing/benchmarking.
+
+In production: wasteful, since kernel reclaims caches automatically under memory pressure.
+
+2. Code Path
+drop_caches_sysctl_handler()
+Sysctl handler function.
+
+Steps:
+
+proc_dointvec_minmax() → parse user value.
+
+If writing:
+
+If bit 0 set → free page cache (iterate_supers(drop_pagecache_sb)).
+
+If bit 1 set → free slab caches (drop_slab()).
+
+If bit 2 set → suppress printk (logging).
+
+Count vm events (DROP_PAGECACHE, DROP_SLAB).
+
+Print log unless silenced.
+
+3. Iterating Superblocks
+iterate_supers(f, arg)
+Loops over all mounted filesystems (superblocks).
+
+Skips unreferenced ones.
+
+Takes locks (sb_lock, s_umount) safely.
+
+Calls callback function (here: drop_pagecache_sb()).
+
+4. Dropping Page Cache Per Superblock
+drop_pagecache_sb(sb)
+Loops over inodes in the superblock.
+
+Skips inodes in unstable states:
+
+I_FREEING → being freed.
+
+I_WILL_FREE → marked to be freed soon.
+
+I_NEW → being created, not yet stable.
+
+For valid inodes:
+
+invalidate_mapping_pages(inode->i_mapping, 0, -1) → drop all clean pages from page cache.
+
+Uses cond_resched() → avoid CPU soft lockups during long loops.
+
+Reference counts carefully managed with __iget/iput.
+
+5. Invalidating Page Cache
+invalidate_mapping_pages(mapping, start, end)
+Drops all clean, unlocked pages in [start, end].
+
+Doesn’t block on I/O.
+
+Calls invalidate_mapping_pagevec().
+
+invalidate_mapping_pagevec(mapping, start, end, *nr_pagevec)
+Works in batches (folio_batch).
+
+Finds pages via find_lock_entries().
+
+For each folio:
+
+If exceptional entry (shadow entry) → invalidate exceptional.
+
+Else → try to evict:
+
+mapping_evict_folio(mapping, folio) → remove folio.
+
+If eviction fails (dirty/writeback/pinned) → just deactivate (deactivate_file_folio).
+
+At end: remove shadow entries + release batch.
+
+6. Evicting a Folio
+mapping_evict_folio(mapping, folio)
+Only works if folio is already locked.
+
+Refuses to evict if:
+
+Folio is dirty.
+
+Folio is under writeback.
+
+Folio has private FS data that can’t be released.
+
+Otherwise → remove_mapping(mapping, folio) to unlink from page cache.
+
+7. Unmapping User PTEs
+unmap_mapping_range_vma()
+Zaps PTEs mapping a range of file pages in a given VMA.
+
+Calls zap_page_range_single().
+
+zap_page_range_single(vma, addr, size, details)
+Removes PTEs → flush TLB (tlb_gather_mmu, tlb_finish_mmu).
+
+Ensures all processes mapping the truncated file will fault again.
+
+✅ Summary: Dropping Caches
+User writes to /proc/sys/vm/drop_caches.
+
+Handler checks flags:
+
+1 → drop page cache (drop_pagecache_sb per superblock).
+
+2 → drop slab caches.
+
+For each inode in FS: invalidate_mapping_pages() removes clean folios.
+
+Folios dirty/writeback → skipped.
+
+PTEs pointing to dropped pages are unmapped.
+
+👉 Guarantees no data loss, since only clean (synced) cache is dropped.
+
+🔑 Buffers and Block I/O
+Now the book transitions into buffers and block I/O.
+
+1. Why Buffers?
+Page cache abstracts file data in pages.
+
+But storage devices operate in blocks (e.g., 512B sectors).
+
+Need a way to map blocks ↔ memory inside pages.
+
+Historically → struct buffer_head.
+
+2. struct buffer_head
+Maps one block to a memory region within a page. Fields:
+
+Core mapping
+
+sector_t b_blocknr → block number on device.
+
+size_t b_size → size of block.
+
+char *b_data → pointer inside page.
+
+struct page *b_page → page containing data.
+
+struct block_device *b_bdev → backing device.
+
+struct address_space *b_assoc_map → mapping this buffer belongs to.
+
+State / flags
+
+b_state → bitset (BH_Uptodate, BH_Dirty, BH_Lock, BH_Req, BH_Mapped, BH_New, BH_Async_Read).
+
+I/O handling
+
+bh_end_io_t *b_end_io → completion callback.
+
+void *b_private → FS private data.
+
+List integration
+
+b_this_page → circular list of all buffer heads for same page.
+
+b_assoc_buffers → link to mapping.
+
+Reference / locking
+
+b_count → refcount.
+
+b_uptodate_lock → lock for I/O completion.
+
+3. Buffer Head Flags (bh_state_bits)
+BH_Uptodate → buffer contains valid data.
+
+BH_Dirty → buffer modified, needs writeback.
+
+BH_Lock → buffer is locked for I/O.
+
+BH_Req → buffer has been submitted for I/O.
+
+BH_Mapped → has a disk mapping.
+
+BH_New → mapping was just created.
+
+BH_Async_Read → undergoing async read I/O.
+
+✅ Summary: Buffers
+Page cache works in pages (e.g., 4K).
+
+Disks work in blocks (e.g., 512B).
+
+buffer_head bridges the two: maps a block into a slice of a page.
+
+Tracks state (uptodate, dirty, locked, etc.).
+
+Today → mostly legacy (modern FS use iomap + bio), but still present for compatibility.
+
+⚡ In one line:
+
+Dropping caches: safely free clean page/slab cache across all mounted filesystems.
+
+Buffer heads: legacy structure to map disk blocks into page slices, tracking I/O state.
+
+Would you like me to now tie everything together into a “Page Cache Lifecycle” diagram (Load → Use → Readahead → Fault-around → Truncate/Invalidate → Drop → Evict) so you can revise the whole chapter in one glance?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — these screenshots go into buffer heads, block device buffers, accessing blocks, and block I/O. I’ll give you a crisp but complete walkthrough that keeps all the technical detail intact but in plain terms.
+
+🔑 1. Buffer Heads (struct buffer_head)
+A buffer head represents a mapping between:
+
+A disk block (e.g. sector/block number on disk)
+
+A portion of a page in memory (cache)
+
+It carries metadata about the state of that mapping.
+
+Key fields:
+b_state → bitmap of flags (see below)
+
+b_this_page → circular list of all buffer_heads in a page
+
+b_page → the page this buffer belongs to
+
+b_blocknr → disk block number
+
+b_size → mapping size (bytes)
+
+b_data → pointer to memory inside page
+
+b_bdev → which block device it belongs to
+
+b_end_io → callback when I/O completes
+
+b_private → private pointer for FS-specific data
+
+b_assoc_buffers → allows grouping into another list
+
+b_assoc_map → the address_space (page cache) this buffer belongs to
+
+b_count → atomic refcount
+
+b_uptodate_lock → ensures all blocks in page are synced before PG_uptodate is set
+
+👉 Buffer heads are attached to pages only if filesystem chooses to (especially for writes).
+
+🔑 2. Buffer Head State Bits (enum bh_state_bits)
+These are flags in b_state:
+
+BH_Uptodate → contains valid data
+
+BH_Dirty → dirty buffer (needs writeback)
+
+BH_Lock → locked for I/O
+
+BH_Req → submitted for I/O
+
+BH_Mapped → has a valid disk mapping
+
+BH_New → new mapping via get_block
+
+BH_Async_Read / BH_Async_Write → async I/O in progress
+
+BH_Delay → block not yet allocated on disk
+
+BH_Boundary → block is followed by discontinuity
+
+BH_Write_EIO → error on write
+
+BH_Unwritten → allocated but not written
+
+BH_Meta → contains metadata
+
+BH_Prio → needs REQ_PRIO submission
+
+BH_Defer_Completion → defer AIO completion to workqueue
+
+🔑 3. Block Device Buffers
+A block device (like /dev/sda) is exposed via a special blockdev filesystem.
+
+The inode of /dev/sda is linked to the block device’s struct block_device and its bd_inode->i_mapping.
+
+This allows the page cache to also cache raw block device data.
+
+Meaning: same page cache infra is used whether accessing a file or raw disk.
+
+⚠️ Direct access to block device data while filesystem is mounted is dangerous (can race with dirty pages of the FS).
+
+🔑 4. Accessing Blocks (sb_bread, sb_getblk, etc.)
+These functions return a buffer_head for a block.
+
+sb_bread() → fetch block, allocate movable memory if needed.
+
+sb_bread_unmovable() → same but forces unmovable allocation.
+
+sb_getblk() → get block buffer, but doesn’t force it uptodate.
+
+sb_getblk_gfp() → variant with explicit GFP flags.
+
+__bread_gfp() → calls __getblk_gfp() then ensures buffer is uptodate (if not, reads from disk).
+
+__bread_slow() → performs actual disk read via submit_bh().
+
+Flow:
+s b_bread() → __bread_gfp() → __getblk_gfp() → (if needed) __bread_slow() → submit_bh()
+
+🔑 5. Block Writes (__block_commit_write)
+When writing data, buffer heads are walked per block in the page.
+
+Each buffer is either:
+
+Marked uptodate + dirty if covered by the write.
+
+Or flagged partial if untouched.
+
+If all buffers become uptodate → set page PG_uptodate.
+
+👉 Ensures fine-grained tracking of block-level writes inside a page.
+
+🔑 6. Blockdev Inode & Open
+Each block device gets an inode in blockdev filesystem via bdev_alloc() + bdev_add().
+
+Its inode number = device number (major:minor).
+
+blkdev_open() → links file object to block device’s inode + mapping.
+
+So whether you open /dev/sda or /dev/sda1, you map into the same page cache.
+
+✅ Big Picture
+Buffer head = metadata glue between disk block ↔ page cache.
+
+State bits track whether buffer is dirty, locked, uptodate, etc.
+
+Blockdev buffers let raw block devices use page cache infra.
+
+Block access functions (sb_bread, sb_getblk) provide buffer_heads for blocks, reading from disk if necessary.
+
+Block writes update buffer_heads per block, marking dirty & uptodate.
+
+Blockdev inode ensures /dev/sda has a page cache entry so raw I/O reuses same infra as filesystem I/O.
+
+Do you want me to also build a flow diagram of block read/write (with buffer heads, disk, page cache, bio submission) so that you can recall everything visually in 30 seconds?
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Great set of pages — these cover folio locking, waiting, waking, dirty tracking, buffer I/O submission, and flushes. I’ll give you a crisp but detailed breakdown so you can retain the flow without losing technical precision.
+
+🔑 1. Folio Locking & Waiting
+A folio is a physical page (or group of pages) managed by the page cache. Like struct page, but more efficient.
+
+Locking
+PG_locked flag marks whether a folio is locked.
+
+Used when:
+
+Bringing a folio uptodate from disk (page fault, read I/O).
+
+Truncating or writing to a folio.
+
+Guaranteeing atomicity of write operations.
+
+Functions:
+folio_lock(folio) → blocks until folio lock is acquired (PG_locked).
+
+folio_trylock(folio) → optimistic: returns immediately if lock not available.
+
+folio_lock_killable(folio) → like folio_lock but can be interrupted by fatal signal.
+
+__folio_lock(folio) → actually waits via folio_wait_bit_common() with TASK_UNINTERRUPTIBLE.
+
+👉 Lock ensures only one actor modifies or brings data uptodate at a time.
+
+🔑 2. Unlocking & Waking
+folio_unlock(folio) → clears PG_locked and wakes up any thread waiting.
+
+Uses folio_wake_bit(folio, PG_locked) to signal waiters.
+
+Waiters are queued in wait queues maintained per folio (via folio_waitqueue).
+
+folio_wake(folio, bit) is a higher-level wrapper that wakes threads if there are waiters.
+
+🔑 3. Waiting on Folio Events
+Threads often wait for folio states:
+
+folio_wait_writeback(folio)
+
+Waits until PG_writeback flag is cleared.
+
+Ensures ongoing writeback (disk sync) is finished before proceeding.
+
+Uses folio_wait_bit(folio, PG_writeback).
+
+folio_wait_bit()
+
+Generic mechanism: waits for a specific bit (e.g., PG_locked, PG_writeback) to clear.
+
+🔑 4. Dirty Tracking (Buffers vs Pages)
+Dirty = modified but not yet written to disk.
+
+At two levels:
+
+Buffer level (subsections of page, tracked by buffer_heads).
+
+Page level (whole page dirty if any buffer is dirty).
+
+Rules:
+If any buffer dirty → page dirty bit set.
+
+If page dirty → all buffers marked dirty.
+
+A buffer can be dirty while other buffers in same page are clean.
+
+When blockdev buffers are read individually (bread()), buffers may be uptodate, but page may remain not-uptodate until all buffers are checked.
+
+Functions:
+mark_buffer_dirty(bh)
+
+Marks buffer_head dirty, sets its page dirty, and tags the inode as having dirty pages.
+
+Atomic, uses locks on page mapping.
+
+Uses helpers:
+
+__set_page_dirty(), __mark_inode_dirty().
+
+🔑 5. Submitting I/O (Buffer Head → BIO)
+submit_bh(opf, bh) → legacy wrapper for submitting I/O on a buffer.
+
+Defers to submit_bh_wbc() which:
+
+Builds a bio (struct bio = unit of block I/O).
+
+Attaches page + block offset.
+
+Sets operation flags (REQ_OP_READ, REQ_OP_WRITE, REQ_META, REQ_PRIO, REQ_PREFLUSH).
+
+Submits to device via submit_bio().
+
+blkdev_issue_flush()
+
+Issues explicit flush (e.g. fsync) to force device write cache to persist data.
+
+🔑 6. Folio Locking Variants
+folio_trylock(folio)
+
+Fast path: uses test_and_set_bit_lock(PG_locked) → succeed/fail immediately.
+
+folio_lock_killable(folio)
+
+Same as folio_lock, but can return -EINTR if interrupted by fatal signal.
+
+__folio_lock_killable(folio)
+
+Waits with TASK_KILLABLE.
+
+folio_wait_bit_common()
+
+Core routine used by all these.
+
+Implements sleeping until bit clears, with behavior (EXCLUSIVE / SHARED / DROP).
+
+🔑 7. Wait Queue & Wake Internals
+folio_waitqueue(folio) → per-folio wait queue.
+
+Threads waiting for a folio bit (lock/writeback) enqueue here.
+
+folio_wake_bit() → wakes all waiters for a given bit.
+
+Uses __wake_up_locked_key_bookmark() to handle wakeups safely with spinlocks.
+
+Can miss some cases (rare), but next wake clears.
+
+🔑 8. End of I/O Callbacks
+When I/O finishes:
+
+end_buffer_read_sync() → marks buffer uptodate, unlocks buffer.
+
+end_buffer_async_read/write() → async equivalents.
+
+folio_end_writeback() (not shown here but implied) → clears PG_writeback and wakes waiters.
+
+✅ Big Picture Flow
+Lock folio (folio_lock) → ensures exclusive access.
+
+Modify / start I/O.
+
+Mark dirty (mark_buffer_dirty) when changes made.
+
+Submit write (submit_bh → bio).
+
+Set PG_writeback until I/O finishes.
+
+Waiters can block on PG_locked or PG_writeback.
+
+Unlock / Wake (folio_unlock, folio_wake_bit) once done.
+
+This chunk covers how folios (pages) are locked/unlocked, how dirty state propagates, how buffer_heads are submitted to block layer, and how writeback synchronization is handled with wait queues and wakeups.
+
+Do you want me to also connect this folio locking & dirty tracking with the earlier buffer_head block read/write flow into one combined lifecycle diagram (page fault read → page cache fill → buffer_head tracking → dirty → writeback → unlock)? That would give you a 360° view.
+
+You said:
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Uploaded image
+Explain all these in simple terms crisply without loosing any technical details
+ChatGPT said:
+Perfect — this set of pages covers how Linux waits on folio bits (like PG_locked or PG_writeback), the wait queue machinery, and the different behaviors (EXCLUSIVE, SHARED, DROP). I’ll explain step by step, in simple but technically precise terms.
+
+🔑 1. folio_wait_writeback()
+void folio_wait_writeback(struct folio *folio)
+{
+    while (folio_test_writeback(folio)) {
+        folio_wait_bit(folio, PG_writeback);
+    }
+}
+Loops while PG_writeback flag is set.
+
+Calls folio_wait_bit() to sleep until writeback finishes.
+
+Ensures no one uses a folio until all its dirty data has been written to disk.
+
+🔑 2. folio_wait_bit()
+void folio_wait_bit(struct folio *folio, int bit_nr)
+{
+    folio_wait_bit_common(folio, bit_nr, TASK_UNINTERRUPTIBLE, SHARED);
+}
+Core wrapper around folio_wait_bit_common().
+
+TASK_UNINTERRUPTIBLE → cannot be interrupted by signals.
+
+SHARED behavior → many waiters can wait together (not exclusive).
+
+🔑 3. folio_put_wait_locked()
+int folio_put_wait_locked(struct folio *folio, int state)
+{
+    return folio_wait_bit_common(folio, PG_locked, state, DROP);
+}
+Drops caller’s reference to folio before waiting.
+
+Used when caller expects folio to unlock soon but doesn’t want to block migration or eviction.
+
+DROP → means "release ref, just wait for unlock".
+
+🔑 4. folio_wait_locked()
+static inline void folio_wait_locked(struct folio *folio)
+{
+    if (folio_test_locked(folio))
+        folio_wait_bit(folio, PG_locked);
+}
+Waits until PG_locked clears.
+
+Keeps caller’s reference to folio (unlike folio_put_wait_locked).
+
+🔑 5. folio_wait_bit_common()
+This is the core waiting function.
+
+Steps inside:
+
+Setup wait queue entry
+
+Get folio’s waitqueue (folio_waitqueue(folio)).
+
+Prepare wait_page struct with folio + bit to wait on.
+
+Init wait entry with wake_page_function.
+
+Check if bit already cleared
+
+If so, no need to sleep.
+
+Mark waiters & enqueue
+
+Call folio_set_waiters(folio) → mark that there are sleepers.
+
+Add current task to wait queue if still locked.
+
+Behavior modes
+
+EXCLUSIVE → only one waiter should acquire lock (avoids thundering herd).
+
+SHARED → multiple waiters allowed.
+
+DROP → drop folio reference after enqueue.
+
+Sleep loop
+
+Set task state (TASK_UNINTERRUPTIBLE or TASK_KILLABLE).
+
+Call io_schedule() → yield until woken.
+
+On wakeup, check flags (WQ_FLAG_WOKEN, WQ_FLAG_DONE).
+
+If still locked, retry.
+
+Finish & cleanup
+
+finish_wait(q, wait) → remove from queue safely.
+
+Return 0 if successful, or -EINTR if interrupted (killable mode).
+
+🔑 6. Wakeup Mechanism
+wake_page_function() called when bit clears.
+
+Depending on behavior:
+
+WQ_FLAG_EXCLUSIVE → wake only one waiter.
+
+WQ_FLAG_CUSTOM → fair handoff (pass lock directly).
+
+WQ_FLAG_WOKEN / DONE set to indicate success.
+
+🔑 7. Behavior Types (enum behavior)
+EXCLUSIVE
+
+One waiter acquires the lock. Prevents many threads from waking at once.
+
+SHARED
+
+Multiple waiters can wake when bit clears.
+
+DROP
+
+Drop folio reference before sleeping. Caller must not use folio after.
+
+🔑 8. Example Flows
+Waiting for writeback
+
+folio_wait_writeback() → folio_wait_bit(PG_writeback) → shared wait until disk sync completes.
+
+Waiting for folio unlock (safe use)
+
+folio_wait_locked() → waits on PG_locked but retains reference.
+
+Waiting for folio unlock (don’t retain)
+
+folio_put_wait_locked() → releases ref, then waits on PG_locked.
+
+✅ Big Picture Summary
+Folios have flags (PG_locked, PG_writeback).
+
+Waiters block on these flags via wait queues.
+
+folio_wait_bit_common() is the engine handling all wait cases.
+
+Wakeups happen via wake_page_function() when flags clear.
+
+Different modes:
+
+EXCLUSIVE → only one wakes.
+
+SHARED → many wake.
+
+DROP → release folio ref and wait.
+
+👉 This ensures correctness in concurrent I/O: no thread touches a folio until it’s safe (clean, unlocked, writeback done).
+
+Would you like me to now merge this with the previous folio lock/unlock + dirty tracking explanation into one “Folio Life-Cycle Cheat Sheet” (read → lock → modify/dirty → writeback → wait/unlock)? That would give you a single glance view of everything.
+
+You said:
+Summarise everything exhaustively discussed here in this current discussion thread in detail
+ChatGPT said:
+Got it 👍 — let me consolidate everything from this discussion thread into a single exhaustive but structured summary.
+
+This thread covered the Linux page cache internals, focusing on buffer heads, dirty tracking, folio locking/unlocking, writeback, wait queues, and truncation/unmapping.
+
+📖 Exhaustive Summary — Linux Page Cache, Buffer Heads, and Folio Wait/Lock
+1. Page Cache Basics
+The page cache is a transparent layer between userspace and storage.
+
+Almost all file reads/writes go through it (except Direct I/O / DAX).
+
+Provides:
+
+Faster access (memory ≫ disk).
+
+A unified buffer for reads/writes.
+
+File access is via:
+
+struct file (per open instance, f_pos, f_mode).
+
+struct inode (file metadata).
+
+struct address_space (represents file’s cached data in page cache).
+
+struct folio/struct page (physical memory chunks cached).
+
+2. Truncation & Unmapping
+truncate_inode_pages_range(mapping, start, end)
+
+Removes folios in [start, end] from page cache.
+
+Two-pass system:
+
+First pass: non-blocking cleanup.
+
+Second pass: blocking, ensures no folios remain.
+
+truncate_inode_folio()
+
+Cleans up a folio: unmaps PTEs, invalidates FS state, cancels dirty flag, removes from cache.
+
+truncate_inode_partial_folio()
+
+If folio partially overlaps → zero relevant bytes instead of full removal.
+
+Unmapping: removes folios from process PTEs.
+
+unmap_mapping_range() → all VMAs.
+
+unmap_mapping_folio() → single folio.
+
+Uses reverse mapping tree (vma_interval_tree_foreach).
+
+Core function: unmap_mapping_range_vma() zaps PTEs.
+
+3. Buffer Heads
+struct buffer_head bridges disk blocks ↔ page memory.
+
+Key fields:
+
+b_blocknr (disk block number)
+
+b_page (backing page)
+
+b_size, b_data, b_bdev
+
+State bits (BH_Uptodate, BH_Dirty, BH_Lock, BH_Mapped, etc.)
+
+Buffer heads used for fine-grained block management.
+
+Dirty Buffers vs Dirty Pages
+If any buffer dirty → page marked dirty.
+
+If page dirty → all buffers dirty.
+
+Buffer dirty = modified block, not yet synced.
+
+Functions:
+
+mark_buffer_dirty(bh) → sets buffer & page dirty, tags inode dirty.
+
+4. Block I/O (BIO) and Submissions
+File/block data read/writes eventually go to BIO layer (struct bio).
+
+submit_bh(opf, bh) → legacy wrapper → calls submit_bh_wbc().
+
+submit_bh_wbc():
+
+Builds a bio.
+
+Sets REQ flags (REQ_OP_READ, REQ_OP_WRITE, REQ_META, REQ_PRIO, REQ_PREFLUSH).
+
+Attaches page + block offset.
+
+Submits via submit_bio().
+
+blkdev_issue_flush() → flushes device write cache (used in fsync).
+
+5. Folio Locking
+Folios can be locked with PG_locked bit to serialize access.
+
+Used for:
+
+Reading data from disk.
+
+Truncation/unmapping.
+
+Write() atomicity guarantees.
+
+Functions:
+
+folio_lock() → block until lock acquired.
+
+folio_trylock() → optimistic, no wait.
+
+folio_lock_killable() → like folio_lock, but interruptible.
+
+folio_unlock() → clears PG_locked and wakes waiters.
+
+6. Folio Writeback
+Dirty folio: modified but not yet synced to disk.
+
+When being written → PG_writeback set.
+
+folio_wait_writeback(): blocks until PG_writeback clears.
+
+folio_end_writeback() (not shown fully here): clears PG_writeback, wakes waiters.
+
+7. Waiting & Wakeup on Folios
+Kernel uses wait queues per folio for threads waiting on events (PG_locked, PG_writeback).
+
+Functions:
+folio_wait_bit() → generic wait on a bit.
+
+folio_wait_locked() → wait until folio unlocked.
+
+folio_put_wait_locked() → drop reference then wait for unlock.
+
+folio_wait_bit_common() → core routine handling waits.
+
+folio_wait_bit_common() internals:
+Setup wait entry (wake_page_function).
+
+Check if bit already cleared.
+
+Mark folio as having waiters (folio_set_waiters).
+
+Add to waitqueue.
+
+Sleep (io_schedule()) until wake.
+
+On wake, check flags (WQ_FLAG_WOKEN, WQ_FLAG_DONE).
+
+Cleanup with finish_wait().
+
+Return 0 on success, -EINTR if interrupted.
+
+8. Wait Queue Behavior Modes
+EXCLUSIVE → only one waiter wakes, prevents thundering herd.
+
+SHARED → multiple waiters can wake.
+
+DROP → drop folio ref before waiting.
+
+Wakeups:
+wake_page_function() invoked when bit cleared.
+
+Handles fairness (lock handoff via WQ_FLAG_CUSTOM).
+
+Avoids starvation and ensures correctness.
+
+9. End-to-End Lifecycle
+Process accesses file → page cache checked.
+
+If not cached → folio allocated, locked, I/O scheduled.
+
+I/O completion → mark folio uptodate, unlock, wake waiters.
+
+Writes → mark buffer dirty → mark page dirty → inode tagged dirty.
+
+Writeback → PG_writeback set, BIO submitted.
+
+On completion → folio_end_writeback() clears flag, wakes waiters.
+
+Truncation/unmapping → cleanup folios, zap PTEs.
+
+Waiters coordinate via folio_wait_bit_common().
+
+✅ Key Takeaways
+Folio locking (PG_locked) ensures safe concurrent access.
+
+Dirty tracking is at both buffer and page levels, unified via page cache.
+
+Writeback uses PG_writeback and BIO submission.
+
+Wait queues coordinate between writers/readers via folio_wait_bit_common().
+
+Truncation/unmapping safely removes folios from cache + process mappings.
+
+Behavior modes (EXCLUSIVE, SHARED, DROP) allow flexible waiting semantics.
+
+👉 Together, this machinery ensures that Linux page cache provides:
+
+Performance (via caching).
+
+Consistency (via locking & dirty tracking).
+
+Correct synchronization (via wait queues).
+
+Would you like me to now create a one-page lifecycle diagram (from file read → cache fill → dirty → writeback → wait/unlock → truncate) that visually ties all these steps into a single flow?
+
+You said:
+Yes textuallu
+ChatGPT said:
+Perfect 👍 — let’s create a textual lifecycle diagram (step-by-step structured flow) that captures everything we discussed about folios, page cache, buffer heads, locking, dirtying, writeback, waiting, and truncation.
+
+📌 Textual Lifecycle Diagram — File Data in Linux Page Cache
+1. File Access Begins
+Process calls read() / write() / mmap().
+
+Kernel locates the file’s:
+
+inode (struct inode) → metadata.
+
+address_space (struct address_space) → page cache entry.
+
+2. Lookup in Page Cache
+Kernel searches for corresponding folio (physical memory holding file block).
+
+If folio present & uptodate → return data directly.
+
+If absent / not uptodate:
+
+Allocate new folio.
+
+Lock folio (PG_locked).
+
+Schedule I/O to fill it.
+
+3. Read I/O Path
+BIO submitted to block device driver.
+
+Device reads data into folio (possibly via buffer heads if FS uses them).
+
+On I/O completion:
+
+Mark folio PG_uptodate.
+
+Unlock folio → wake up waiters (threads waiting for read).
+
+4. Write Path
+Process modifies file → memory updates in folio.
+
+Mark folio/buffers as dirty:
+
+You said:
+Yes textual diagram exhaustively and covering everything we discussed here in thread with cavetas for faang core teams 
+ChatGPT said:
+Got it ✅ — I’ll build you a full textual lifecycle diagram that exhaustively covers everything we discussed in this thread (page cache, buffer heads, dirty tracking, folio locking, waiting/waking, writeback, truncation, BIO submission), and I’ll add caveats + advanced notes that FAANG/Apple/ARM core kernel teams often grill candidates on.
+
+📌 Textual Lifecycle Diagram — Linux Page Cache & Folio Lifecycle (with Caveats)
+1. File Access Entry
+Userspace calls → read(), write(), mmap(), fsync().
+
+Kernel resolves:
+
+inode (struct inode) → metadata.
+
+address_space (struct address_space) → page cache handle for file.
+
+file struct (struct file) → per-open instance.
+
+👉 Caveat (FAANG Q): They may ask “What happens if file is opened twice by different processes?” → Multiple struct file, but same struct inode + same address_space.
+
+2. Page Cache Lookup
+Kernel searches xarray (radix tree) inside address_space for target folio.
+
+Outcomes:
+
+Folio present & PG_uptodate → return data immediately.
+
+Folio missing or stale → allocate new folio, set PG_locked, and trigger I/O.
+
+👉 Caveat: Linux uses folios (larger than 4K) to reduce overhead; FAANG may ask why folios replaced struct page.
+
+3. Folio Locking
+Before touching folio, kernel locks it:
+
+folio_lock() → block until unlocked.
+
+folio_trylock() → optimistic attempt.
+
+folio_lock_killable() → lock but allow fatal signal interrupt.
+
+Lock held while:
+
+Reading from disk.
+
+Writing/truncating data.
+
+Ensuring atomicity across page boundaries.
+
+👉 Caveat: Unlike a normal mutex, folio lock can sleep waiting for I/O. Code paths may optimistically trylock to avoid deadlocks (FAANG may test on ordering rules when locking multiple folios).
+
+4. Read I/O Path
+Kernel builds BIO describing target block(s).
+
+Submitted via submit_bio() to block layer.
+
+Device driver fetches data from disk → DMA into folio.
+
+On completion:
+
+Set PG_uptodate.
+
+Clear PG_locked.
+
+folio_wake_bit(PG_locked) wakes threads waiting on this folio.
+
+👉 Caveat: Partial I/O or error means folio may stay locked/invalid → threads waiting must handle -EIO.
+
+5. Buffer Heads (if FS uses them)
+Each page can have buffer_heads → mapping sub-blocks of disk to regions in page.
+
+Used mainly for block-based filesystems (ext4, etc.).
+
+Track fine-grained states: BH_Dirty, BH_Uptodate, BH_Lock.
+
+Functions:
+
+sb_bread() / sb_getblk() → fetch buffer for block.
+
+mark_buffer_dirty() → set buffer + page dirty + inode dirty.
+
+👉 Caveat: Modern filesystems like XFS don’t use buffer_heads; they submit BIOs directly. FAANG teams may test awareness of legacy vs modern paths.
+
+6. Dirty Tracking
+A dirty folio/buffer = modified, not yet persisted to disk.
+
+Rules:
+
+If any buffer dirty → page dirty.
+
+If page dirty → all buffers flagged dirty.
+
+Functions:
+
+mark_buffer_dirty(bh) → atomic, sets buffer/page dirty + inode tagged dirty.
+
+__set_page_dirty() / __mark_inode_dirty().
+
+👉 Caveat: Dirty doesn’t mean writeback has started. Actual persistence happens later via background flusher or fsync/msync.
+
+7. Writeback Process
+Triggered by:
+
+Kernel background flusher.
+
+Direct calls (fsync(), msync(), munmap()).
+
+Steps:
+
+Set PG_writeback.
+
+Build BIO for dirty folio (possibly multiple).
+
+Submit to block device.
+
+Waiters can block via folio_wait_writeback().
+
+On I/O completion → folio_end_writeback() clears flag and wakes sleepers.
+
+👉 Caveat: A folio can be dirty again while writeback is in progress → second round needed. Core teams test race scenarios here.
+
+8. Waiting & Wakeups
+Threads needing data may wait on folio flags:
+
+PG_locked (waiting for I/O/truncation to complete).
+
+PG_writeback (waiting for disk write to finish).
+
+Functions:
+folio_wait_bit_common(folio, bit, state, behavior) → core engine.
+
+Behaviors:
+
+EXCLUSIVE → wake one waiter (avoid thundering herd).
+
+SHARED → multiple waiters allowed.
+
+DROP → drop folio reference before waiting.
+
+Wait queue mechanism:
+
+Each folio has a wait queue (folio_waitqueue()).
+
+Wakeup function = wake_page_function().
+
+Flags used:
+
+WQ_FLAG_WOKEN → thread was woken.
+
+WQ_FLAG_DONE → lock was handed over (fair lock handoff).
+
+👉 Caveat: If wakeup missed due to race, waiters retry. This rare case is acceptable; correctness maintained.
+
+9. Truncation / Invalidation
+Triggered by file shrink (truncate, hole punch, eviction).
+
+Steps:
+
+Find folios in range via find_lock_entries() or find_get_entries().
+
+For each folio:
+
+If fully covered → truncate_inode_folio() → unmap PTEs, invalidate, cancel dirty, remove.
+
+If partially covered → truncate_inode_partial_folio() → zero affected bytes, leave rest.
+
+Unmap from processes:
+
+unmap_mapping_range() / unmap_mapping_folio().
+
+Reverse mapping walk (vma_interval_tree_foreach) → zap PTEs.
+
+👉 Caveat: FS must ensure metadata consistency. Incorrect truncation can leave stale dirty folios → silent corruption.
+
+10. Write Ordering & Flush
+For durability guarantees:
+
+blkdev_issue_flush() issues REQ_PREFLUSH to device.
+
+Ensures device write cache persisted before reporting success.
+
+Required for fsync/fs barriers.
+
+👉 Caveat: NVMe drives may complete flush instantly (volatile caches disabled), but kernel must still issue flush for POSIX compliance.
+
+✅ Full Lifecycle Flow (At a Glance)
+File access → resolve inode + address_space.
+
+Lookup page cache → hit (return) or miss (allocate folio, lock, schedule I/O).
+
+Read I/O → BIO submitted, completion sets PG_uptodate + unlocks folio.
+
+Write → memory modified, mark buffers/pages dirty, inode tagged dirty.
+
+Writeback → PG_writeback set, BIO submitted, completion clears flag.
+
+Waiting → threads wait on PG_locked / PG_writeback using wait queues.
+
+Wakeups → folio_wake_bit() wakes sleepers, exclusive or shared.
+
+Truncation/Invalidate → folios removed or zeroed, unmap PTEs.
+
+Flush → blkdev_issue_flush ensures data durability.
+
+🎯 FAANG/Apple/ARM Caveats to Remember
+Concurrency: What if a page is dirtied again during writeback? → second round needed.
+
+Partial folio truncation: Zero bytes vs full removal.
+
+Legacy vs modern FS: buffer_heads vs direct BIO submission.
+
+Lock ordering: Folio locks must be taken in ascending index order to avoid deadlocks.
+
+Race handling: Missed wakeups rare but handled safely via retries.
+
+Persistence vs visibility: Dirty page in cache ≠ persisted to disk.
+
+✅ This textual diagram now gives you a complete lifecycle of page cache folios with all locking, dirty tracking, BIO submission, waiting/waking, truncation, and flushes — plus the exact caveats core teams test on.
+
+Would you like me to now compress this into a “30-second executive recap” (just bullet phrases) that you can use right before an interview to recall the entire flow at once?
+
+
+
+
+
+
+No file chosenNo file chosen
+ChatGPT can make mistakes. Check important info. See Cookie Preferences.
