@@ -1,0 +1,36 @@
+(#). what is the intrpretation of the following ?
+
+++i;        //pre-increment internally i = i+1, executes at this call only
+i++;
+i = i+1;
+
+
+(#). Define a macro for returning the max of two numbers ?
+
+#define MAX(num1, num2)     (((num1) > (num2)) ? (num1) : (num2))
+
+
+(#). In a c program, given the initialized variable, i = 0, give the output of the following code snippet ?
+
+printf("%d", ++i);  //1
+printf("%d", i++);  //1
+printf("%d", i+1);  //3
+113
+
+
+(#). Write a function to multiply any number by 10 using bit operations
+
+int mult_10(int a)
+{
+    return  ((a << 3) + (a << 1)); 
+}
+
+
+(#). A train 150 m long is running at a uniform speed of 54 km/hr. How much time will it take to cross a pole?
+
+
+            |
+            |
+            |
+     =======       
+            =======       
