@@ -1,3 +1,6 @@
+- Always try to store array index instead of storing array element value, this will help keep index and value both because value can be derived later.
+- 
+
 Videos: 
 
 Trapping rain water - 

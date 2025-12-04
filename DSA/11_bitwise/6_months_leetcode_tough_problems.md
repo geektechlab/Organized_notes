@@ -1,0 +1,1 @@
+- Go through TUF bitwise theories, it is really good

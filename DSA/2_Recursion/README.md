@@ -1,3 +1,6 @@
+- When somebody ask do it without loop, think if it is meant do it by recursion. For example, print 1 to N without using loop.
+- When we are keeping two indexes, let's say first and last, then instead of having one with devided by 2 and looping over it till it reaches mid, we can code somethinge like while(low<=high>). Think about it.
+
 ```C++
 func(n){
 	if(n>0) /* base condition */
@@ -56,5 +59,3 @@ Important links:
 - Subset sum: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Recursion/video/MTQ2OQ%3D%3D
 - Printing all permutations: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Recursion/video/MjMzNA%3D%3D
 - Josephus problem: https://practice.geeksforgeeks.org/batch/dsa-4/track/DSASP-Recursion/video/OTYx ( for getting idea of solution watch from -8:08. However, with little thinking I figured out exact video code without watching video or taking help. )
-
-When somebody ask do it without loop, think if it is meant do it by recursion. For example, print 1 to N without using loop.

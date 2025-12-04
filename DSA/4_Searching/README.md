@@ -1,4 +1,5 @@
 Points for binary search:
+- Always use indexing from 0 to nums.size()-1 so that mid = (low+high+1)/2 can be used. Also, low + ((high+1)-low)/2 ?
 - Try to apply it when sorted elements are given and asked to search or similar scenario
 - Use low + (high-low)/2 so that high+low sum doesn't grow large
 - Put condition low<=high or high>low as breaker

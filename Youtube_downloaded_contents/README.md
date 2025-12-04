@@ -1,0 +1,11 @@
+- DSA ( cracking the coding IV ): https://youtu.be/QD7m7NMCfrY?si=v8wJHQHdLXyhqepF
+- COSC562 MMU and virtio
+    - https://youtu.be/Doud5Kh3Jes?si=uQwTw2r9DhzXa1b1
+    - https://youtu.be/tlyhuVo-YtA?si=NXXIhFtI4RoGipHi
+    - https://youtu.be/P-zupHddtmY?si=kT6W8PvaR8-xV2XH
+- https://youtu.be/gMd7gkLPTO4?si=XErP2Q5KmPaLxbIu
+- PCIe Kishon - https://youtu.be/3ic61kJNEQ0?si=j0BgBHSiXIL3H96o
+- RCU usage
+    - https://youtu.be/K-4TI5gFsig?si=F-5MNOQNBXxt7j2b
+    - https://youtu.be/tBl3yh6Mc1c?si=wJIZhFLX1TckFLWH
+- RCU in general: https://youtu.be/rxQ5K9lo034?si=xycEuV_MjJzMeqhV
