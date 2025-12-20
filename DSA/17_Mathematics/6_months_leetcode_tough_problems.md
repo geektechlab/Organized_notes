@@ -1,0 +1,4 @@
+- Just before few days of interview memorize and go through these because mathematics is just ratta
+    - Geeksforgeeks course all theory, video and coding problems
+    - TUF step 8: Lec 3
+    - Geeksforgeeks any general mathematics stuff

@@ -1,1 +1,2 @@
 - Go through TUF bitwise theories, it is really good
+- Remember, result of power can only be negative if base is negative and then also odd power will yield negative result, all other cases will give positive results. For positive base, always power result will be positive.
