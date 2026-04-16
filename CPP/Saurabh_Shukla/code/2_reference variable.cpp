@@ -60,5 +60,21 @@ int main() {
     refArr[1] = 99; // Modifies original array
     cout << "Array after modification: " << arr[0] << ", " << arr[1] << ", " << arr[2] << endl;
 
+	// 8. class ref
+	class myClass {
+	public:
+		int val;
+	};
+	myClass obj;
+
+	myClass *ptr_1 = &obj;
+	myClass *(&ref_1) = ptr_1;
+
+	ref_1->val = 10;
+	cout << ptr_1->val << endl;
+
+	ptr_1->val = 20;
+	cout << ref_1->val << endl;
+
     return 0;
 }

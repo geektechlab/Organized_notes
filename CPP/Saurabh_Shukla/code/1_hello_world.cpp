@@ -6,6 +6,7 @@ using namespace std;
 int main()
 {
     int a;
+	// cout is object part of iostream and << and >> are operators on that
     cout << "hello_world" << endl;
     cin >> a;
     cout << "a =" << a << endl;
